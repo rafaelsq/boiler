@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
@@ -15,16 +16,17 @@ func main() {
 		}
 	}()
 
+	ctx := context.Background()
 	ucase := usecase.NewUser( /*db*/ )
 
-	u, err := ucase.ByID(1)
+	u, err := ucase.ByID(ctx, 1)
 	if err != nil {
 		return
 	}
 
 	fmt.Println("User", u.ID, u.Name)
 
-	us, err := ucase.Friends(&entity.UserFriendsFilter{
+	us, err := ucase.Friends(ctx, &entity.UserFriendsFilter{
 		FromUserID: u.ID,
 	})
 	if err != nil {

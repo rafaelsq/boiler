@@ -1,5 +1,7 @@
 package entity
 
+import "context"
+
 type User struct {
 	ID   int
 	Name string
@@ -10,11 +12,11 @@ type UserFriendsFilter struct {
 }
 
 type UserUsecase interface {
-	ByID(int) (*User, error)
-	Friends(*UserFriendsFilter) ([]*User, error)
+	ByID(context.Context, int) (*User, error)
+	Friends(context.Context, *UserFriendsFilter) ([]*User, error)
 }
 
 type UserRepository interface {
-	ByID(int) (*User, error)
-	FilterFriends(*UserFriendsFilter) ([]*User, error)
+	ByID(context.Context, int) (*User, error)
+	FilterFriends(context.Context, *UserFriendsFilter) ([]*User, error)
 }

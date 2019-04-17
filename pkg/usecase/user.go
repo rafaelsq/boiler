@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/usecase/internal/repository/user"
 )
@@ -13,10 +15,10 @@ type User struct {
 	Repo entity.UserRepository
 }
 
-func (u *User) ByID(id int) (*entity.User, error) {
-	return u.Repo.ByID(id)
+func (u *User) ByID(ctx context.Context, id int) (*entity.User, error) {
+	return u.Repo.ByID(ctx, id)
 }
 
-func (u *User) Friends(filter *entity.UserFriendsFilter) ([]*entity.User, error) {
-	return u.Repo.FilterFriends(filter)
+func (u *User) Friends(ctx context.Context, filter *entity.UserFriendsFilter) ([]*entity.User, error) {
+	return u.Repo.FilterFriends(ctx, filter)
 }
