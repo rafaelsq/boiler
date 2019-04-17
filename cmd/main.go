@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/usecase"
 )
 
@@ -22,4 +23,17 @@ func main() {
 	}
 
 	fmt.Println("User", u.ID, u.Name)
+
+	us, err := ucase.Friends(&entity.UserFriendsFilter{
+		FromUserID: u.ID,
+	})
+	if err != nil {
+		return
+	}
+
+	fmt.Println("Friends")
+	for i, u := range us {
+		fmt.Println("-", i, u.ID, u.Name)
+
+	}
 }
