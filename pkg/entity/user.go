@@ -3,8 +3,9 @@ package entity
 import "context"
 
 type User struct {
-	ID   int
-	Name string
+	ID     uint
+	Name   string
+	Emails []*Email
 }
 
 type UserFilterOrder uint
@@ -19,11 +20,11 @@ type UserFilter struct {
 }
 
 type UserUsecase interface {
-	ByID(context.Context, int) (*User, error)
+	ByID(context.Context, uint) (*User, error)
 	Filter(context.Context, *UserFilter) ([]*User, error)
 }
 
 type UserRepository interface {
-	ByID(context.Context, int) (*User, error)
+	ByID(context.Context, uint) (*User, error)
 	Filter(context.Context, *UserFilter) ([]*User, error)
 }

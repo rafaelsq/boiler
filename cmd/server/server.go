@@ -28,10 +28,14 @@ func main() {
 			return
 		}
 
-		if userID, err := strconv.Atoi(path); err == nil && userID > 0 {
+		if userID, err := strconv.ParseUint(path, 10, 64); err == nil && userID > 0 {
 			ucase := usecase.NewUser( /*db*/ )
-			if user, err := ucase.ByID(r.Context(), userID); err == nil && user != nil {
-				fmt.Fprintf(w, "<h1>User</h1><p>%d - %s", user.ID, user.Name)
+			if user, err := ucase.ByID(r.Context(), uint(userID)); err == nil && user != nil {
+				fmt.Fprintf(w, "<h1>User</h1><p>%d - %s</p><ul>", user.ID, user.Name)
+				for _, email := range user.Emails {
+					fmt.Fprintf(w, "<li>%d - <%s>%s</li>", email.ID, email.User.Name, email.Address)
+				}
+				fmt.Fprintf(w, "</ul>")
 				return
 			}
 		}

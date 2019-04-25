@@ -20,7 +20,7 @@ type Repo struct {
 	// db
 }
 
-func (r *Repo) ByID(ctx context.Context, id int) (*entity.User, error) {
+func (r *Repo) ByID(ctx context.Context, id uint) (*entity.User, error) {
 	for _, user := range users {
 		if user.ID == id {
 			return user, nil
