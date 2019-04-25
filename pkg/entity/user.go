@@ -7,16 +7,23 @@ type User struct {
 	Name string
 }
 
-type UserFriendsFilter struct {
-	FromUserID int
+type UserFilterOrder uint
+
+var (
+	UserFilterOrderASC  UserFilterOrder = 0
+	UserFilterOrderDESC UserFilterOrder = 1
+)
+
+type UserFilter struct {
+	Order UserFilterOrder
 }
 
 type UserUsecase interface {
 	ByID(context.Context, int) (*User, error)
-	Friends(context.Context, *UserFriendsFilter) ([]*User, error)
+	Filter(context.Context, *UserFilter) ([]*User, error)
 }
 
 type UserRepository interface {
 	ByID(context.Context, int) (*User, error)
-	FilterFriends(context.Context, *UserFriendsFilter) ([]*User, error)
+	Filter(context.Context, *UserFilter) ([]*User, error)
 }

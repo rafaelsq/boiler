@@ -19,6 +19,6 @@ func (u *User) ByID(ctx context.Context, id int) (*entity.User, error) {
 	return u.Repo.ByID(ctx, id)
 }
 
-func (u *User) Friends(ctx context.Context, filter *entity.UserFriendsFilter) ([]*entity.User, error) {
-	return u.Repo.FilterFriends(ctx, filter)
+func (u *User) Filter(ctx context.Context, filter *entity.UserFilter) ([]*entity.User, error) {
+	return u.Repo.Filter(ctx, filter)
 }
