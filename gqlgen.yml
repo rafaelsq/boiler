@@ -1,0 +1,25 @@
+# .gqlgen.yml example
+#
+# Refer to https://gqlgen.com/config/
+# for detailed .gqlgen.yml documentation.
+
+schema:
+- schema.graphql
+exec:
+  filename: pkg/graphql/generated.go
+model:
+  filename: pkg/entity/entity_gen.go
+models:
+  User:
+    model: github.com/rafaelsq/boiler/pkg/entity.User
+    fields:
+      emails:
+        resolver: true
+  Email:
+    model: github.com/rafaelsq/boiler/pkg/entity.Email
+    fields:
+      user:
+        resolver: true
+resolver:
+  filename: pkg/graphql/resolver.go
+  type: Resolver
