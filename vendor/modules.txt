@@ -1,0 +1,20 @@
+# github.com/99designs/gqlgen v0.8.3
+github.com/99designs/gqlgen/handler
+github.com/99designs/gqlgen/graphql
+github.com/99designs/gqlgen/graphql/introspection
+github.com/99designs/gqlgen/complexity
+# github.com/agnivade/levenshtein v1.0.1
+github.com/agnivade/levenshtein
+# github.com/gorilla/websocket v1.2.0
+github.com/gorilla/websocket
+# github.com/hashicorp/golang-lru v0.5.0
+github.com/hashicorp/golang-lru
+github.com/hashicorp/golang-lru/simplelru
+# github.com/vektah/gqlparser v1.1.2
+github.com/vektah/gqlparser
+github.com/vektah/gqlparser/ast
+github.com/vektah/gqlparser/gqlerror
+github.com/vektah/gqlparser/parser
+github.com/vektah/gqlparser/validator
+github.com/vektah/gqlparser/validator/rules
+github.com/vektah/gqlparser/lexer
