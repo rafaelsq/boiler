@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/resolver/internal/repository/email"
-	"github.com/rafaelsq/boiler/pkg/resolver/internal/repository/user"
+	"github.com/rafaelsq/boiler/pkg/repository/email"
+	"github.com/rafaelsq/boiler/pkg/repository/user"
 )
 
 func NewEmail(db entity.DB) *Email {

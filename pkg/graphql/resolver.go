@@ -3,6 +3,7 @@ package graphql
 
 import (
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/mutation"
 	"github.com/rafaelsq/boiler/pkg/resolver"
 )
 
@@ -19,7 +20,7 @@ func (r *Resolver) Query() QueryResolver {
 }
 
 func (r *Resolver) Mutation() MutationResolver {
-	return NewMutation(r.db)
+	return mutation.NewMutation(r.db)
 }
 
 func (r *Resolver) User() UserResolver {

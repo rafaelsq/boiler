@@ -18,7 +18,7 @@ func (r *Repo) Users(ctx context.Context) ([]*entity.User, error) {
 	return r.db.Users(ctx)
 }
 
-func (r *Repo) ByID(ctx context.Context, userID uint) (*entity.User, error) {
+func (r *Repo) ByID(ctx context.Context, userID int) (*entity.User, error) {
 	return r.db.UserByID(ctx, userID)
 }
 

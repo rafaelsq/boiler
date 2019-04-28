@@ -35,11 +35,17 @@ func GetDB() entity.DB {
 
 type DB struct{}
 
+func (d *DB) AddEmail(ctx context.Context, userID int, address string) (int, error) {
+	pk := int(len(emails))
+	emails = append(emails, &entity.Email{ID: pk, User: entity.User{ID: userID}, Address: address})
+	return pk, nil
+}
+
 func (d *DB) Users(ctx context.Context) ([]*entity.User, error) {
 	return users, nil
 }
 
-func (d *DB) UserByID(ctx context.Context, userID uint) (*entity.User, error) {
+func (d *DB) UserByID(ctx context.Context, userID int) (*entity.User, error) {
 	for _, user := range users {
 		if user.ID == userID {
 			return user, nil
@@ -58,7 +64,7 @@ func (d *DB) UserByEmail(ctx context.Context, email string) (*entity.User, error
 	return nil, nil
 }
 
-func (d *DB) EmailsByUserID(ctx context.Context, userID uint) ([]*entity.Email, error) {
+func (d *DB) EmailsByUserID(ctx context.Context, userID int) ([]*entity.Email, error) {
 	ret := []*entity.Email{}
 	for _, email := range emails {
 		if email.User.ID == userID {

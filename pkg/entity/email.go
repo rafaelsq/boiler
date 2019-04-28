@@ -3,15 +3,12 @@ package entity
 import "context"
 
 type Email struct {
-	ID      uint   `json:"id"`
+	ID      int    `json:"id"`
 	Address string `json:"address"`
 	User    User   `json:"user"`
 }
 
-type EmailUsecase interface {
-	ByUserID(context.Context, uint) ([]*Email, error)
-}
-
 type EmailRepository interface {
-	ByUserID(context.Context, uint) ([]*Email, error)
+	ByUserID(context.Context, int) ([]*Email, error)
+	Add(context.Context, int, string) (int, error)
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/resolver/internal/repository/email"
-	"github.com/rafaelsq/boiler/pkg/resolver/internal/repository/user"
+	"github.com/rafaelsq/boiler/pkg/repository/email"
+	"github.com/rafaelsq/boiler/pkg/repository/user"
 )
 
 func NewUser(db entity.DB) *User {
@@ -27,7 +27,7 @@ func (*User) ID(ctx context.Context, u *entity.User) (int, error) {
 }
 
 func (r *User) User(ctx context.Context, userID int) (*entity.User, error) {
-	return r.userRepo.ByID(ctx, uint(userID))
+	return r.userRepo.ByID(ctx, userID)
 }
 
 func (r *User) Users(ctx context.Context) ([]*entity.User, error) {
