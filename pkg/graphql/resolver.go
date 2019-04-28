@@ -7,7 +7,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/resolver"
 )
 
-func NewResolver(db entity.DB) *Resolver {
+func NewResolver(db entity.DB) ResolverRoot {
 	return &Resolver{db}
 }
 

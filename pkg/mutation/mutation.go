@@ -4,23 +4,23 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/repository/email"
+	"github.com/rafaelsq/boiler/pkg/service"
 )
 
 func NewMutation(db entity.DB) *Mutation {
 	return &Mutation{
-		db:        db,
-		emailRepo: email.NewRepo(db),
+		db:           db,
+		emailService: service.NewEmail(db),
 	}
 }
 
 type Mutation struct {
-	db        entity.DB
-	emailRepo entity.EmailRepository
+	db           entity.DB
+	emailService service.Email
 }
 
 func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*entity.User, error) {
-	_, err := m.emailRepo.Add(ctx, input.UserID, input.Address)
+	_, err := m.emailService.Add(ctx, input.UserID, input.Address)
 	if err != nil {
 		return nil, err
 	}

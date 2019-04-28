@@ -4,22 +4,19 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/repository/email"
-	"github.com/rafaelsq/boiler/pkg/repository/user"
+	"github.com/rafaelsq/boiler/pkg/service"
 )
 
 func NewEmail(db entity.DB) *Email {
 	return &Email{
-		db:        db,
-		userRepo:  user.NewRepo(db),
-		emailRepo: email.NewRepo(db),
+		db:          db,
+		userService: service.NewUser(db),
 	}
 }
 
 type Email struct {
-	db        entity.DB
-	userRepo  entity.UserRepository
-	emailRepo entity.EmailRepository
+	db          entity.DB
+	userService service.User
 }
 
 func (r *Email) ID(ctx context.Context, e *entity.Email) (int, error) {
@@ -27,5 +24,5 @@ func (r *Email) ID(ctx context.Context, e *entity.Email) (int, error) {
 }
 
 func (r *Email) User(ctx context.Context, e *entity.Email) (*entity.User, error) {
-	return r.userRepo.ByEmail(ctx, e.Address)
+	return r.userService.ByEmail(ctx, e.Address)
 }
