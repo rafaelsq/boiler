@@ -3,7 +3,7 @@ package resolver
 import (
 	"context"
 
-	"github.com/rafaelsq/boiler/pkg/graphql/entity"
+	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )

@@ -3,8 +3,8 @@ package graphql
 import (
 	"context"
 
-	"github.com/rafaelsq/boiler/pkg/graphql/entity"
-	"github.com/rafaelsq/boiler/pkg/graphql/resolver"
+	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
+	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
 

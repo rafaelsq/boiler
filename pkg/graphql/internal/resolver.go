@@ -2,8 +2,8 @@
 package graphql
 
 import (
-	"github.com/rafaelsq/boiler/pkg/graphql/mutation"
-	"github.com/rafaelsq/boiler/pkg/graphql/resolver"
+	"github.com/rafaelsq/boiler/pkg/graphql/internal/mutation"
+	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
 

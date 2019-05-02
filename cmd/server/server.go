@@ -1,18 +1,15 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
-	"runtime/debug"
 	"strconv"
 
-	"github.com/99designs/gqlgen/handler"
+	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql"
-	"github.com/rafaelsq/boiler/pkg/graphql/resolver"
+	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
@@ -25,18 +22,8 @@ func main() {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	http.Handle("/play", handler.Playground("Users", "/query"))
-
-	http.HandleFunc("/query", handler.GraphQL(
-		graphql.NewExecutableSchema(graphql.Config{
-			Resolvers: graphql.NewResolver(storage.GetDB()),
-		}),
-		handler.RecoverFunc(func(ctx context.Context, err interface{}) error {
-			log.Print(err)
-			debug.PrintStack()
-			return errors.New("internal server error")
-		}),
-	))
+	http.Handle("/play", graphql.NewPlayHandle())
+	http.HandleFunc("/query", graphql.NewHandleFunc(storage.GetDB()))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()[1:]
@@ -47,11 +34,21 @@ func main() {
 		}
 
 		if userID, err := strconv.ParseUint(path, 10, 64); err == nil && userID > 0 {
-			ucase := resolver.NewUser(storage.GetDB())
-			if user, err := ucase.User(r.Context(), int(userID)); err == nil && user != nil {
+			ucase := service.NewUser(storage.GetDB())
+			cEmails := make(chan []*entity.Email)
+			go func() {
+				es, _ := service.NewEmail(storage.GetDB()).ByUserID(r.Context(), int(userID))
+				if err == nil {
+					cEmails <- es
+					return
+				}
+				panic(err)
+			}()
+
+			if user, err := ucase.ByID(r.Context(), int(userID)); err == nil && user != nil {
 				fmt.Fprintf(w, "<h1>User</h1><p>%d - %s</p><ul>", user.ID, user.Name)
-				for _, email := range user.Emails {
-					fmt.Fprintf(w, "<li>%d - <%s>%s</li>", email.ID, email.User.Name, email.Address)
+				for _, email := range <-cEmails {
+					fmt.Fprintf(w, "<li>%d - <%s>%s</li>", email.ID, user.Name, email.Address)
 				}
 				fmt.Fprintf(w, "</ul>")
 				return
@@ -63,8 +60,8 @@ func main() {
 	})
 
 	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		ucase := resolver.NewUser(storage.GetDB())
-		users, err := ucase.Users(r.Context())
+		ucase := service.NewUser(storage.GetDB())
+		users, err := ucase.List(r.Context())
 		if err != nil {
 			log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
