@@ -5,9 +5,10 @@ import (
 
 	"github.com/rafaelsq/boiler/pkg/entity"
 	ur "github.com/rafaelsq/boiler/pkg/service/internal/repository/user"
+	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewUser(db entity.DB) User {
+func NewUser(db storage.DB) User {
 	return &user{
 		db:       db,
 		userRepo: ur.New(db),
@@ -21,7 +22,7 @@ type User interface {
 }
 
 type user struct {
-	db       entity.DB
+	db       storage.DB
 	userRepo ur.Repository
 }
 

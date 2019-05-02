@@ -3,11 +3,12 @@ package mutation
 import (
 	"context"
 
-	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/graphql/entity"
 	"github.com/rafaelsq/boiler/pkg/service"
+	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewMutation(db entity.DB) *Mutation {
+func NewMutation(db storage.DB) *Mutation {
 	return &Mutation{
 		db:           db,
 		emailService: service.NewEmail(db),
@@ -15,7 +16,7 @@ func NewMutation(db entity.DB) *Mutation {
 }
 
 type Mutation struct {
-	db           entity.DB
+	db           storage.DB
 	emailService service.Email
 }
 

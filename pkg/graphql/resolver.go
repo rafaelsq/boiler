@@ -2,17 +2,17 @@
 package graphql
 
 import (
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/mutation"
-	"github.com/rafaelsq/boiler/pkg/resolver"
+	"github.com/rafaelsq/boiler/pkg/graphql/mutation"
+	"github.com/rafaelsq/boiler/pkg/graphql/resolver"
+	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewResolver(db entity.DB) ResolverRoot {
+func NewResolver(db storage.DB) ResolverRoot {
 	return &Resolver{db}
 }
 
 type Resolver struct {
-	db entity.DB
+	db storage.DB
 }
 
 func (r *Resolver) Query() QueryResolver {

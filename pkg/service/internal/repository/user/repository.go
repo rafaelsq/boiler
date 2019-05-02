@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func New(db entity.DB) Repository {
+func New(db storage.DB) Repository {
 	return &repository{db}
 }
 
@@ -17,7 +18,7 @@ type Repository interface {
 }
 
 type repository struct {
-	db entity.DB
+	db storage.DB
 }
 
 func (r *repository) List(ctx context.Context) ([]*entity.User, error) {

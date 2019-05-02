@@ -3,11 +3,12 @@ package graphql
 import (
 	"context"
 
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/resolver"
+	"github.com/rafaelsq/boiler/pkg/graphql/entity"
+	"github.com/rafaelsq/boiler/pkg/graphql/resolver"
+	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewQuery(db entity.DB) *Query {
+func NewQuery(db storage.DB) QueryResolver {
 	return &Query{
 		db:           db,
 		userResolver: resolver.NewUser(db),
@@ -15,7 +16,7 @@ func NewQuery(db entity.DB) *Query {
 }
 
 type Query struct {
-	db           entity.DB
+	db           storage.DB
 	userResolver *resolver.User
 }
 

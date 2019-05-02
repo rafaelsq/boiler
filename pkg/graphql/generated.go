@@ -13,7 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
-	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/graphql/entity"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -67,8 +67,6 @@ type ComplexityRoot struct {
 }
 
 type EmailResolver interface {
-	ID(ctx context.Context, obj *entity.Email) (int, error)
-
 	User(ctx context.Context, obj *entity.Email) (*entity.User, error)
 }
 type MutationResolver interface {
@@ -79,8 +77,6 @@ type QueryResolver interface {
 	User(ctx context.Context, userID int) (*entity.User, error)
 }
 type UserResolver interface {
-	ID(ctx context.Context, obj *entity.User) (int, error)
-
 	Emails(ctx context.Context, obj *entity.User) ([]*entity.Email, error)
 }
 
@@ -286,7 +282,7 @@ func (ec *executionContext) field_Mutation_addMail_args(ctx context.Context, raw
 	args := map[string]interface{}{}
 	var arg0 entity.AddMailInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNaddMailInput2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐAddMailInput(ctx, tmp)
+		arg0, err = ec.unmarshalNaddMailInput2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐAddMailInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -362,13 +358,13 @@ func (ec *executionContext) _Email_id(ctx context.Context, field graphql.Collect
 		Object:   "Email",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Email().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -433,7 +429,7 @@ func (ec *executionContext) _Email_user(ctx context.Context, field graphql.Colle
 	res := resTmp.(*entity.User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addMail(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -467,7 +463,7 @@ func (ec *executionContext) _Mutation_addMail(ctx context.Context, field graphql
 	res := resTmp.(*entity.User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -494,7 +490,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	res := resTmp.([]*entity.User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -528,7 +524,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	res := resTmp.(*entity.User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -593,13 +589,13 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -664,7 +660,7 @@ func (ec *executionContext) _User_emails(ctx context.Context, field graphql.Coll
 	res := resTmp.([]*entity.Email)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEmail2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐEmail(ctx, field.Selections, res)
+	return ec.marshalNEmail2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐEmail(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -1542,19 +1538,10 @@ func (ec *executionContext) _Email(ctx context.Context, sel ast.SelectionSet, ob
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Email")
 		case "id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Email_id(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Email_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "address":
 			out.Values[i] = ec._Email_address(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -1686,19 +1673,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("User")
 		case "id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_id(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._User_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -1982,7 +1960,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return graphql.MarshalBoolean(v)
 }
 
-func (ec *executionContext) marshalNEmail2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v []*entity.Email) graphql.Marshaler {
+func (ec *executionContext) marshalNEmail2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v []*entity.Email) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2006,7 +1984,7 @@ func (ec *executionContext) marshalNEmail2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboiler
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOEmail2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐEmail(ctx, sel, v[i])
+			ret[i] = ec.marshalOEmail2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐEmail(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2035,11 +2013,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return graphql.MarshalString(v)
 }
 
-func (ec *executionContext) marshalNUser2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v entity.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v []*entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v []*entity.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2063,7 +2041,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboiler�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalOUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2076,7 +2054,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgitlabᚗcomᚋrafaelsqᚋboiler�
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2300,7 +2278,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return graphql.MarshalString(v)
 }
 
-func (ec *executionContext) unmarshalNaddMailInput2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐAddMailInput(ctx context.Context, v interface{}) (entity.AddMailInput, error) {
+func (ec *executionContext) unmarshalNaddMailInput2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐAddMailInput(ctx context.Context, v interface{}) (entity.AddMailInput, error) {
 	return ec.unmarshalInputaddMailInput(ctx, v)
 }
 
@@ -2327,11 +2305,11 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOEmail2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v entity.Email) graphql.Marshaler {
+func (ec *executionContext) marshalOEmail2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v entity.Email) graphql.Marshaler {
 	return ec._Email(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOEmail2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v *entity.Email) graphql.Marshaler {
+func (ec *executionContext) marshalOEmail2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v *entity.Email) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -2361,11 +2339,11 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOUser2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2gitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v entity.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgitlabᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

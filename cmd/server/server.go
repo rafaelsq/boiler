@@ -11,9 +11,9 @@ import (
 	"strconv"
 
 	"github.com/99designs/gqlgen/handler"
-	"github.com/rafaelsq/boiler"
 	"github.com/rafaelsq/boiler/pkg/graphql"
-	"github.com/rafaelsq/boiler/pkg/resolver"
+	"github.com/rafaelsq/boiler/pkg/graphql/resolver"
+	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
 var port = flag.Int("port", 2000, "")
@@ -29,7 +29,7 @@ func main() {
 
 	http.HandleFunc("/query", handler.GraphQL(
 		graphql.NewExecutableSchema(graphql.Config{
-			Resolvers: graphql.NewResolver(boiler.GetDB()),
+			Resolvers: graphql.NewResolver(storage.GetDB()),
 		}),
 		handler.RecoverFunc(func(ctx context.Context, err interface{}) error {
 			log.Print(err)
@@ -47,7 +47,7 @@ func main() {
 		}
 
 		if userID, err := strconv.ParseUint(path, 10, 64); err == nil && userID > 0 {
-			ucase := resolver.NewUser(boiler.GetDB())
+			ucase := resolver.NewUser(storage.GetDB())
 			if user, err := ucase.User(r.Context(), int(userID)); err == nil && user != nil {
 				fmt.Fprintf(w, "<h1>User</h1><p>%d - %s</p><ul>", user.ID, user.Name)
 				for _, email := range user.Emails {
@@ -63,7 +63,7 @@ func main() {
 	})
 
 	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		ucase := resolver.NewUser(boiler.GetDB())
+		ucase := resolver.NewUser(storage.GetDB())
 		users, err := ucase.Users(r.Context())
 		if err != nil {
 			log.Print(err)

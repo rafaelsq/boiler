@@ -5,9 +5,10 @@ import (
 
 	"github.com/rafaelsq/boiler/pkg/entity"
 	er "github.com/rafaelsq/boiler/pkg/service/internal/repository/email"
+	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewEmail(db entity.DB) Email {
+func NewEmail(db storage.DB) Email {
 	return &email{
 		db:        db,
 		emailRepo: er.New(db),
@@ -20,7 +21,7 @@ type Email interface {
 }
 
 type email struct {
-	db        entity.DB
+	db        storage.DB
 	emailRepo er.Repository
 }
 
