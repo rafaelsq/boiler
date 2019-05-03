@@ -11,12 +11,10 @@ model:
   filename: pkg/graphql/internal/entity/entity_gen.go
 models:
   User:
-    model: github.com/rafaelsq/boiler/pkg/graphql/internal/entity.User
     fields:
       emails:
         resolver: true
   Email:
-    model: github.com/rafaelsq/boiler/pkg/graphql/internal/entity.Email
     fields:
       user:
         resolver: true
