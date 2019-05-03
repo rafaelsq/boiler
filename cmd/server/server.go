@@ -9,6 +9,8 @@ import (
 
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql"
+	er "github.com/rafaelsq/boiler/pkg/repository/email"
+	ur "github.com/rafaelsq/boiler/pkg/repository/user"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
@@ -34,10 +36,10 @@ func main() {
 		}
 
 		if userID, err := strconv.ParseUint(path, 10, 64); err == nil && userID > 0 {
-			ucase := service.NewUser(storage.GetDB())
+			ucase := service.NewUser(ur.New(storage.GetDB()))
 			cEmails := make(chan []*entity.Email)
 			go func() {
-				es, _ := service.NewEmail(storage.GetDB()).ByUserID(r.Context(), int(userID))
+				es, _ := service.NewEmail(er.New(storage.GetDB())).ByUserID(r.Context(), int(userID))
 				if err == nil {
 					cEmails <- es
 					return
@@ -60,7 +62,7 @@ func main() {
 	})
 
 	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		ucase := service.NewUser(storage.GetDB())
+		ucase := service.NewUser(ur.New(storage.GetDB()))
 		users, err := ucase.List(r.Context())
 		if err != nil {
 			log.Print(err)

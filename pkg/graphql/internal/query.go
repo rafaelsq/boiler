@@ -5,25 +5,22 @@ import (
 
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
-	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewQuery(db storage.DB) QueryResolver {
+func NewQuery(ru *resolver.User) QueryResolver {
 	return &Query{
-		db:           db,
-		userResolver: resolver.NewUser(db),
+		ru: ru,
 	}
 }
 
 type Query struct {
-	db           storage.DB
-	userResolver *resolver.User
+	ru *resolver.User
 }
 
 func (r *Query) Users(ctx context.Context) ([]*entity.User, error) {
-	return r.userResolver.Users(ctx)
+	return r.ru.Users(ctx)
 }
 
 func (r *Query) User(ctx context.Context, userID int) (*entity.User, error) {
-	return r.userResolver.User(ctx, userID)
+	return r.ru.User(ctx, userID)
 }

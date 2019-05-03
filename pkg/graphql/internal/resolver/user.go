@@ -3,23 +3,20 @@ package resolver
 import (
 	"context"
 
+	ent "github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/service"
-	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewUser(db storage.DB) *User {
+func NewUser(us ent.UserService, es ent.EmailService) *User {
 	return &User{
-		db:           db,
-		userService:  service.NewUser(db),
-		emailService: service.NewEmail(db),
+		userService:  us,
+		emailService: es,
 	}
 }
 
 type User struct {
-	db           storage.DB
-	userService  service.User
-	emailService service.Email
+	userService  ent.UserService
+	emailService ent.EmailService
 }
 
 func (*User) ID(ctx context.Context, u *entity.User) (int, error) {

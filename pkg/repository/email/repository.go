@@ -7,13 +7,8 @@ import (
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func New(db storage.DB) Repository {
+func New(db storage.DB) entity.EmailRepository {
 	return &repository{db}
-}
-
-type Repository interface {
-	ByUserID(context.Context, int) ([]*entity.Email, error)
-	Add(context.Context, int, string) (int, error)
 }
 
 type repository struct {

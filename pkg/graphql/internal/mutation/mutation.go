@@ -3,25 +3,22 @@ package mutation
 import (
 	"context"
 
+	ent "github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/service"
-	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewMutation(db storage.DB) *Mutation {
+func NewMutation(service ent.EmailService) *Mutation {
 	return &Mutation{
-		db:           db,
-		emailService: service.NewEmail(db),
+		service: service,
 	}
 }
 
 type Mutation struct {
-	db           storage.DB
-	emailService service.Email
+	service ent.EmailService
 }
 
 func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*entity.User, error) {
-	_, err := m.emailService.Add(ctx, input.UserID, input.Address)
+	_, err := m.service.Add(ctx, input.UserID, input.Address)
 	if err != nil {
 		return nil, err
 	}

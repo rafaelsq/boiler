@@ -3,21 +3,18 @@ package resolver
 import (
 	"context"
 
+	ent "github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/service"
-	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewEmail(db storage.DB) *Email {
+func NewEmail(service ent.UserService) *Email {
 	return &Email{
-		db:          db,
-		userService: service.NewUser(db),
+		service: service,
 	}
 }
 
 type Email struct {
-	db          storage.DB
-	userService service.User
+	service ent.UserService
 }
 
 func (r *Email) ID(ctx context.Context, e *entity.Email) (int, error) {
@@ -25,7 +22,7 @@ func (r *Email) ID(ctx context.Context, e *entity.Email) (int, error) {
 }
 
 func (r *Email) User(ctx context.Context, e *entity.Email) (*entity.User, error) {
-	u, err := r.userService.ByEmail(ctx, e.Address)
+	u, err := r.service.ByEmail(ctx, e.Address)
 	if err == nil {
 		return entity.NewUser(u), nil
 	}

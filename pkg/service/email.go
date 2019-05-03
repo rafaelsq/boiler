@@ -4,31 +4,22 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
-	er "github.com/rafaelsq/boiler/pkg/service/internal/repository/email"
-	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func NewEmail(db storage.DB) Email {
+func NewEmail(repo entity.EmailRepository) entity.EmailService {
 	return &email{
-		db:        db,
-		emailRepo: er.New(db),
+		repo: repo,
 	}
 }
 
-type Email interface {
-	ByUserID(context.Context, int) ([]*entity.Email, error)
-	Add(context.Context, int, string) (int, error)
-}
-
 type email struct {
-	db        storage.DB
-	emailRepo er.Repository
+	repo entity.EmailRepository
 }
 
 func (s *email) Add(ctx context.Context, userID int, address string) (int, error) {
-	return s.emailRepo.Add(ctx, userID, address)
+	return s.repo.Add(ctx, userID, address)
 }
 
 func (s *email) ByUserID(ctx context.Context, userID int) ([]*entity.Email, error) {
-	return s.emailRepo.ByUserID(ctx, userID)
+	return s.repo.ByUserID(ctx, userID)
 }
