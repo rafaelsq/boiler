@@ -9,19 +9,19 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 	graphql "github.com/rafaelsq/boiler/pkg/graphql/internal"
+	"github.com/rafaelsq/boiler/pkg/iface"
 	er "github.com/rafaelsq/boiler/pkg/repository/email"
 	ur "github.com/rafaelsq/boiler/pkg/repository/user"
 	"github.com/rafaelsq/boiler/pkg/service"
-	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
 func NewPlayHandle() http.Handler {
 	return handler.Playground("Users", "/query")
 }
 
-func NewHandleFunc(db storage.DB) func(http.ResponseWriter, *http.Request) {
-	us := service.NewUser(ur.New(db))
-	es := service.NewEmail(er.New(db))
+func NewHandleFunc(storage iface.Storage) func(http.ResponseWriter, *http.Request) {
+	us := service.NewUser(ur.New(storage))
+	es := service.NewEmail(er.New(storage))
 
 	return handler.GraphQL(
 		graphql.NewExecutableSchema(graphql.Config{

@@ -4,16 +4,17 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewEmail(repo entity.EmailRepository) entity.EmailService {
+func NewEmail(repo iface.EmailRepository) iface.EmailService {
 	return &email{
 		repo: repo,
 	}
 }
 
 type email struct {
-	repo entity.EmailRepository
+	repo iface.EmailRepository
 }
 
 func (s *email) Add(ctx context.Context, userID int, address string) (int, error) {

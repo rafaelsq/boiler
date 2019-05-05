@@ -3,18 +3,18 @@ package resolver
 import (
 	"context"
 
-	ent "github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewEmail(service ent.UserService) *Email {
+func NewEmail(service iface.UserService) *Email {
 	return &Email{
 		service: service,
 	}
 }
 
 type Email struct {
-	service ent.UserService
+	service iface.UserService
 }
 
 func (r *Email) ID(ctx context.Context, e *entity.Email) (int, error) {

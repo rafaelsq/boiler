@@ -3,11 +3,11 @@ package resolver
 import (
 	"context"
 
-	ent "github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewUser(us ent.UserService, es ent.EmailService) *User {
+func NewUser(us iface.UserService, es iface.EmailService) *User {
 	return &User{
 		userService:  us,
 		emailService: es,
@@ -15,8 +15,8 @@ func NewUser(us ent.UserService, es ent.EmailService) *User {
 }
 
 type User struct {
-	userService  ent.UserService
-	emailService ent.EmailService
+	userService  iface.UserService
+	emailService iface.EmailService
 }
 
 func (*User) ID(ctx context.Context, u *entity.User) (int, error) {

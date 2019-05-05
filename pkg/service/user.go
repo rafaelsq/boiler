@@ -4,16 +4,17 @@ import (
 	"context"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewUser(repo entity.UserRepository) entity.UserService {
+func NewUser(repo iface.UserRepository) iface.UserService {
 	return &user{
 		repo: repo,
 	}
 }
 
 type user struct {
-	repo entity.UserRepository
+	repo iface.UserRepository
 }
 
 func (s *user) List(ctx context.Context) ([]*entity.User, error) {

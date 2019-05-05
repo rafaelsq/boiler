@@ -3,18 +3,18 @@ package mutation
 import (
 	"context"
 
-	ent "github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewMutation(service ent.EmailService) *Mutation {
+func NewMutation(service iface.EmailService) *Mutation {
 	return &Mutation{
 		service: service,
 	}
 }
 
 type Mutation struct {
-	service ent.EmailService
+	service iface.EmailService
 }
 
 func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*entity.User, error) {

@@ -2,18 +2,18 @@
 package graphql
 
 import (
-	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/mutation"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
+	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewResolver(us entity.UserService, es entity.EmailService) ResolverRoot {
+func NewResolver(us iface.UserService, es iface.EmailService) ResolverRoot {
 	return &Resolver{us, es}
 }
 
 type Resolver struct {
-	us entity.UserService
-	es entity.EmailService
+	us iface.UserService
+	es iface.EmailService
 }
 
 func (r *Resolver) Query() QueryResolver {
