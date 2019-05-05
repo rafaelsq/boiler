@@ -15,11 +15,11 @@ import (
 	"github.com/rafaelsq/boiler/pkg/service"
 )
 
-func NewPlayHandle() http.Handler {
+func NewPlayHandle() http.HandlerFunc {
 	return handler.Playground("Users", "/query")
 }
 
-func NewHandleFunc(storage iface.Storage) func(http.ResponseWriter, *http.Request) {
+func NewHandleFunc(storage iface.Storage) http.HandlerFunc {
 	us := service.NewUser(ur.New(storage))
 	es := service.NewEmail(er.New(storage))
 
