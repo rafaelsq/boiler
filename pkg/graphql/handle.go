@@ -16,7 +16,7 @@ import (
 )
 
 func NewPlayHandle() http.HandlerFunc {
-	return handler.Playground("Users", "/query")
+	return handler.Playground("Users", "/graphql/query")
 }
 
 func NewHandleFunc(storage iface.Storage) http.HandlerFunc {

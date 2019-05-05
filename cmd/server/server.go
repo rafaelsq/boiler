@@ -9,18 +9,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/graphql"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	er "github.com/rafaelsq/boiler/pkg/repository/email"
-	ur "github.com/rafaelsq/boiler/pkg/repository/user"
-	"github.com/rafaelsq/boiler/pkg/service"
+	"github.com/rafaelsq/boiler/pkg/rest"
 	"github.com/rafaelsq/boiler/pkg/storage"
+	"github.com/rafaelsq/boiler/pkg/website"
 )
 
 var port = flag.Int("port", 2000, "")
@@ -41,66 +37,26 @@ func main() {
 	// injections
 	r.Use(middleware.WithValue("storage", storage.GetDB()))
 
-	r.Get("/favicon.ico", http.NotFound)
-
 	// graphql
-	r.Get("/play", graphql.NewPlayHandle())
-	r.HandleFunc("/query", graphql.NewHandleFunc(storage.GetDB()))
-
-	// html
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "<h1>Home</h1><p><a href=\"/users\">list users</a></p><p><a href=\"/play\">GraphQL</a></p>")
+	r.Route("/graphql", func(r chi.Router) {
+		r.Get("/play", graphql.NewPlayHandle())
+		r.HandleFunc("/query", graphql.NewHandleFunc(storage.GetDB()))
 	})
 
-	r.Get("/{userID:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-		st := r.Context().Value("storage").(iface.Storage)
-		if userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64); err == nil && userID > 0 {
-			ucase := service.NewUser(ur.New(st))
-			cEmails := make(chan []*entity.Email)
-			go func() {
-				es, _ := service.NewEmail(er.New(st)).ByUserID(r.Context(), int(userID))
-				if err == nil {
-					cEmails <- es
-					return
-				}
-				panic(err)
-			}()
+	// website
+	r.Get("/", website.Handle)
+	r.Get("/favicon.ico", http.NotFound)
+	r.Handle("/static/*", http.FileServer(http.Dir("pkg/website")))
 
-			if user, err := ucase.ByID(r.Context(), int(userID)); err == nil && user != nil {
-				fmt.Fprintf(w, "<h1>User</h1><p>%d - %s</p><ul>", user.ID, user.Name)
-				for _, email := range <-cEmails {
-					fmt.Fprintf(w, "<li>%d - <%s>%s</li>", email.ID, user.Name, email.Address)
-				}
-				fmt.Fprintf(w, "</ul>")
-				return
-			}
-		}
+	// rest
+	r.Route("/rest", func(r chi.Router) {
+		r.Get("/users", rest.UsersHandle)
+		r.Get("/user/{userID:[0-9]+}", rest.UserHandle)
+		r.Get("/emails/{userID:[0-9]+}", rest.EmailsHandle)
+
 	})
 
-	r.Get("/slow", func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case <-time.After(time.Second * 4):
-			fmt.Println("by time")
-		case <-r.Context().Done():
-			fmt.Println("timeout")
-		}
-	})
-
-	r.Get("/users", func(w http.ResponseWriter, r *http.Request) {
-		ucase := service.NewUser(ur.New(r.Context().Value("storage").(iface.Storage)))
-		users, err := ucase.List(r.Context())
-		if err != nil {
-			log.Print(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-
-		fmt.Fprintf(w, "<h1>Users</h1><ul>")
-		for _, user := range users {
-			fmt.Fprintf(w, "<li><a href=\"/%d\">%s<a/></li>", user.ID, user.Name)
-		}
-		fmt.Fprintf(w, "</ul>")
-	})
-
+	// gracefull shutdown
 	srv := http.Server{Addr: fmt.Sprintf(":%d", *port), Handler: r}
 
 	c := make(chan os.Signal, 1)
