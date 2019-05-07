@@ -1,3 +1,4 @@
+//go:generate ../../mock.sh storage
 package iface
 
 import (
