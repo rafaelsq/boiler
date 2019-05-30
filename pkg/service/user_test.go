@@ -11,7 +11,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUserService(t *testing.T) {
+func TestUserListService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := mock.NewMockUserRepository(ctrl)
+
+	srv := service.NewUser(m)
+
+	userID := 99
+	name := "userName"
+
+	ctx := context.Background()
+	m.
+		EXPECT().
+		List(ctx).
+		Return([]*entity.User{{
+			ID:   userID,
+			Name: name,
+		}}, nil)
+
+	vs, err := srv.List(ctx)
+	assert.Nil(t, err)
+	assert.Len(t, vs, 1)
+	assert.Equal(t, vs[0].ID, userID)
+	assert.Equal(t, vs[0].Name, name)
+}
+
+func TestUserByIDService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -32,6 +59,33 @@ func TestUserService(t *testing.T) {
 		}, nil)
 
 	v, err := srv.ByID(ctx, userID)
+	assert.Nil(t, err)
+	assert.NotNil(t, v)
+	assert.Equal(t, v.Name, name)
+}
+
+func TestUserByEmailService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := mock.NewMockUserRepository(ctrl)
+
+	srv := service.NewUser(m)
+
+	userID := 99
+	name := "userName"
+	email := "contact@example.com"
+
+	ctx := context.Background()
+	m.
+		EXPECT().
+		ByEmail(ctx, gomock.Eq(email)).
+		Return(&entity.User{
+			ID:   userID,
+			Name: name,
+		}, nil)
+
+	v, err := srv.ByEmail(ctx, email)
 	assert.Nil(t, err)
 	assert.NotNil(t, v)
 	assert.Equal(t, v.Name, name)

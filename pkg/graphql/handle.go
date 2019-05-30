@@ -10,19 +10,13 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	graphql "github.com/rafaelsq/boiler/pkg/graphql/internal"
 	"github.com/rafaelsq/boiler/pkg/iface"
-	er "github.com/rafaelsq/boiler/pkg/repository/email"
-	ur "github.com/rafaelsq/boiler/pkg/repository/user"
-	"github.com/rafaelsq/boiler/pkg/service"
 )
 
-func NewPlayHandle() http.HandlerFunc {
+func PlayHandle() http.HandlerFunc {
 	return handler.Playground("Users", "/graphql/query")
 }
 
-func NewHandleFunc(storage iface.Storage) http.HandlerFunc {
-	us := service.NewUser(ur.New(storage))
-	es := service.NewEmail(er.New(storage))
-
+func QueryHandleFunc(us iface.UserService, es iface.EmailService) http.HandlerFunc {
 	return handler.GraphQL(
 		graphql.NewExecutableSchema(graphql.Config{
 			Resolvers: graphql.NewResolver(us, es),
