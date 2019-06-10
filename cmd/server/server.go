@@ -18,9 +18,9 @@ import (
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-var port = flag.Int("port", 2000, "")
-
 func main() {
+	var port = flag.Int("port", 2000, "")
+
 	flag.Parse()
 
 	us := service.NewUser(ur.New(storage.GetDB()))
@@ -30,28 +30,27 @@ func main() {
 	router.ApplyMiddlewares(r)
 	router.ApplyRoute(r, us, es)
 
-	// gracefull shutdown
+	// graceful shutdown
 	srv := http.Server{Addr: fmt.Sprintf(":%d", *port), Handler: r}
 
 	c := make(chan os.Signal, 1)
 	iddleConnections := make(chan struct{})
 	signal.Notify(c, os.Interrupt)
 	go func() {
-		for range c {
-			// sig is a ^C, handle it
-			log.Println("shutting down..")
+		<-c
+		// sig is a ^C, handle it
+		log.Println("shutting down..")
 
-			// create context with timeout
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
+		// create context with timeout
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-			// start http shutdown
-			if err := srv.Shutdown(ctx); err != nil {
-				log.Println("shutdown error", err)
-			}
-
-			close(iddleConnections)
+		// start http shutdown
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Println("shutdown error", err)
 		}
+
+		close(iddleConnections)
 	}()
 
 	log.Printf("Listening on :%d\n", *port)
