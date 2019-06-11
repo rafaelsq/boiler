@@ -17,8 +17,12 @@ type user struct {
 	repo iface.UserRepository
 }
 
-func (s *user) List(ctx context.Context) ([]*entity.User, error) {
-	return s.repo.List(ctx)
+func (s *user) Add(ctx context.Context, name string) (int, error) {
+	return s.repo.Add(ctx, name)
+}
+
+func (s *user) List(ctx context.Context, limit uint) ([]*entity.User, error) {
+	return s.repo.List(ctx, limit)
 }
 
 func (s *user) ByID(ctx context.Context, userID int) (*entity.User, error) {

@@ -1,0 +1,21 @@
+CREATE DATABASE `boiler`;
+USE boiler;
+
+CREATE TABLE users (
+  id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  created DATE NOT NULL,
+  updated DATE NOT NULL,
+
+  PRIMARY KEY(id)
+);
+
+CREATE TABLE emails (
+  id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id INT(10) UNSIGNED NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  created DATE NOT NULL,
+
+  PRIMARY KEY(id),
+  UNIQUE KEY address(address)
+);

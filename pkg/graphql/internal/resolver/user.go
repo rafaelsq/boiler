@@ -31,8 +31,8 @@ func (r *User) User(ctx context.Context, userID int) (*entity.User, error) {
 	return nil, err
 }
 
-func (r *User) Users(ctx context.Context) ([]*entity.User, error) {
-	us, err := r.userService.List(ctx)
+func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
+	us, err := r.userService.List(ctx, limit)
 	if err == nil {
 		users := make([]*entity.User, 0, len(us))
 		for _, u := range us {

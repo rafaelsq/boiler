@@ -18,3 +18,7 @@ type AddMailInput struct {
 	UserID  int    `json:"userID"`
 	Address string `json:"address"`
 }
+
+type AddUserInput struct {
+	Name string `json:"name"`
+}

@@ -34,6 +34,21 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// Add mocks base method
+func (m *MockUserRepository) Add(arg0 context.Context, arg1 string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Add", arg0, arg1)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Add indicates an expected call of Add
+func (mr *MockUserRepositoryMockRecorder) Add(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockUserRepository)(nil).Add), arg0, arg1)
+}
+
 // ByID mocks base method
 func (m *MockUserRepository) ByID(arg0 context.Context, arg1 int) (*entity.User, error) {
 	m.ctrl.T.Helper()
@@ -65,18 +80,18 @@ func (mr *MockUserRepositoryMockRecorder) ByEmail(arg0, arg1 interface{}) *gomoc
 }
 
 // List mocks base method
-func (m *MockUserRepository) List(arg0 context.Context) ([]*entity.User, error) {
+func (m *MockUserRepository) List(arg0 context.Context, arg1 uint) ([]*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0)
+	ret := m.ctrl.Call(m, "List", arg0, arg1)
 	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockUserRepositoryMockRecorder) List(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) List(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserRepository)(nil).List), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserRepository)(nil).List), arg0, arg1)
 }
 
 // MockEmailRepository is a mock of EmailRepository interface

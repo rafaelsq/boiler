@@ -21,7 +21,7 @@ func (r *Resolver) Query() QueryResolver {
 }
 
 func (r *Resolver) Mutation() MutationResolver {
-	return mutation.NewMutation(r.es)
+	return mutation.NewMutation(r.us, r.es)
 }
 
 func (r *Resolver) User() UserResolver {

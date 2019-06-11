@@ -11,7 +11,7 @@ type Email {
 }
 
 type Query {
-	users: [User]!
+	users(limit: Int = 100): [User]!
 	user(userID: Int!): User!
 }
 
@@ -20,6 +20,11 @@ input addMailInput {
 	address: String!
 }
 
+input addUserInput {
+	name: String!
+}
+
 type Mutation {
 	addMail(input: addMailInput!): User!
+	addUser(input: addUserInput!): User!
 }

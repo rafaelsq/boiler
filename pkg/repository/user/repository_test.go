@@ -2,66 +2,259 @@ package user_test
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
-	"github.com/golang/mock/gomock"
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/mock"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/rafaelsq/boiler/pkg/repository/user"
 	"github.com/stretchr/testify/assert"
 )
 
+type StorageMock struct{ sql *sql.DB }
+
+func (s *StorageMock) SQL() *sql.DB {
+	return s.sql
+}
+
+func TestAdd(t *testing.T) {
+	ctx := context.Background()
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mdb.Close()
+
+	// succeed
+	{
+		name := "user"
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())"),
+		).WithArgs(name).WillReturnResult(sqlmock.NewResult(3, 1))
+
+		r := user.New(&StorageMock{mdb})
+		userID, err := r.Add(ctx, name)
+		assert.Nil(t, err)
+		assert.Equal(t, userID, 3)
+	}
+
+	// fail
+	{
+		name := "user"
+
+		myErr := fmt.Errorf("err")
+		mock.ExpectExec(
+			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())"),
+		).WithArgs(name).WillReturnError(myErr)
+
+		r := user.New(&StorageMock{mdb})
+		userID, err := r.Add(ctx, name)
+		assert.Equal(t, err, myErr)
+		assert.Equal(t, userID, 0)
+	}
+}
+
 func TestList(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	ctx := context.Background()
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mdb.Close()
 
-	m := mock.NewMockStorage(ctrl)
+	// succeed
+	{
+		var limit uint = 3
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, name, created, updated FROM users LIMIT ?"),
+		).WithArgs(limit).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
+				AddRow(3, "user", time.Time{}, time.Now()),
+		)
 
-	r := user.New(m)
-	m.EXPECT().Users(gomock.Any()).Return([]*entity.User{
-		{ID: 1}, {ID: 2},
-	}, nil)
+		r := user.New(&StorageMock{mdb})
+		users, err := r.List(ctx, limit)
+		assert.Nil(t, err)
+		assert.Len(t, users, 1)
+		assert.Equal(t, users[0].ID, 3)
+	}
 
-	users, err := r.List(context.Background())
-	assert.Nil(t, err)
-	assert.Len(t, users, 2)
-	assert.Equal(t, users[0].ID, 1)
-	assert.Equal(t, users[1].ID, 2)
+	// fail scan
+	{
+		var limit uint = 2
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, name, created, updated FROM users LIMIT ?"),
+		).WithArgs(limit).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
+				AddRow("err", "user", time.Time{}, time.Now()),
+		)
+
+		r := user.New(&StorageMock{mdb})
+		users, err := r.List(ctx, limit)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "invalid syntax")
+		assert.Len(t, users, 0)
+	}
+
+	// fail
+	{
+		var limit uint = 4
+		myErr := fmt.Errorf("err")
+
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, name, created, updated FROM users LIMIT ?"),
+		).WithArgs(limit).WillReturnError(myErr)
+
+		r := user.New(&StorageMock{mdb})
+		users, err := r.List(ctx, limit)
+		assert.Equal(t, err, myErr)
+		assert.Len(t, users, 0)
+	}
 }
 
 func TestByID(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	ctx := context.Background()
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mdb.Close()
 
-	m := mock.NewMockStorage(ctrl)
+	// succeed
+	{
+		userID := 3
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
+				AddRow(userID, "user", time.Time{}, time.Now()),
+		)
 
-	userID := 3
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByID(ctx, userID)
+		assert.Nil(t, err)
+		assert.Equal(t, user.ID, userID)
+	}
 
-	r := user.New(m)
-	m.EXPECT().UserByID(gomock.Any(), userID).Return(&entity.User{
-		ID: userID,
-	}, nil)
+	// succeed with no row
+	{
+		userID := 3
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}),
+		)
 
-	u, err := r.ByID(context.Background(), userID)
-	assert.Nil(t, err)
-	assert.Equal(t, u.ID, userID)
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByID(ctx, userID)
+		assert.Nil(t, err)
+		assert.Nil(t, user)
+	}
+
+	// scan fail
+	{
+		userID := 3
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
+				AddRow("err", "user", time.Time{}, time.Now()),
+		)
+
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByID(ctx, userID)
+		assert.Contains(t, err.Error(), "invalid syntax")
+		assert.Nil(t, user)
+	}
+
+	// fail
+	{
+		myErr := fmt.Errorf("opz")
+		userID := 3
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnError(myErr)
+
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByID(ctx, userID)
+		assert.Equal(t, err, myErr)
+		assert.Nil(t, user)
+	}
 }
 
 func TestByMail(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	ctx := context.Background()
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mdb.Close()
 
-	m := mock.NewMockStorage(ctrl)
+	// succeed
+	{
+		email := "example@example.com"
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
+				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+		).WithArgs(email).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
+				AddRow(3, "user", time.Time{}, time.Now()),
+		)
 
-	userID := 3
-	email := "contact@example.com"
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByEmail(ctx, email)
+		assert.Nil(t, err)
+		assert.Equal(t, user.ID, 3)
+	}
 
-	r := user.New(m)
-	m.EXPECT().UserByEmail(gomock.Any(), email).Return(&entity.User{
-		ID: userID,
-	}, nil)
+	// succeed with no row
+	{
+		email := "example@example.com"
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
+				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+		).WithArgs(email).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}),
+		)
 
-	u, err := r.ByEmail(context.Background(), email)
-	assert.Nil(t, err)
-	assert.Equal(t, u.ID, userID)
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByEmail(ctx, email)
+		assert.Nil(t, err)
+		assert.Nil(t, user)
+	}
+
+	// scan fail
+	{
+		email := "example@example.com"
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
+				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+		).WithArgs(email).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
+				AddRow("err", "user", time.Time{}, time.Now()),
+		)
+
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByEmail(ctx, email)
+		assert.Contains(t, err.Error(), "invalid syntax")
+		assert.Nil(t, user)
+	}
+
+	// fail
+	{
+		myErr := fmt.Errorf("opz")
+		email := "example@example.com"
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
+				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+		).WithArgs(email).WillReturnError(myErr)
+
+		r := user.New(&StorageMock{mdb})
+		user, err := r.ByEmail(ctx, email)
+		assert.Equal(t, err, myErr)
+		assert.Nil(t, user)
+	}
 }

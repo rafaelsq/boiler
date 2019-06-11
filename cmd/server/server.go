@@ -23,8 +23,10 @@ func main() {
 
 	flag.Parse()
 
-	us := service.NewUser(ur.New(storage.GetDB()))
-	es := service.NewEmail(er.New(storage.GetDB()))
+	st := storage.New("root:boiler@tcp(127.0.0.1:3307)/boiler?timeout=5s&parseTime=true&loc=Local")
+
+	us := service.NewUser(ur.New(st))
+	es := service.NewEmail(er.New(st))
 
 	r := chi.NewRouter()
 	router.ApplyMiddlewares(r)

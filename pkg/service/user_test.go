@@ -11,6 +11,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestUserAddService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := mock.NewMockUserRepository(ctrl)
+
+	srv := service.NewUser(m)
+
+	userID := 99
+	name := "name"
+
+	ctx := context.Background()
+	m.
+		EXPECT().
+		Add(ctx, name).
+		Return(userID, nil)
+
+	id, err := srv.Add(ctx, name)
+	assert.Nil(t, err)
+	assert.Equal(t, userID, id)
+}
+
 func TestUserListService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -20,18 +42,18 @@ func TestUserListService(t *testing.T) {
 	srv := service.NewUser(m)
 
 	userID := 99
-	name := "userName"
+	name := "name"
 
 	ctx := context.Background()
 	m.
 		EXPECT().
-		List(ctx).
+		List(ctx, uint(10)).
 		Return([]*entity.User{{
 			ID:   userID,
 			Name: name,
 		}}, nil)
 
-	vs, err := srv.List(ctx)
+	vs, err := srv.List(ctx, 10)
 	assert.Nil(t, err)
 	assert.Len(t, vs, 1)
 	assert.Equal(t, vs[0].ID, userID)

@@ -8,9 +8,10 @@ import (
 )
 
 type UserService interface {
+	Add(context.Context, string) (int, error)
 	ByID(context.Context, int) (*entity.User, error)
 	ByEmail(context.Context, string) (*entity.User, error)
-	List(context.Context) ([]*entity.User, error)
+	List(context.Context, uint) ([]*entity.User, error)
 }
 
 type EmailService interface {
