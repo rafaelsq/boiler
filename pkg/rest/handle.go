@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/mail"
 	"strconv"
 	"strings"
 
@@ -21,32 +22,24 @@ func AddUserHandle(us iface.UserService) http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
 			log.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "could not parse payload")
+			Fail(w, r, http.StatusBadRequest, "could not parse payload")
 			return
 		}
 
 		payload.Name = strings.TrimSpace(payload.Name)
 		if len(payload.Name) == 0 {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "empty name")
+			Fail(w, r, http.StatusBadRequest, "empty name")
 			return
 		}
 
 		userID, err := us.Add(r.Context(), payload.Name)
 		if err != nil {
 			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "service fail")
+			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(struct{ UserID int }{userID}); err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "could not encode response")
-		}
+		JSON(w, r, struct{ UserID int }{userID})
 	}
 }
 
@@ -68,36 +61,30 @@ func UsersHandle(us iface.UserService) http.HandlerFunc {
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "service fail")
+			fmt.Fprintf(w, "service failed")
 			return
 		}
 
-		if err := json.NewEncoder(w).Encode(users); err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "could not encode response")
-		}
+		JSON(w, r, users)
 	}
 }
 
 func UserHandle(us iface.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64); err == nil && userID > 0 {
-			user, err := us.ByID(r.Context(), int(userID))
-			if err == nil {
-				if err := json.NewEncoder(w).Encode(user); err != nil {
-					log.Println(err)
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-				return
-			}
-
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Println(err)
+		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
+		if err != nil || userID == 0 {
+			Fail(w, r, http.StatusBadRequest, "invalid user ID")
 			return
 		}
 
-		w.WriteHeader(http.StatusBadRequest)
+		user, err := us.ByID(r.Context(), int(userID))
+		if err != nil {
+			log.Println(err)
+			Fail(w, r, http.StatusInternalServerError, "service failed")
+			return
+		}
+
+		JSON(w, r, user)
 	}
 }
 
@@ -111,53 +98,49 @@ func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
 			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			Fail(w, r, http.StatusBadRequest, "invalid payload")
 			return
 		}
 
-		payload.Address = strings.TrimSpace(payload.Address)
-		if len(payload.Address) == 0 {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "empty address")
+		email, err := mail.ParseAddress(payload.Address)
+		if err != nil {
+			fmt.Println("...", err)
+			Fail(w, r, http.StatusBadRequest, "invalid email address")
 			return
 		}
+
 		if payload.UserID < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "invalid user ID")
+			Fail(w, r, http.StatusBadRequest, "invalid user ID")
 			return
 		}
 
-		emailID, err := es.Add(r.Context(), payload.UserID, payload.Address)
+		emailID, err := es.Add(r.Context(), payload.UserID, email.Address)
 		if err != nil {
 			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(struct{ EmailID int }{emailID}); err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		JSON(w, r, struct {
+			EmailID int `json:"emailID"`
+		}{emailID})
 	}
 }
 func EmailsHandle(es iface.EmailService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64); err == nil && userID > 0 {
-			emails, err := es.ByUserID(r.Context(), int(userID))
-			if err == nil {
-				if err := json.NewEncoder(w).Encode(emails); err != nil {
-					log.Println(err)
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-				return
-			}
-
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
+		if err != nil || userID == 0 {
+			Fail(w, r, http.StatusBadRequest, "invalid user id")
 			return
 		}
 
-		w.WriteHeader(http.StatusBadRequest)
+		emails, err := es.ByUserID(r.Context(), int(userID))
+		if err != nil {
+			log.Println(err)
+			Fail(w, r, http.StatusInternalServerError, "service failed")
+			return
+		}
+
+		JSON(w, r, emails)
 	}
 }

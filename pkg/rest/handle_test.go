@@ -38,7 +38,7 @@ func TestAddUserHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBuffer([]byte("{\"name\":\"John\"}"))
+		body := bytes.NewBufferString("{\"name\":\"John\"}")
 		res, err := http.Post(fmt.Sprintf("%s/users/add", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
@@ -63,9 +63,9 @@ func TestAddUserHandle(t *testing.T) {
 		defer ts.Close()
 
 		res, err := http.Post(
-			fmt.Sprintf("%s/users/add", ts.URL),
+			fmt.Sprintf("%s/users/add?debug", ts.URL),
 			"application/json",
-			bytes.NewBuffer([]byte("{\"invalid}")),
+			bytes.NewBufferString("{\"invalid}"),
 		)
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
@@ -88,9 +88,9 @@ func TestAddUserHandle(t *testing.T) {
 		defer ts.Close()
 
 		res, err := http.Post(
-			fmt.Sprintf("%s/users/add", ts.URL),
+			fmt.Sprintf("%s/users/add?debug", ts.URL),
 			"application/json",
-			bytes.NewBuffer([]byte("{\"name\":\"\"}")),
+			bytes.NewBufferString("{\"name\":\"\"}"),
 		)
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
@@ -100,7 +100,7 @@ func TestAddUserHandle(t *testing.T) {
 		res.Body.Close()
 	}
 
-	// fail if service fail
+	// fails if service fails
 	{
 		m := mock.NewMockUserRepository(ctrl)
 		us := service.NewUser(m)
@@ -116,14 +116,14 @@ func TestAddUserHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBuffer([]byte("{\"name\":\"John\"}"))
-		res, err := http.Post(fmt.Sprintf("%s/users/add", ts.URL), "application/json", body)
+		body := bytes.NewBufferString("{\"name\":\"John\"}")
+		res, err := http.Post(fmt.Sprintf("%s/users/add?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
 
 		b, _ := ioutil.ReadAll(res.Body)
-		assert.Equal(t, string(b), "service fail")
+		assert.Equal(t, string(b), "service failed")
 		res.Body.Close()
+		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
 	}
 }
 
@@ -181,7 +181,7 @@ func TestUsersHandle(t *testing.T) {
 		res.Body.Close()
 	}
 
-	// fail if service fail
+	// fails if service fails
 	{
 		m := mock.NewMockUserRepository(ctrl)
 		us := service.NewUser(m)
@@ -201,7 +201,7 @@ func TestUsersHandle(t *testing.T) {
 		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
 
 		b, _ := ioutil.ReadAll(res.Body)
-		assert.Equal(t, string(b), "service fail")
+		assert.Equal(t, string(b), "service failed")
 		res.Body.Close()
 	}
 }
@@ -260,7 +260,7 @@ func TestUserHandle(t *testing.T) {
 		res.Body.Close()
 	}
 
-	// fail - service failed
+	// fails if service fails
 	{
 		m := mock.NewMockUserRepository(ctrl)
 		us := service.NewUser(m)
@@ -282,6 +282,149 @@ func TestUserHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
 		res.Body.Close()
+	}
+}
+
+func TestAddEmailHandle(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// succeed
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		userID := 12
+		address := "example@email.com"
+
+		m.EXPECT().
+			Add(gomock.Any(), userID, address).
+			Return(5, nil)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Post("/emails/add", rest.AddEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		body := bytes.NewBufferString(fmt.Sprintf("{\"user\":%d,\"address\":\"%s\"}", userID, address))
+
+		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		assert.Nil(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusOK)
+
+		j := struct {
+			EmailID int `json:"emailID"`
+		}{}
+		err = json.NewDecoder(res.Body).Decode(&j)
+		res.Body.Close()
+		assert.Nil(t, err)
+		assert.Equal(t, 5, j.EmailID)
+	}
+
+	// fail with invalid payload
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Post("/emails/add", rest.AddEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		body := bytes.NewBufferString("{invalid-payload}")
+
+		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		b, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		assert.Equal(t, "invalid payload", string(b))
+		assert.Nil(t, err)
+	}
+
+	// fail with invalid email address
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Post("/emails/add", rest.AddEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		body := bytes.NewBufferString("{\"user\":12,\"address\":\"invalid-email\"}")
+
+		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		b, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		assert.Equal(t, "invalid email address", string(b))
+		assert.Nil(t, err)
+	}
+
+	// fail with invalid user ID
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Post("/emails/add", rest.AddEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		body := bytes.NewBufferString("{\"user\":0,\"address\":\"example@email.com\"}")
+
+		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		b, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		assert.Equal(t, "invalid user ID", string(b))
+		assert.Nil(t, err)
+	}
+
+	// fails if service fails
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		userID := 12
+		address := "example@email.com"
+		myErr := fmt.Errorf("fails")
+
+		m.EXPECT().
+			Add(gomock.Any(), userID, address).
+			Return(0, myErr)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Post("/emails/add", rest.AddEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		body := bytes.NewBufferString(fmt.Sprintf("{\"user\":%d,\"address\":\"%s\"}", userID, address))
+
+		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+
+		b, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		assert.Equal(t, "service failed", string(b))
+		assert.Nil(t, err)
 	}
 }
 
@@ -311,7 +454,7 @@ func TestEmailsHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/emails/%d", ts.URL, user.ID))
+		res, err := http.Get(fmt.Sprintf("%s/emails/%d?debug", ts.URL, user.ID))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
@@ -328,7 +471,7 @@ func TestEmailsHandle(t *testing.T) {
 		}
 	}
 
-	// fail - service failed
+	// fails if service fails
 	{
 		m := mock.NewMockEmailRepository(ctrl)
 		es := service.NewEmail(m)
