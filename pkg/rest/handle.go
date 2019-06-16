@@ -43,7 +43,7 @@ func AddUserHandle(us iface.UserService) http.HandlerFunc {
 	}
 }
 
-func UsersHandle(us iface.UserService) http.HandlerFunc {
+func ListUsersHandle(us iface.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		limit := 100
 		rawLimit := r.URL.Query()["limit"]
@@ -69,7 +69,7 @@ func UsersHandle(us iface.UserService) http.HandlerFunc {
 	}
 }
 
-func UserHandle(us iface.UserService) http.HandlerFunc {
+func GetUserHandle(us iface.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil || userID == 0 {
@@ -126,7 +126,7 @@ func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 		}{emailID})
 	}
 }
-func EmailsHandle(es iface.EmailService) http.HandlerFunc {
+func ListUserEmailsHandle(es iface.EmailService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil || userID == 0 {

@@ -37,10 +37,17 @@ func ApplyRoute(r chi.Router, us iface.UserService, es iface.EmailService) {
 
 	// rest
 	r.Route("/rest", func(r chi.Router) {
-		r.Get("/users", rest.UsersHandle(us))
-		r.Post("/users/add", rest.AddUserHandle(us))
-		r.Get("/user/{userID:[0-9]+}", rest.UserHandle(us))
-		r.Post("/emails/add", rest.AddEmailHandle(es))
-		r.Get("/emails/{userID:[0-9]+}", rest.EmailsHandle(es))
+		r.Route("/users", func(u chi.Router) {
+			r.Get("/", rest.ListUsersHandle(us))
+			r.Post("/", rest.AddUserHandle(us))
+			r.Route("/{userID:[0-9]+}", func(u chi.Router) {
+				r.Get("/", rest.GetUserHandle(us))
+			})
+		})
+
+		r.Route("/emails", func(u chi.Router) {
+			r.Post("/", rest.AddEmailHandle(es))
+			r.Get("/{userID:[0-9]+}", rest.ListUserEmailsHandle(es))
+		})
 	})
 }
