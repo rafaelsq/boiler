@@ -23,6 +23,11 @@ github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
+# github.com/rs/zerolog v1.14.3
+github.com/rs/zerolog
+github.com/rs/zerolog/log
+github.com/rs/zerolog/internal/cbor
+github.com/rs/zerolog/internal/json
 # github.com/stretchr/testify v1.3.0
 github.com/stretchr/testify/assert
 # github.com/vektah/gqlparser v1.1.2
@@ -33,5 +38,9 @@ github.com/vektah/gqlparser/parser
 github.com/vektah/gqlparser/validator
 github.com/vektah/gqlparser/validator/rules
 github.com/vektah/gqlparser/lexer
+# go.uber.org/atomic v1.4.0
+go.uber.org/atomic
+# go.uber.org/multierr v1.1.0
+go.uber.org/multierr
 # google.golang.org/appengine v1.5.0
 google.golang.org/appengine/cloudsql

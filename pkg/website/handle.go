@@ -10,6 +10,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 <html>
   <head>
     <title>WebSite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/static/bulma.min.css">
   </head>
   <body>
     <div id="app"></div>

@@ -54,7 +54,23 @@ func TestAdd(t *testing.T) {
 
 		r := email.New(&StorageMock{mdb})
 		emailID, err := r.Add(ctx, userID, address)
-		assert.Equal(t, err, myErr)
+		assert.Equal(t, err.Error(), "opz; could not insert email")
+		assert.Equal(t, emailID, 0)
+	}
+
+	// last insert failed
+	{
+		userID := 3
+		address := "user@example.com"
+		myErr := fmt.Errorf("opz")
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
+		).WithArgs(userID, address).WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
+
+		r := email.New(&StorageMock{mdb})
+		emailID, err := r.Add(ctx, userID, address)
+		assert.Equal(t, err.Error(), "opz; last insert id failed after add email address")
 		assert.Equal(t, emailID, 0)
 	}
 }
@@ -113,7 +129,7 @@ func TestByUserID(t *testing.T) {
 
 		r := email.New(&StorageMock{mdb})
 		emails, err := r.ByUserID(ctx, userID)
-		assert.Equal(t, err, myErr)
+		assert.Equal(t, err.Error(), "opz; could not fetch user's emails")
 		assert.Len(t, emails, 0)
 	}
 }

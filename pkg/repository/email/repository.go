@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/errors"
 	"github.com/rafaelsq/boiler/pkg/iface"
+	"go.uber.org/multierr"
 )
 
 func New(storage iface.Storage) iface.EmailRepository {
@@ -22,11 +24,18 @@ func (r *repository) Add(ctx context.Context, userID int, address string) (int, 
 		userID, address,
 	)
 	if err != nil {
-		return 0, err
+		return 0, multierr.Append(err, errors.WithArgs("could not insert email", map[string]interface{}{
+			"userID":  userID,
+			"address": address,
+		}))
 	}
 
 	id, err := result.LastInsertId()
-	return int(id), err
+	if err != nil {
+		return 0, multierr.Append(err, errors.New("last insert id failed after add email address"))
+	}
+
+	return int(id), nil
 }
 
 func (r *repository) ByUserID(ctx context.Context, userID int) ([]*entity.Email, error) {
@@ -36,7 +45,7 @@ func (r *repository) ByUserID(ctx context.Context, userID int) ([]*entity.Email,
 		userID,
 	)
 	if err != nil {
-		return nil, err
+		return nil, multierr.Append(err, errors.WithArg("could not fetch user's emails", "userID", userID))
 	}
 
 	emails := make([]*entity.Email, 0)
@@ -63,7 +72,7 @@ func scan(sc func(dest ...interface{}) error) (*entity.Email, error) {
 
 	err := sc(&id, &userID, &address, &created)
 	if err != nil {
-		return nil, err
+		return nil, multierr.Append(err, errors.New("could not scan email"))
 	}
 
 	return &entity.Email{

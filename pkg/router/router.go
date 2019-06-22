@@ -14,10 +14,10 @@ import (
 )
 
 func ApplyMiddlewares(r chi.Router) {
+	r.Use(Recoverer)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(middleware.Compress(flate.BestCompression))
 	r.Use(middleware.Timeout(2 * time.Second))
@@ -37,17 +37,11 @@ func ApplyRoute(r chi.Router, us iface.UserService, es iface.EmailService) {
 
 	// rest
 	r.Route("/rest", func(r chi.Router) {
-		r.Route("/users", func(u chi.Router) {
-			r.Get("/", rest.ListUsersHandle(us))
-			r.Post("/", rest.AddUserHandle(us))
-			r.Route("/{userID:[0-9]+}", func(u chi.Router) {
-				r.Get("/", rest.GetUserHandle(us))
-			})
-		})
+		r.Get("/users", rest.ListUsersHandle(us))
+		r.Post("/users", rest.AddUserHandle(us))
+		r.Get("/users/{userID:[0-9]+}", rest.GetUserHandle(us))
 
-		r.Route("/emails", func(u chi.Router) {
-			r.Post("/", rest.AddEmailHandle(es))
-			r.Get("/{userID:[0-9]+}", rest.ListUserEmailsHandle(es))
-		})
+		r.Post("/emails", rest.AddEmailHandle(es))
+		r.Get("/emails/{userID:[0-9]+}", rest.ListUserEmailsHandle(es))
 	})
 }

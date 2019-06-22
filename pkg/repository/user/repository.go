@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/errors"
 	"github.com/rafaelsq/boiler/pkg/iface"
+	"go.uber.org/multierr"
 )
 
 func New(storage iface.Storage) iface.UserRepository {
@@ -22,11 +24,15 @@ func (r *repository) Add(ctx context.Context, name string) (int, error) {
 		name,
 	)
 	if err != nil {
-		return 0, err
+		return 0, multierr.Append(err, errors.WithArg("could not insert user", "name", name))
 	}
 
 	id, err := result.LastInsertId()
-	return int(id), err
+	if err != nil {
+		return 0, multierr.Append(err, errors.New("last insert id failed after add user"))
+	}
+
+	return int(id), nil
 }
 
 func (r *repository) List(ctx context.Context, limit uint) ([]*entity.User, error) {
@@ -36,7 +42,7 @@ func (r *repository) List(ctx context.Context, limit uint) ([]*entity.User, erro
 		limit,
 	)
 	if err != nil {
-		return nil, err
+		return nil, multierr.Append(err, errors.WithArg("could not list users", "limit", limit))
 	}
 
 	users := make([]*entity.User, 0, limit)
@@ -62,7 +68,7 @@ func (r *repository) ByID(ctx context.Context, userID int) (*entity.User, error)
 		userID,
 	)
 	if err != nil {
-		return nil, err
+		return nil, multierr.Append(err, errors.WithArg("could not fetch user", "userID", userID))
 	}
 
 	if !rows.Next() {
@@ -79,7 +85,7 @@ func (r *repository) ByEmail(ctx context.Context, email string) (*entity.User, e
 		email,
 	)
 	if err != nil {
-		return nil, err
+		return nil, multierr.Append(err, errors.WithArg("could not fetch user", "email", email))
 	}
 
 	if !rows.Next() {
@@ -97,7 +103,7 @@ func scan(sc func(dest ...interface{}) error) (*entity.User, error) {
 
 	err := sc(&id, &name, &created, &updated)
 	if err != nil {
-		return nil, err
+		return nil, multierr.Append(err, errors.New("could not scan user"))
 	}
 
 	return &entity.User{

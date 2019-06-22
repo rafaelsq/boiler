@@ -8,6 +8,9 @@ require (
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/mock v1.3.0
+	github.com/rs/zerolog v1.14.3
 	github.com/stretchr/testify v1.3.0
 	github.com/vektah/gqlparser v1.1.2
+	go.uber.org/atomic v1.4.0 // indirect
+	go.uber.org/multierr v1.1.0
 )

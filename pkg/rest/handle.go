@@ -3,13 +3,13 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/mail"
 	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi"
+	"github.com/rafaelsq/boiler/pkg/errors"
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
@@ -21,7 +21,6 @@ func AddUserHandle(us iface.UserService) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
-			log.Println(err)
 			Fail(w, r, http.StatusBadRequest, "could not parse payload")
 			return
 		}
@@ -34,7 +33,7 @@ func AddUserHandle(us iface.UserService) http.HandlerFunc {
 
 		userID, err := us.Add(r.Context(), payload.Name)
 		if err != nil {
-			log.Println(err)
+			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -59,7 +58,7 @@ func ListUsersHandle(us iface.UserService) http.HandlerFunc {
 
 		users, err := us.List(r.Context(), uint(limit))
 		if err != nil {
-			log.Println(err)
+			errors.Log(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "service failed")
 			return
@@ -79,7 +78,7 @@ func GetUserHandle(us iface.UserService) http.HandlerFunc {
 
 		user, err := us.ByID(r.Context(), int(userID))
 		if err != nil {
-			log.Println(err)
+			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -97,14 +96,13 @@ func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
-			log.Println(err)
+			errors.Log(err)
 			Fail(w, r, http.StatusBadRequest, "invalid payload")
 			return
 		}
 
 		email, err := mail.ParseAddress(payload.Address)
 		if err != nil {
-			fmt.Println("...", err)
 			Fail(w, r, http.StatusBadRequest, "invalid email address")
 			return
 		}
@@ -116,7 +114,7 @@ func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 
 		emailID, err := es.Add(r.Context(), payload.UserID, email.Address)
 		if err != nil {
-			log.Println(err)
+			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -136,7 +134,7 @@ func ListUserEmailsHandle(es iface.EmailService) http.HandlerFunc {
 
 		emails, err := es.ByUserID(r.Context(), int(userID))
 		if err != nil {
-			log.Println(err)
+			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
