@@ -3,7 +3,6 @@ var LAZY_NODE = 2
 var TEXT_NODE = 3
 var EMPTY_OBJ = {}
 var EMPTY_ARR = []
-
 var map = EMPTY_ARR.map
 var isArray = Array.isArray
 var defer = requestAnimationFrame || setTimeout
@@ -43,7 +42,7 @@ var batch = function(list) {
     return list.reduce(function(out, item) {
         return out.concat(
             !item || item === true
-                ? false
+                ? 0
                 : typeof item[0] === 'function'
                     ? [item]
                     : batch(item)
@@ -52,15 +51,15 @@ var batch = function(list) {
 }
 
 var isSameAction = function(a, b) {
-    return (
-        isArray(a) && isArray(b) && a[0] === b[0] && typeof a[0] === 'function'
-    )
+    return isArray(a) && isArray(b) && a[0] === b[0] && typeof a[0] === 'function'
 }
 
 var shouldRestart = function(a, b) {
-    for (var k in merge(a, b)) {
-        if (a[k] !== b[k] && !isSameAction(a[k], b[k])) return true
-        b[k] = a[k]
+    if (a !== b) {
+        for (var k in merge(a, b)) {
+            if (a[k] !== b[k] && !isSameAction(a[k], b[k])) return true
+            b[k] = a[k]
+        }
     }
 }
 
@@ -80,7 +79,7 @@ var patchSubs = function(oldSubs, newSubs, dispatch) {
                     ? [
                         newSub[0],
                         newSub[1],
-                        newSub[0](newSub[1], dispatch),
+                        newSub[0](dispatch, newSub[1]),
                         oldSub && oldSub[2](),
                     ]
                     : oldSub
@@ -103,11 +102,13 @@ var patchProperty = function(node, key, oldValue, newValue, listener, isSvg) {
         }
     } else if (key[0] === 'o' && key[1] === 'n') {
         if (
-            !((node.actions || (node.actions = {}))[key = key.slice(2)] = newValue)
+            !((node.actions || (node.actions = {}))[
+                key = key.slice(2).toLowerCase()
+            ] = newValue)
         ) {
             node.removeEventListener(key, listener)
         } else if (!oldValue) {
-            node.addEventListener(key, listener, newValue.passive ? newValue : false)
+            node.addEventListener(key, listener)
         }
     } else if (!isSvg && key !== 'list' && key in node) {
         node[key] = newValue == null ? '' : newValue
@@ -165,7 +166,9 @@ var patch = function(parent, node, oldVNode, newVNode, listener, isSvg) {
             createNode(newVNode = getVNode(newVNode), listener, isSvg),
             node
         )
-        if (oldVNode != null) parent.removeChild(oldVNode.node)
+        if (oldVNode != null) {
+            parent.removeChild(oldVNode.node)
+        }
     } else {
         var tmpVKid
         var oldVKid
@@ -426,33 +429,35 @@ export var app = function(props, enhance) {
     var subs = []
 
     var listener = function(event) {
-        var action = this.actions[event.type]
-        if (action.preventDefault) event.preventDefault()
-        if (action.stopPropagation) event.stopPropagation()
-        dispatch(action.action || action, event)
+        dispatch(this.actions[event.type], event)
     }
 
     var setState = function(newState) {
-        return (
-            state === newState || lock || defer(render, lock = true),
+        if (state !== newState) {
             state = newState
-        )
+            if (subscriptions) {
+                subs = patchSubs(subs, batch([subscriptions(state)]), dispatch)
+            }
+            if (view && !lock) defer(render, lock = true)
+        }
+        return state
     }
 
     var dispatch = (enhance ||
-    function(a) {
-        return a
-    })(function(action, props) {
+    function(any) {
+        return any
+    })(function(action, props, obj) {
         return typeof action === 'function'
-            ? dispatch(action(state, props))
+            ? dispatch(action(state, props), obj || props)
             : isArray(action)
                 ? typeof action[0] === 'function'
                     ? dispatch(
                         action[0],
-                        typeof action[1] === 'function' ? action[1](props) : action[1]
+                        typeof (action = action[1]) === 'function' ? action(props) : action,
+                        props
                     )
                     : (batch(action.slice(1)).map(function(fx) {
-                        fx && fx[0](fx[1], dispatch)
+                        fx && fx[0](dispatch, fx[1], props)
                     }, setState(action[0])),
                     state)
                 : setState(action)
@@ -460,18 +465,16 @@ export var app = function(props, enhance) {
 
     var render = function() {
         lock = false
-        if (subscriptions) {
-            subs = patchSubs(subs, batch(subscriptions(state)), dispatch)
-        }
-        if (view) {
-            node = patch(
-                node.parentNode,
-                node,
-                vdom,
-                typeof (vdom = view(state)) === 'string' ? createTextVNode(vdom) : vdom,
-                listener
-            )
-        }
+        node = patch(
+            node.parentNode,
+            node,
+            vdom,
+            vdom =
+        typeof (vdom = view(state)) === 'string'
+            ? createTextVNode(vdom)
+            : vdom,
+            listener
+        )
     }
 
     dispatch(props.init)
