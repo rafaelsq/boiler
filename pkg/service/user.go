@@ -21,6 +21,10 @@ func (s *user) Add(ctx context.Context, name string) (int, error) {
 	return s.repo.Add(ctx, name)
 }
 
+func (s *user) Delete(ctx context.Context, userID int) error {
+	return s.repo.Delete(ctx, userID)
+}
+
 func (s *user) List(ctx context.Context, limit uint) ([]*entity.User, error) {
 	return s.repo.List(ctx, limit)
 }

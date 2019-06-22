@@ -75,6 +75,71 @@ func TestAdd(t *testing.T) {
 	}
 }
 
+func TestDelete(t *testing.T) {
+	ctx := context.Background()
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mdb.Close()
+
+	// succeed
+	{
+		emailID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
+		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(3, 1))
+
+		r := email.New(&StorageMock{mdb})
+		err := r.Delete(ctx, emailID)
+		assert.Nil(t, err)
+	}
+
+	// fails if query fails
+	{
+		emailID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
+		).WithArgs(emailID).WillReturnError(fmt.Errorf("opz"))
+
+		r := email.New(&StorageMock{mdb})
+		err := r.Delete(ctx, emailID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "opz; could not remove email")
+	}
+
+	// fails if rows affect fails
+	{
+		emailID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
+		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(1, 1)).
+			WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("opz")))
+
+		r := email.New(&StorageMock{mdb})
+		err := r.Delete(ctx, emailID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "opz; could not fetch rows affected after remove email")
+	}
+
+	// fails if no rows affect
+	{
+		emailID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
+		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(0, 0))
+
+		r := email.New(&StorageMock{mdb})
+		err := r.Delete(ctx, emailID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "not found; no rows affected")
+	}
+}
+
 func TestByUserID(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()

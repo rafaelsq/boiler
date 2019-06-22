@@ -72,6 +72,71 @@ func TestAdd(t *testing.T) {
 	}
 }
 
+func TestDelete(t *testing.T) {
+	ctx := context.Background()
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mdb.Close()
+
+	// succeed
+	{
+		userID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(3, 1))
+
+		r := user.New(&StorageMock{mdb})
+		err := r.Delete(ctx, userID)
+		assert.Nil(t, err)
+	}
+
+	// fail if query fails
+	{
+		userID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnError(fmt.Errorf("opz"))
+
+		r := user.New(&StorageMock{mdb})
+		err := r.Delete(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "opz; could not remove user")
+	}
+
+	// fail if no rows affected
+	{
+		userID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 0))
+
+		r := user.New(&StorageMock{mdb})
+		err := r.Delete(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "not found; no rows affected")
+	}
+
+	// fail fatching rows affected
+	{
+		userID := 3
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
+		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(1, 1)).
+			WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("opz")))
+
+		r := user.New(&StorageMock{mdb})
+		err := r.Delete(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "opz; could not fetch rows affected after remove user")
+	}
+}
+
 func TestList(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()

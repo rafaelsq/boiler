@@ -33,20 +33,20 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users/add", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(us))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
 		body := bytes.NewBufferString("{\"name\":\"John\"}")
-		res, err := http.Post(fmt.Sprintf("%s/users/add", ts.URL), "application/json", body)
+		res, err := http.Post(fmt.Sprintf("%s/users", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
-		var rm map[string]int
+		var rm struct{ UserID int }
 		_ = json.NewDecoder(res.Body).Decode(&rm)
 		res.Body.Close()
-		assert.Equal(t, rm["UserID"], user.ID)
+		assert.Equal(t, rm.UserID, user.ID)
 		assert.Nil(t, err)
 	}
 
@@ -57,13 +57,13 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users/add", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(us))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
 		res, err := http.Post(
-			fmt.Sprintf("%s/users/add?debug", ts.URL),
+			fmt.Sprintf("%s/users?debug", ts.URL),
 			"application/json",
 			bytes.NewBufferString("{\"invalid}"),
 		)
@@ -82,13 +82,13 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users/add", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(us))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
 		res, err := http.Post(
-			fmt.Sprintf("%s/users/add?debug", ts.URL),
+			fmt.Sprintf("%s/users?debug", ts.URL),
 			"application/json",
 			bytes.NewBufferString("{\"name\":\"\"}"),
 		)
@@ -111,19 +111,102 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users/add", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(us))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
 		body := bytes.NewBufferString("{\"name\":\"John\"}")
-		res, err := http.Post(fmt.Sprintf("%s/users/add?debug", ts.URL), "application/json", body)
+		res, err := http.Post(fmt.Sprintf("%s/users?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 
 		b, _ := ioutil.ReadAll(res.Body)
 		assert.Equal(t, string(b), "service failed")
 		res.Body.Close()
 		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
+	}
+}
+
+func TestDeleteUserHandle(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// succeed
+	{
+		m := mock.NewMockUserRepository(ctrl)
+		us := service.NewUser(m)
+
+		user := &entity.User{ID: 4, Name: "John"}
+		m.EXPECT().Delete(gomock.Any(), user.ID).Return(nil)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(us))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/users/%d?debug", ts.URL, user.ID), nil)
+		assert.Nil(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		assert.Nil(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusOK)
+	}
+
+	// fails if invalid userID
+	{
+		m := mock.NewMockUserRepository(ctrl)
+		us := service.NewUser(m)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(us))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/users/0?debug", ts.URL), nil)
+		assert.Nil(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		assert.Nil(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+
+		b, err := ioutil.ReadAll(res.Body)
+		assert.Nil(t, err)
+		res.Body.Close()
+
+		assert.Equal(t, "invalid user ID", string(b))
+	}
+
+	// fails if service fails
+	{
+		m := mock.NewMockUserRepository(ctrl)
+		us := service.NewUser(m)
+
+		user := &entity.User{ID: 4, Name: "John"}
+		m.EXPECT().Delete(gomock.Any(), user.ID).Return(fmt.Errorf("opz"))
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(us))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/users/%d?debug", ts.URL, user.ID), nil)
+		assert.Nil(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		assert.Nil(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
+
+		b, err := ioutil.ReadAll(res.Body)
+		assert.Nil(t, err)
+		res.Body.Close()
+
+		assert.Equal(t, "service failed", string(b))
 	}
 }
 
@@ -150,14 +233,14 @@ func TestUsersHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
-		var users []*entity.User
-		err = json.NewDecoder(res.Body).Decode(&users)
+		var resp struct{ Users []*entity.User }
+		err = json.NewDecoder(res.Body).Decode(&resp)
 		assert.Nil(t, err)
 		res.Body.Close()
 
-		assert.Len(t, users, 1)
-		assert.Equal(t, users[0].ID, user.ID)
-		assert.Equal(t, users[0].Name, user.Name)
+		assert.Len(t, resp.Users, 1)
+		assert.Equal(t, resp.Users[0].ID, user.ID)
+		assert.Equal(t, resp.Users[0].Name, user.Name)
 	}
 
 	// fail if invalid limit
@@ -232,14 +315,14 @@ func TestUserHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
-		var u *entity.User
+		var u struct{ User *entity.User }
 		err = json.NewDecoder(res.Body).Decode(&u)
 		res.Body.Close()
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
 
-		assert.Equal(t, u.ID, user.ID)
-		assert.Equal(t, u.Name, user.Name)
+		assert.Equal(t, u.User.ID, user.ID)
+		assert.Equal(t, u.User.Name, user.Name)
 	}
 
 	// fail - bad-request
@@ -303,14 +386,14 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails/add", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString(fmt.Sprintf("{\"user\":%d,\"address\":\"%s\"}", userID, address))
+		body := bytes.NewBufferString(fmt.Sprintf("{\"userID\":%d,\"address\":\"%s\"}", userID, address))
 
-		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
@@ -330,14 +413,14 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails/add", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
 		body := bytes.NewBufferString("{invalid-payload}")
 
-		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -354,14 +437,14 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails/add", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString("{\"user\":12,\"address\":\"invalid-email\"}")
+		body := bytes.NewBufferString("{\"userID\":12,\"address\":\"invalid-email\"}")
 
-		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -378,14 +461,14 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails/add", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString("{\"user\":0,\"address\":\"example@email.com\"}")
+		body := bytes.NewBufferString("{\"userID\":0,\"address\":\"example@email.com\"}")
 
-		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -410,14 +493,14 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails/add", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString(fmt.Sprintf("{\"user\":%d,\"address\":\"%s\"}", userID, address))
+		body := bytes.NewBufferString(fmt.Sprintf("{\"userID\":%d,\"address\":\"%s\"}", userID, address))
 
-		res, err := http.Post(fmt.Sprintf("%s/emails/add?debug", ts.URL), "application/json", body)
+		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
@@ -425,6 +508,97 @@ func TestAddEmailHandle(t *testing.T) {
 		res.Body.Close()
 		assert.Equal(t, "service failed", string(b))
 		assert.Nil(t, err)
+	}
+}
+
+func TestDeleteEmailHandle(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// succeed
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		emailID := 12
+
+		m.EXPECT().
+			Delete(gomock.Any(), emailID).
+			Return(nil)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/emails/%d?debug", ts.URL, emailID), nil)
+		assert.Nil(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		assert.Nil(t, err)
+
+		res.Body.Close()
+		assert.Equal(t, res.StatusCode, http.StatusOK)
+	}
+
+	// fails if emailID is invalid
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		emailID := 0
+
+		// m.EXPECT().
+		// 	Delete(gomock.Any(), emailID).
+		// 	Return(nil)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/emails/%d?debug", ts.URL, emailID), nil)
+		assert.Nil(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		assert.Nil(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+		res.Body.Close()
+	}
+
+	// fails if service fails
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		emailID := 1
+
+		m.EXPECT().
+			Delete(gomock.Any(), emailID).
+			Return(fmt.Errorf("opz"))
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/emails/%d?debug", ts.URL, emailID), nil)
+		assert.Nil(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		assert.Nil(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
+
+		b, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		assert.Nil(t, err)
+		assert.Equal(t, "service failed", string(b))
 	}
 }
 
@@ -449,23 +623,23 @@ func TestEmailsHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/emails/{userID:[0-9]+}", rest.ListUserEmailsHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/emails/%d?debug", ts.URL, user.ID))
+		res, err := http.Get(fmt.Sprintf("%s/emails?debug&userID=%d", ts.URL, user.ID))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
-		var rEmails []*entity.Email
+		var rEmails struct{ Emails []*entity.Email }
 		err = json.NewDecoder(res.Body).Decode(&rEmails)
 		res.Body.Close()
 		assert.Nil(t, err)
 		assert.NotNil(t, rEmails)
 
-		assert.Len(t, rEmails, len(emails))
-		for i, e := range rEmails {
+		assert.Len(t, rEmails.Emails, len(emails))
+		for i, e := range rEmails.Emails {
 			assert.Equal(t, e.ID, emails[i].ID)
 			assert.Equal(t, e.Address, emails[i].Address)
 		}
@@ -484,12 +658,12 @@ func TestEmailsHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/emails/{userID:[0-9]+}", rest.ListUserEmailsHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/emails/%d", ts.URL, user.ID))
+		res, err := http.Get(fmt.Sprintf("%s/emails?userID=%d", ts.URL, user.ID))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
 		res.Body.Close()
@@ -502,12 +676,30 @@ func TestEmailsHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/emails/{userID:[0-9]+}", rest.ListUserEmailsHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(es))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/emails/0", ts.URL))
+		res, err := http.Get(fmt.Sprintf("%s/emails?userID=0", ts.URL))
+		assert.Nil(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+		res.Body.Close()
+	}
+
+	// fails if not userID is provided
+	{
+		m := mock.NewMockEmailRepository(ctrl)
+		es := service.NewEmail(m)
+
+		r := chi.NewRouter()
+		router.ApplyMiddlewares(r)
+		r.Get("/emails", rest.ListEmailsHandle(es))
+
+		ts := httptest.NewServer(r)
+		defer ts.Close()
+
+		res, err := http.Get(fmt.Sprintf("%s/emails", ts.URL))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
 		res.Body.Close()

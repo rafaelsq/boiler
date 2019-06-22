@@ -34,6 +34,26 @@ func TestEmailAddService(t *testing.T) {
 	assert.Equal(t, ID, ID)
 }
 
+func TestEmailDeleteService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := mock.NewMockEmailRepository(ctrl)
+
+	srv := service.NewEmail(m)
+
+	ID := 13
+
+	ctx := context.Background()
+	m.
+		EXPECT().
+		Delete(ctx, ID).
+		Return(nil)
+
+	err := srv.Delete(ctx, ID)
+	assert.Nil(t, err)
+}
+
 func TestEmailByUserIDService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

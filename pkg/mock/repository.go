@@ -49,6 +49,20 @@ func (mr *MockUserRepositoryMockRecorder) Add(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockUserRepository)(nil).Add), arg0, arg1)
 }
 
+// Delete mocks base method
+func (m *MockUserRepository) Delete(arg0 context.Context, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockUserRepositoryMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUserRepository)(nil).Delete), arg0, arg1)
+}
+
 // ByID mocks base method
 func (m *MockUserRepository) ByID(arg0 context.Context, arg1 int) (*entity.User, error) {
 	m.ctrl.T.Helper()
@@ -145,4 +159,18 @@ func (m *MockEmailRepository) Add(arg0 context.Context, arg1 int, arg2 string) (
 func (mr *MockEmailRepositoryMockRecorder) Add(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockEmailRepository)(nil).Add), arg0, arg1, arg2)
+}
+
+// Delete mocks base method
+func (m *MockEmailRepository) Delete(arg0 context.Context, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockEmailRepositoryMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockEmailRepository)(nil).Delete), arg0, arg1)
 }

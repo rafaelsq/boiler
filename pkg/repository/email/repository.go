@@ -38,6 +38,27 @@ func (r *repository) Add(ctx context.Context, userID int, address string) (int, 
 	return int(id), nil
 }
 
+func (r *repository) Delete(ctx context.Context, emailID int) error {
+	result, err := r.storage.SQL().ExecContext(ctx,
+		"DELETE FROM emails WHERE id = ?",
+		emailID,
+	)
+	if err != nil {
+		return multierr.Append(err, errors.WithArg("could not remove email", "emailID", emailID))
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return multierr.Append(err, errors.WithArg("could not fetch rows affected after remove email", "emailID", emailID))
+	}
+
+	if n == 0 {
+		return multierr.Append(iface.ErrNotFound, errors.WithArg("no rows affected", "emailID", emailID))
+	}
+
+	return nil
+}
+
 func (r *repository) ByUserID(ctx context.Context, userID int) ([]*entity.Email, error) {
 	rows, err := r.storage.SQL().QueryContext(
 		ctx,

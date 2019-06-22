@@ -38,7 +38,9 @@ func AddUserHandle(us iface.UserService) http.HandlerFunc {
 			return
 		}
 
-		JSON(w, r, struct{ UserID int }{userID})
+		JSON(w, r, map[string]interface{}{
+			"userID": userID,
+		})
 	}
 }
 
@@ -64,7 +66,28 @@ func ListUsersHandle(us iface.UserService) http.HandlerFunc {
 			return
 		}
 
-		JSON(w, r, users)
+		JSON(w, r, map[string]interface{}{
+			"users": users,
+		})
+	}
+}
+
+func DeleteUserHandle(us iface.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
+		if err != nil || userID == 0 {
+			Fail(w, r, http.StatusBadRequest, "invalid user ID")
+			return
+		}
+
+		err = us.Delete(r.Context(), int(userID))
+		if err != nil {
+			errors.Log(err)
+			Fail(w, r, http.StatusInternalServerError, "service failed")
+			return
+		}
+
+		JSON(w, r, nil)
 	}
 }
 
@@ -83,14 +106,16 @@ func GetUserHandle(us iface.UserService) http.HandlerFunc {
 			return
 		}
 
-		JSON(w, r, user)
+		JSON(w, r, map[string]interface{}{
+			"user": user,
+		})
 	}
 }
 
 func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
-			UserID  int    `json:"user"`
+			UserID  int    `json:"userID"`
 			Address string `json:"address"`
 		}{}
 
@@ -124,11 +149,37 @@ func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 		}{emailID})
 	}
 }
-func ListUserEmailsHandle(es iface.EmailService) http.HandlerFunc {
+
+func DeleteEmailHandle(es iface.EmailService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
+		emailID, err := strconv.ParseUint(chi.URLParam(r, "emailID"), 10, 64)
+		if err != nil || emailID <= 0 {
+			Fail(w, r, http.StatusBadRequest, "invalid email ID")
+			return
+		}
+
+		err = es.Delete(r.Context(), int(emailID))
+		if err != nil {
+			errors.Log(err)
+			Fail(w, r, http.StatusInternalServerError, "service failed")
+			return
+		}
+
+		JSON(w, r, nil)
+	}
+}
+
+func ListEmailsHandle(es iface.EmailService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := r.URL.Query()["userID"]
+		if len(params) == 0 {
+			Fail(w, r, http.StatusBadRequest, "missing URL query userID")
+			return
+		}
+
+		userID, err := strconv.ParseUint(params[0], 10, 64)
 		if err != nil || userID == 0 {
-			Fail(w, r, http.StatusBadRequest, "invalid user id")
+			Fail(w, r, http.StatusBadRequest, "invalid URL query userID")
 			return
 		}
 
@@ -139,6 +190,8 @@ func ListUserEmailsHandle(es iface.EmailService) http.HandlerFunc {
 			return
 		}
 
-		JSON(w, r, emails)
+		JSON(w, r, map[string]interface{}{
+			"emails": emails,
+		})
 	}
 }

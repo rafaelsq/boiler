@@ -23,32 +23,32 @@ const UpdateNewEmail = (state, e) => ({
     newEmail: {...state.newEmail, address: e.target.value},
 })
 
-const handleFetchEmails = (state, {data = [], err, args}) => {
+const handleFetchEmails = (state, {data, err, args}) => {
     if (err) {
         alert('could not fetch e-mails')
         console.error(err)
         return Unlock
     }
 
-    return Unlock({...state, emails: [...state.emails, ...data], newEmail: {user: args}})
+    return Unlock({...state, emails: [...state.emails.filter(e => e.userID != args), ...data.emails], newEmail: {userID: args}})
 }
-const FetchEmails = (state, id) => [
+const FetchEmails = (state, userID) => [
     Lock(state),
-    [_fetchFx, {action: handleFetchEmails, path: '/rest/emails/' + id, args: id}],
+    [_fetchFx, {action: handleFetchEmails, path: '/rest/emails?debug&userID=' + userID, args: userID}],
 ]
 
-const handleFetchUsers = (state, {data=[], err}) => {
+const handleFetchUsers = (state, {data, err}) => {
     if (err) {
         alert('could fetch users')
         console.error(err)
         return Unlock
     }
 
-    return Unlock({...state, users: data, loading: null})
+    return Unlock({...state, users: data.users, loading: null})
 }
 const FetchUsers = (state) => [
     Lock({...state, loading: 'users'}),
-    [_fetchFx, {action: handleFetchUsers, path: '/rest/users'}],
+    [_fetchFx, {action: handleFetchUsers, path: '/rest/users?debug'}],
 ]
 
 const handleAddUser = (state, {data, err}) => {
@@ -69,7 +69,7 @@ const AddUser = state => [
         _fetchFx,
         {
             action: handleAddUser,
-            path: '/rest/users',
+            path: '/rest/users?debug',
             options: {
                 method: 'POST',
                 body: JSON.stringify({name: state.newUser}),
@@ -78,7 +78,7 @@ const AddUser = state => [
     ],
 ]
 
-const handleRemoveUser = (state, {data, err, args}) => {
+const handleDeleteUser = (state, {data, err, args}) => {
     if (err) {
         alert('could not remove user')
         console.error(err)
@@ -86,17 +86,38 @@ const handleRemoveUser = (state, {data, err, args}) => {
 
     return Unlock({...state, users: state.users.filter(u => u.id != args)})
 }
-const RemoveUser = (state, userID) => [
+const DeleteUser = (state, userID) => [
     Lock(state),
     [
         _fetchFx,
         {
             args: userID,
-            action: handleRemoveUser,
-            path: '/rest/users',
+            action: handleDeleteUser,
+            path: `/rest/users/${userID}?debug`,
+            options: {method: 'DELETE'},
+        },
+    ],
+]
+
+const handleDeleteEmail = (state, {data, err, args}) => {
+    if (err) {
+        alert('could not remove email')
+        console.error(err)
+    }
+
+    return Unlock({...state, emails: state.emails.filter(u => u.id != args)})
+}
+const DeleteEmail = (state, emailID) => [
+    Lock(state),
+    [
+        _fetchFx,
+        {
+            args: emailID,
+            action: handleDeleteEmail,
+            path: `/rest/emails/${emailID}?debug`,
             options: {
                 method: 'DELETE',
-                body: JSON.stringify({userID}),
+                body: JSON.stringify({emailID}),
             },
         },
     ],
@@ -110,8 +131,8 @@ const handleAddEmail = (state, {data, err}) => {
     }
 
     return [
-        Unlock,
-        [(d, {action}) => d(action), {action: [FetchEmails, state.newEmail.user]}],
+        Unlock(state),
+        [(d, {action}) => d(action), {action: [FetchEmails, state.newEmail.userID]}],
     ]
 }
 const AddEmail = state => [
@@ -132,12 +153,12 @@ const AddEmail = state => [
 const User = (state, user) => h(
     'li',
     {key: user.id},
-    state.newEmail && state.newEmail.user == user.id && h(
+    state.newEmail && state.newEmail.userID == user.id && h(
         'div', {className:'card'},
         [
             h('header', {className: 'card-header'}, [
                 h('p', {className: 'card-header-title'}, user.name),
-                h('a', {className:'card-header-icon', disabled: state.lock, onclick: [RemoveUser, user.id]},
+                h('a', {className:'card-header-icon', disabled: state.lock, onclick: [DeleteUser, user.id]},
                     h('span', {className: 'delete'}),
                 ),
             ]),
@@ -159,8 +180,8 @@ const User = (state, user) => h(
                         }, '+'))
                     ),
                     state.emails
-                        .filter(e => e.user_id == user.id)
-                        .map(e => h('div', null, e.address, h('a', {className: 'delete is-small'}))),
+                        .filter(e => e.userID == user.id)
+                        .map(e => h('div', null, e.address, h('a', {className: 'delete is-small', onclick: [DeleteEmail, e.id]}))),
                 ]),
             ]),
         ]

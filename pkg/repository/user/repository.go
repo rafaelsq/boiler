@@ -35,6 +35,27 @@ func (r *repository) Add(ctx context.Context, name string) (int, error) {
 	return int(id), nil
 }
 
+func (r *repository) Delete(ctx context.Context, userID int) error {
+	result, err := r.storage.SQL().ExecContext(ctx,
+		"DELETE FROM users WHERE id = ?",
+		userID,
+	)
+	if err != nil {
+		return multierr.Append(err, errors.WithArg("could not remove user", "userID", userID))
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return multierr.Append(err, errors.WithArg("could not fetch rows affected after remove user", "userID", userID))
+	}
+
+	if n == 0 {
+		return multierr.Append(iface.ErrNotFound, errors.WithArg("no rows affected", "userID", userID))
+	}
+
+	return nil
+}
+
 func (r *repository) List(ctx context.Context, limit uint) ([]*entity.User, error) {
 	rows, err := r.storage.SQL().QueryContext(
 		ctx,

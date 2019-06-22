@@ -33,6 +33,26 @@ func TestUserAddService(t *testing.T) {
 	assert.Equal(t, userID, id)
 }
 
+func TestUserDeleteService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := mock.NewMockUserRepository(ctrl)
+
+	srv := service.NewUser(m)
+
+	userID := 99
+
+	ctx := context.Background()
+	m.
+		EXPECT().
+		Delete(ctx, userID).
+		Return(nil)
+
+	err := srv.Delete(ctx, userID)
+	assert.Nil(t, err)
+}
+
 func TestUserListService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
