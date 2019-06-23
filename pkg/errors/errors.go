@@ -87,7 +87,6 @@ func Log(err error) {
 			if er.args != nil {
 				fmt.Printf("  \x1b[38;5;1margs\x1b[0m: ")
 				_ = json.NewEncoder(os.Stderr).Encode(er.args)
-				fmt.Printf("\n")
 			}
 			fmt.Printf("  \x1b[38;5;1mfile\x1b[0m: %s\n", er.caller)
 		}
