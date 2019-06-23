@@ -29,6 +29,14 @@ func (e *Error) Error() string {
 	return e.msg
 }
 
+func (e *Error) Arg(arg string) interface{} {
+	return e.args[arg]
+}
+
+func (e *Error) Args() map[string]interface{} {
+	return e.args
+}
+
 func New(msg string) error {
 	return &Error{msg: msg, caller: getFrame(1)}
 }

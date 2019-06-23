@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-sql-driver/mysql"
+	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/repository/email"
 	"github.com/stretchr/testify/assert"
 )
@@ -55,6 +57,25 @@ func TestAdd(t *testing.T) {
 		r := email.New(&StorageMock{mdb})
 		emailID, err := r.Add(ctx, userID, address)
 		assert.Equal(t, err.Error(), "opz; could not insert email")
+		assert.Equal(t, emailID, 0)
+	}
+
+	// fails if duplicate
+	{
+		userID := 3
+		address := "a@a.com"
+		myErr := mysql.MySQLError{
+			Message: "Duplicate entry 'a@a.com' for key 'address'",
+			Number:  1062,
+		}
+
+		mock.ExpectExec(
+			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
+		).WithArgs(userID, address).WillReturnError(&myErr)
+
+		r := email.New(&StorageMock{mdb})
+		emailID, err := r.Add(ctx, userID, address)
+		assert.Equal(t, err, iface.ErrAlreadyExists)
 		assert.Equal(t, emailID, 0)
 	}
 

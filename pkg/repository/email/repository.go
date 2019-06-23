@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/errors"
 	"github.com/rafaelsq/boiler/pkg/iface"
@@ -24,6 +25,12 @@ func (r *repository) Add(ctx context.Context, userID int, address string) (int, 
 		userID, address,
 	)
 	if err != nil {
+		if mysqlError, ok := err.(*mysql.MySQLError); ok {
+			if mysqlError.Number == 1062 {
+				return 0, iface.ErrAlreadyExists
+			}
+		}
+
 		return 0, multierr.Append(err, errors.WithArgs("could not insert email", map[string]interface{}{
 			"userID":  userID,
 			"address": address,

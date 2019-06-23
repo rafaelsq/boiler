@@ -55,6 +55,15 @@ func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*ent
 
 	_, err = m.emailService.Add(ctx, input.UserID, address.Address)
 	if err != nil {
+		if er := errors.Cause(err); er == iface.ErrAlreadyExists {
+			return nil, &gqlerror.Error{
+				Message: er.Error(),
+				Extensions: map[string]interface{}{
+					"code": er.(*errors.Error).Arg("code").(string),
+				},
+			}
+		}
+
 		errors.Log(err)
 		return nil, fmt.Errorf("service failed")
 	}

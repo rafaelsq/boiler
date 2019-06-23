@@ -3,13 +3,8 @@ package iface
 
 import (
 	"context"
-	"errors"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
-)
-
-var (
-	ErrNotFound = errors.New("not found")
 )
 
 type UserRepository interface {

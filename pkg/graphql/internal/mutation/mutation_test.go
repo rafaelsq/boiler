@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -96,6 +97,21 @@ func TestAddEmail(t *testing.T) {
 			Address: address,
 		})
 		assert.Equal(t, err.Error(), "input: invalid email address")
+		assert.Nil(t, u)
+	}
+
+	// fails if service fails with duplicated
+	{
+		address := "email@email.com"
+		userID := 12
+
+		es.EXPECT().Add(ctx, userID, address).Return(0, iface.ErrAlreadyExists)
+
+		u, err := m.AddMail(ctx, entity.AddMailInput{
+			UserID:  userID,
+			Address: address,
+		})
+		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", iface.ErrAlreadyExists))
 		assert.Nil(t, u)
 	}
 
