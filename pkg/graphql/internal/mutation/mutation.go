@@ -11,20 +11,18 @@ import (
 	"github.com/vektah/gqlparser/gqlerror"
 )
 
-func NewMutation(us iface.UserService, es iface.EmailService) *Mutation {
+func NewMutation(service iface.Service) *Mutation {
 	return &Mutation{
-		userService:  us,
-		emailService: es,
+		service: service,
 	}
 }
 
 type Mutation struct {
-	userService  iface.UserService
-	emailService iface.EmailService
+	service iface.Service
 }
 
 func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.User, error) {
-	userID, err := m.userService.Add(ctx, input.Name)
+	userID, err := m.service.AddUser(ctx, input.Name)
 	if err != nil {
 		errors.Log(err)
 		return nil, fmt.Errorf("service failed")
@@ -53,7 +51,7 @@ func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*ent
 		}
 	}
 
-	_, err = m.emailService.Add(ctx, input.UserID, address.Address)
+	_, err = m.service.AddEmail(ctx, input.UserID, address.Address)
 	if err != nil {
 		if er := errors.Cause(err); er == iface.ErrAlreadyExists {
 			return nil, &gqlerror.Error{

@@ -7,24 +7,22 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewUser(us iface.UserService, es iface.EmailService) *User {
+func NewUser(service iface.Service) *User {
 	return &User{
-		userService:  us,
-		emailService: es,
+		service: service,
 	}
 }
 
 type User struct {
-	userService  iface.UserService
-	emailService iface.EmailService
+	service iface.Service
 }
 
 func (*User) ID(ctx context.Context, u *entity.User) (int, error) {
-	return int(u.ID), nil
+	return u.ID, nil
 }
 
 func (r *User) User(ctx context.Context, userID int) (*entity.User, error) {
-	u, err := r.userService.ByID(ctx, userID)
+	u, err := r.service.GetUserByID(ctx, userID)
 	if err == nil {
 		return entity.NewUser(u), nil
 	}
@@ -32,7 +30,7 @@ func (r *User) User(ctx context.Context, userID int) (*entity.User, error) {
 }
 
 func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
-	us, err := r.userService.List(ctx, limit)
+	us, err := r.service.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
 	if err == nil {
 		users := make([]*entity.User, 0, len(us))
 		for _, u := range us {
@@ -44,7 +42,7 @@ func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
 }
 
 func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, error) {
-	es, err := r.emailService.ByUserID(ctx, u.ID)
+	es, err := r.service.FilterEmails(ctx, iface.FilterEmails{UserID: u.ID})
 	if err == nil {
 		emails := make([]*entity.Email, 0, len(es))
 		for _, e := range es {

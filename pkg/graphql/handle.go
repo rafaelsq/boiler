@@ -16,10 +16,10 @@ func PlayHandle() http.HandlerFunc {
 	return handler.Playground("Users", "/graphql/query")
 }
 
-func QueryHandleFunc(us iface.UserService, es iface.EmailService) http.HandlerFunc {
+func QueryHandleFunc(service iface.Service) http.HandlerFunc {
 	return handler.GraphQL(
 		graphql.NewExecutableSchema(graphql.Config{
-			Resolvers: graphql.NewResolver(us, es),
+			Resolvers: graphql.NewResolver(service),
 		}),
 		handler.RecoverFunc(func(ctx context.Context, err interface{}) error {
 			log.Print(err)

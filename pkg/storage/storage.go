@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/rafaelsq/boiler/pkg/iface"
 
@@ -13,17 +12,12 @@ type Storage struct {
 	sql *sql.DB
 }
 
-func (s *Storage) SQL() *sql.DB {
-	return s.sql
+func (s *Storage) Tx() (*sql.Tx, error) {
+	return s.sql.Begin()
 }
 
-func New(dsn string) iface.Storage {
-	mariadb, err := NewMariaDB(dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func New(sql *sql.DB) iface.Storage {
 	return &Storage{
-		sql: mariadb,
+		sql: sql,
 	}
 }

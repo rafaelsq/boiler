@@ -2,81 +2,188 @@ package service_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/mock"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEmailAddService(t *testing.T) {
+type tx struct{}
+
+func (*tx) Commit() error { return nil }
+
+func TestAddEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockEmailRepository(ctrl)
+	m := mock.NewMockStorage(ctrl)
 
-	srv := service.NewEmail(m)
+	srv := service.New(m)
 
 	ID := 13
 	userID := 99
 	address := "contact@example.com"
 
 	ctx := context.Background()
-	m.
-		EXPECT().
-		Add(ctx, userID, address).
-		Return(ID, nil)
 
-	ID, err := srv.Add(ctx, userID, address)
-	assert.Nil(t, err)
-	assert.Equal(t, ID, ID)
+	// succeed
+	{
+		db, mdb, err := sqlmock.New()
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		m.EXPECT().Tx().Return(tx, err)
+		m.
+			EXPECT().
+			AddEmail(ctx, gomock.Any(), userID, address).
+			Return(ID, nil)
+
+		mdb.ExpectCommit()
+
+		ID, err = srv.AddEmail(ctx, userID, address)
+		assert.Nil(t, err)
+		assert.Equal(t, ID, ID)
+	}
+
+	// fails if Tx fails
+	{
+		m.EXPECT().Tx().Return(nil, fmt.Errorf("opz"))
+
+		id, err := srv.AddEmail(ctx, userID, address)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "opz; could not begin transaction")
+		assert.Equal(t, 0, id)
+	}
+
+	// fails if service fails
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			AddEmail(ctx, tx, userID, address).
+			Return(0, fmt.Errorf("rollback"))
+		mdb.ExpectRollback()
+
+		id, err := srv.AddEmail(ctx, userID, address)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "rollback; could not add email")
+		assert.Equal(t, 0, id)
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// fails if service fails and rollback fails
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			AddEmail(ctx, tx, userID, address).
+			Return(0, fmt.Errorf("rollback"))
+
+		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackerr"))
+
+		id, err := srv.AddEmail(ctx, userID, address)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "rollback; rollbackerr; could not add email")
+		assert.Equal(t, 0, id)
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// fails if commit fails
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			AddEmail(ctx, tx, userID, address).
+			Return(ID, nil)
+
+		mdb.ExpectCommit().WillReturnError(fmt.Errorf("commit failed"))
+
+		id, err := srv.AddEmail(ctx, userID, address)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "commit failed; could not add email")
+		assert.Equal(t, 0, id)
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
 }
 
-func TestEmailDeleteService(t *testing.T) {
+func TestDeleteEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockEmailRepository(ctrl)
+	m := mock.NewMockStorage(ctrl)
 
-	srv := service.NewEmail(m)
+	srv := service.New(m)
 
 	ID := 13
 
 	ctx := context.Background()
 	m.
 		EXPECT().
-		Delete(ctx, ID).
+		DeleteEmail(ctx, ID).
 		Return(nil)
 
-	err := srv.Delete(ctx, ID)
+	err := srv.DeleteEmail(ctx, ID)
 	assert.Nil(t, err)
 }
 
-func TestEmailByUserIDService(t *testing.T) {
+func TestFilterEmails(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockEmailRepository(ctrl)
+	m := mock.NewMockStorage(ctrl)
 
-	srv := service.NewEmail(m)
+	srv := service.New(m)
 
 	ID := 13
 	userID := 99
 	address := "contact@example.com"
-
+	filter := iface.FilterEmails{UserID: userID}
 	ctx := context.Background()
 	m.
 		EXPECT().
-		ByUserID(ctx, userID).
+		FilterEmails(ctx, filter).
 		Return([]*entity.Email{{
 			ID:      ID,
 			UserID:  userID,
 			Address: address,
 		}}, nil)
 
-	es, err := srv.ByUserID(ctx, userID)
+	es, err := srv.FilterEmails(ctx, filter)
 	assert.Nil(t, err)
 	assert.Len(t, es, 1)
 	assert.Equal(t, es[0].ID, ID)

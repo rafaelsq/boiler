@@ -7,27 +7,26 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewResolver(us iface.UserService, es iface.EmailService) ResolverRoot {
-	return &Resolver{us, es}
+func NewResolver(service iface.Service) ResolverRoot {
+	return &Resolver{service}
 }
 
 type Resolver struct {
-	us iface.UserService
-	es iface.EmailService
+	service iface.Service
 }
 
 func (r *Resolver) Query() QueryResolver {
-	return NewQuery(resolver.NewUser(r.us, r.es))
+	return NewQuery(resolver.NewUser(r.service))
 }
 
 func (r *Resolver) Mutation() MutationResolver {
-	return mutation.NewMutation(r.us, r.es)
+	return mutation.NewMutation(r.service)
 }
 
 func (r *Resolver) User() UserResolver {
-	return resolver.NewUser(r.us, r.es)
+	return resolver.NewUser(r.service)
 }
 
 func (r *Resolver) Email() EmailResolver {
-	return resolver.NewEmail(r.us)
+	return resolver.NewEmail(r.service)
 }

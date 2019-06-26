@@ -1,4 +1,4 @@
-//go:generate ../../mock.sh service
+//go:generate ../../mock.sh
 package iface
 
 import (
@@ -7,16 +7,16 @@ import (
 	"github.com/rafaelsq/boiler/pkg/entity"
 )
 
-type UserService interface {
-	Add(context.Context, string) (int, error)
-	Delete(context.Context, int) error
-	ByID(context.Context, int) (*entity.User, error)
-	ByEmail(context.Context, string) (*entity.User, error)
-	List(context.Context, uint) ([]*entity.User, error)
-}
+type Service interface {
+	// user
+	AddUser(context.Context, string) (int, error)
+	DeleteUser(context.Context, int) error
+	FilterUsers(context.Context, FilterUsers) ([]*entity.User, error)
+	GetUserByID(context.Context, int) (*entity.User, error)
+	GetUserByEmail(context.Context, string) (*entity.User, error)
 
-type EmailService interface {
-	ByUserID(context.Context, int) ([]*entity.Email, error)
-	Add(context.Context, int, string) (int, error)
-	Delete(context.Context, int) error
+	// email
+	FilterEmails(context.Context, FilterEmails) ([]*entity.Email, error)
+	AddEmail(context.Context, int, string) (int, error)
+	DeleteEmail(context.Context, int) error
 }

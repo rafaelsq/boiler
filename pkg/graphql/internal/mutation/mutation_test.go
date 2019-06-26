@@ -16,9 +16,9 @@ func TestAddUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	us := mock.NewMockUserService(ctrl)
+	service := mock.NewMockService(ctrl)
 
-	m := NewMutation(us, nil)
+	m := NewMutation(service)
 
 	ctx := context.TODO()
 
@@ -26,7 +26,7 @@ func TestAddUser(t *testing.T) {
 	{
 		name := "name"
 
-		us.EXPECT().Add(ctx, name).Return(1, nil)
+		service.EXPECT().AddUser(ctx, name).Return(1, nil)
 
 		u, err := m.AddUser(ctx, entity.AddUserInput{
 			Name: name,
@@ -39,7 +39,7 @@ func TestAddUser(t *testing.T) {
 	{
 		name := "name"
 
-		us.EXPECT().Add(ctx, name).Return(0, fmt.Errorf("opz"))
+		service.EXPECT().AddUser(ctx, name).Return(0, fmt.Errorf("opz"))
 
 		u, err := m.AddUser(ctx, entity.AddUserInput{
 			Name: name,
@@ -53,9 +53,9 @@ func TestAddEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	es := mock.NewMockEmailService(ctrl)
+	service := mock.NewMockService(ctrl)
 
-	m := NewMutation(nil, es)
+	m := NewMutation(service)
 
 	ctx := context.TODO()
 
@@ -64,7 +64,7 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := 12
 
-		es.EXPECT().Add(ctx, userID, address).Return(1, nil)
+		service.EXPECT().AddEmail(ctx, userID, address).Return(1, nil)
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
 			UserID:  userID,
@@ -105,7 +105,7 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := 12
 
-		es.EXPECT().Add(ctx, userID, address).Return(0, iface.ErrAlreadyExists)
+		service.EXPECT().AddEmail(ctx, userID, address).Return(0, iface.ErrAlreadyExists)
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
 			UserID:  userID,
@@ -120,7 +120,7 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := 12
 
-		es.EXPECT().Add(ctx, userID, address).Return(0, fmt.Errorf("opz"))
+		service.EXPECT().AddEmail(ctx, userID, address).Return(0, fmt.Errorf("opz"))
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
 			UserID:  userID,

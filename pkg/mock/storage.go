@@ -5,8 +5,11 @@
 package mock
 
 import (
+	context "context"
 	sql "database/sql"
 	gomock "github.com/golang/mock/gomock"
+	entity "github.com/rafaelsq/boiler/pkg/entity"
+	iface "github.com/rafaelsq/boiler/pkg/iface"
 	reflect "reflect"
 )
 
@@ -33,16 +36,105 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
 
-// SQL mocks base method
-func (m *MockStorage) SQL() *sql.DB {
+// Tx mocks base method
+func (m *MockStorage) Tx() (*sql.Tx, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SQL")
-	ret0, _ := ret[0].(*sql.DB)
+	ret := m.ctrl.Call(m, "Tx")
+	ret0, _ := ret[0].(*sql.Tx)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Tx indicates an expected call of Tx
+func (mr *MockStorageMockRecorder) Tx() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tx", reflect.TypeOf((*MockStorage)(nil).Tx))
+}
+
+// AddUser mocks base method
+func (m *MockStorage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddUser", ctx, tx, name)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddUser indicates an expected call of AddUser
+func (mr *MockStorageMockRecorder) AddUser(ctx, tx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockStorage)(nil).AddUser), ctx, tx, name)
+}
+
+// DeleteUser mocks base method
+func (m *MockStorage) DeleteUser(ctx context.Context, userID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, userID)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SQL indicates an expected call of SQL
-func (mr *MockStorageMockRecorder) SQL() *gomock.Call {
+// DeleteUser indicates an expected call of DeleteUser
+func (mr *MockStorageMockRecorder) DeleteUser(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SQL", reflect.TypeOf((*MockStorage)(nil).SQL))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockStorage)(nil).DeleteUser), ctx, userID)
+}
+
+// FilterUsers mocks base method
+func (m *MockStorage) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterUsers", ctx, filter)
+	ret0, _ := ret[0].([]*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterUsers indicates an expected call of FilterUsers
+func (mr *MockStorageMockRecorder) FilterUsers(ctx, filter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterUsers", reflect.TypeOf((*MockStorage)(nil).FilterUsers), ctx, filter)
+}
+
+// AddEmail mocks base method
+func (m *MockStorage) AddEmail(ctx context.Context, tx *sql.Tx, userID int, address string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddEmail", ctx, tx, userID, address)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddEmail indicates an expected call of AddEmail
+func (mr *MockStorageMockRecorder) AddEmail(ctx, tx, userID, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEmail", reflect.TypeOf((*MockStorage)(nil).AddEmail), ctx, tx, userID, address)
+}
+
+// DeleteEmail mocks base method
+func (m *MockStorage) DeleteEmail(ctx context.Context, emailID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteEmail", ctx, emailID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteEmail indicates an expected call of DeleteEmail
+func (mr *MockStorageMockRecorder) DeleteEmail(ctx, emailID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmail", reflect.TypeOf((*MockStorage)(nil).DeleteEmail), ctx, emailID)
+}
+
+// FilterEmails mocks base method
+func (m *MockStorage) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterEmails", ctx, filter)
+	ret0, _ := ret[0].([]*entity.Email)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterEmails indicates an expected call of FilterEmails
+func (mr *MockStorageMockRecorder) FilterEmails(ctx, filter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterEmails", reflect.TypeOf((*MockStorage)(nil).FilterEmails), ctx, filter)
 }

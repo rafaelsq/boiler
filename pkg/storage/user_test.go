@@ -1,4 +1,4 @@
-package user_test
+package storage_test
 
 import (
 	"context"
@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/rafaelsq/boiler/pkg/repository/user"
+	"github.com/rafaelsq/boiler/pkg/iface"
+	"github.com/rafaelsq/boiler/pkg/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,7 @@ func (s *StorageMock) SQL() *sql.DB {
 	return s.sql
 }
 
-func TestAdd(t *testing.T) {
+func TestAddUser(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -31,14 +32,21 @@ func TestAdd(t *testing.T) {
 	{
 		name := "user"
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())"),
 		).WithArgs(name).WillReturnResult(sqlmock.NewResult(3, 1))
+		mock.ExpectCommit()
 
-		r := user.New(&StorageMock{mdb})
-		userID, err := r.Add(ctx, name)
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		userID, err := r.AddUser(ctx, tx, name)
 		assert.Nil(t, err)
 		assert.Equal(t, userID, 3)
+		assert.Nil(t, tx.Commit())
 	}
 
 	// fail
@@ -46,14 +54,21 @@ func TestAdd(t *testing.T) {
 		name := "user"
 
 		myErr := fmt.Errorf("err")
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())"),
 		).WithArgs(name).WillReturnError(myErr)
+		mock.ExpectCommit()
 
-		r := user.New(&StorageMock{mdb})
-		userID, err := r.Add(ctx, name)
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		userID, err := r.AddUser(ctx, tx, name)
 		assert.Equal(t, err.Error(), "err; could not insert user")
 		assert.Equal(t, userID, 0)
+		assert.Nil(t, tx.Commit())
 	}
 
 	// last inserted failed
@@ -61,18 +76,25 @@ func TestAdd(t *testing.T) {
 		name := "user"
 
 		myErr := fmt.Errorf("err")
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())"),
 		).WithArgs(name).WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
+		mock.ExpectCommit()
 
-		r := user.New(&StorageMock{mdb})
-		userID, err := r.Add(ctx, name)
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		userID, err := r.AddUser(ctx, tx, name)
 		assert.Equal(t, err.Error(), "err; last insert id failed after add user")
 		assert.Equal(t, userID, 0)
+		assert.Nil(t, tx.Commit())
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteUser(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -88,8 +110,8 @@ func TestDelete(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(3, 1))
 
-		r := user.New(&StorageMock{mdb})
-		err := r.Delete(ctx, userID)
+		r := storage.New(mdb)
+		err := r.DeleteUser(ctx, userID)
 		assert.Nil(t, err)
 	}
 
@@ -101,8 +123,8 @@ func TestDelete(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnError(fmt.Errorf("opz"))
 
-		r := user.New(&StorageMock{mdb})
-		err := r.Delete(ctx, userID)
+		r := storage.New(mdb)
+		err := r.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz; could not remove user")
 	}
@@ -115,8 +137,8 @@ func TestDelete(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 0))
 
-		r := user.New(&StorageMock{mdb})
-		err := r.Delete(ctx, userID)
+		r := storage.New(mdb)
+		err := r.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "not found; no rows affected")
 	}
@@ -130,14 +152,14 @@ func TestDelete(t *testing.T) {
 		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(1, 1)).
 			WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("opz")))
 
-		r := user.New(&StorageMock{mdb})
-		err := r.Delete(ctx, userID)
+		r := storage.New(mdb)
+		err := r.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz; could not fetch rows affected after remove user")
 	}
 }
 
-func TestList(t *testing.T) {
+func TestFilterUsers(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -155,8 +177,8 @@ func TestList(t *testing.T) {
 				AddRow(3, "user", time.Time{}, time.Now()),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		users, err := r.List(ctx, limit)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
 		assert.Nil(t, err)
 		assert.Len(t, users, 1)
 		assert.Equal(t, users[0].ID, 3)
@@ -172,8 +194,8 @@ func TestList(t *testing.T) {
 				AddRow("err", "user", time.Time{}, time.Now()),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		users, err := r.List(ctx, limit)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Len(t, users, 0)
@@ -188,14 +210,14 @@ func TestList(t *testing.T) {
 			regexp.QuoteMeta("SELECT id, name, created, updated FROM users LIMIT ?"),
 		).WithArgs(limit).WillReturnError(myErr)
 
-		r := user.New(&StorageMock{mdb})
-		users, err := r.List(ctx, limit)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
 		assert.Equal(t, err.Error(), "err; could not list users")
 		assert.Len(t, users, 0)
 	}
 }
 
-func TestByID(t *testing.T) {
+func TestFilterUsersByID(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -213,10 +235,10 @@ func TestByID(t *testing.T) {
 				AddRow(userID, "user", time.Time{}, time.Now()),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByID(ctx, userID)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
 		assert.Nil(t, err)
-		assert.Equal(t, user.ID, userID)
+		assert.Equal(t, users[0].ID, userID)
 	}
 
 	// succeed with no row
@@ -228,10 +250,10 @@ func TestByID(t *testing.T) {
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByID(ctx, userID)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
 		assert.Nil(t, err)
-		assert.Nil(t, user)
+		assert.Len(t, users, 0)
 	}
 
 	// scan fail
@@ -244,10 +266,10 @@ func TestByID(t *testing.T) {
 				AddRow("err", "user", time.Time{}, time.Now()),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByID(ctx, userID)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Nil(t, user)
+		assert.Nil(t, users)
 	}
 
 	// fail
@@ -258,14 +280,14 @@ func TestByID(t *testing.T) {
 			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnError(myErr)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByID(ctx, userID)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
 		assert.Equal(t, err.Error(), "opz; could not fetch user")
-		assert.Nil(t, user)
+		assert.Nil(t, users)
 	}
 }
 
-func TestByMail(t *testing.T) {
+func TestFilterUsersByMail(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -284,10 +306,10 @@ func TestByMail(t *testing.T) {
 				AddRow(3, "user", time.Time{}, time.Now()),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByEmail(ctx, email)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
 		assert.Nil(t, err)
-		assert.Equal(t, user.ID, 3)
+		assert.Equal(t, users[0].ID, 3)
 	}
 
 	// succeed with no row
@@ -300,10 +322,10 @@ func TestByMail(t *testing.T) {
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByEmail(ctx, email)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
 		assert.Nil(t, err)
-		assert.Nil(t, user)
+		assert.Len(t, users, 0)
 	}
 
 	// scan fail
@@ -317,10 +339,10 @@ func TestByMail(t *testing.T) {
 				AddRow("err", "user", time.Time{}, time.Now()),
 		)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByEmail(ctx, email)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Nil(t, user)
+		assert.Nil(t, users)
 	}
 
 	// fail
@@ -332,9 +354,9 @@ func TestByMail(t *testing.T) {
 				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
 		).WithArgs(email).WillReturnError(myErr)
 
-		r := user.New(&StorageMock{mdb})
-		user, err := r.ByEmail(ctx, email)
+		r := storage.New(mdb)
+		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
 		assert.Equal(t, err.Error(), "opz; could not fetch user")
-		assert.Nil(t, user)
+		assert.Nil(t, users)
 	}
 }

@@ -12,10 +12,10 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/golang/mock/gomock"
 	"github.com/rafaelsq/boiler/pkg/entity"
+	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/mock"
 	"github.com/rafaelsq/boiler/pkg/rest"
 	"github.com/rafaelsq/boiler/pkg/router"
-	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,15 +25,14 @@ func TestAddUserHandle(t *testing.T) {
 
 	// succeed
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John"}
-		m.EXPECT().Add(gomock.Any(), user.Name).Return(user.ID, nil)
+		m.EXPECT().AddUser(gomock.Any(), user.Name).Return(user.ID, nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -52,12 +51,11 @@ func TestAddUserHandle(t *testing.T) {
 
 	// fail if payload is invalid
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -77,12 +75,11 @@ func TestAddUserHandle(t *testing.T) {
 
 	// fail if name is empty
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -102,16 +99,15 @@ func TestAddUserHandle(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 		myErr := fmt.Errorf("opz")
 
 		user := &entity.User{ID: 4, Name: "John"}
-		m.EXPECT().Add(gomock.Any(), user.Name).Return(0, myErr)
+		m.EXPECT().AddUser(gomock.Any(), user.Name).Return(0, myErr)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/users", rest.AddUserHandle(us))
+		r.Post("/users", rest.AddUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -133,15 +129,14 @@ func TestDeleteUserHandle(t *testing.T) {
 
 	// succeed
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John"}
-		m.EXPECT().Delete(gomock.Any(), user.ID).Return(nil)
+		m.EXPECT().DeleteUser(gomock.Any(), user.ID).Return(nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(us))
+		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -156,12 +151,11 @@ func TestDeleteUserHandle(t *testing.T) {
 
 	// fails if invalid userID
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(us))
+		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -182,15 +176,14 @@ func TestDeleteUserHandle(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John"}
-		m.EXPECT().Delete(gomock.Any(), user.ID).Return(fmt.Errorf("opz"))
+		m.EXPECT().DeleteUser(gomock.Any(), user.ID).Return(fmt.Errorf("opz"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(us))
+		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -216,15 +209,16 @@ func TestUsersHandle(t *testing.T) {
 
 	// succeed
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John Doe"}
-		m.EXPECT().List(gomock.Any(), uint(3)).Return([]*entity.User{user}, nil)
+		m.EXPECT().
+			FilterUsers(gomock.Any(), iface.FilterUsers{Limit: 3}).
+			Return([]*entity.User{user}, nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/users", rest.ListUsersHandle(us))
+		r.Get("/users", rest.ListUsersHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -245,12 +239,11 @@ func TestUsersHandle(t *testing.T) {
 
 	// fail if invalid limit
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/users", rest.ListUsersHandle(us))
+		r.Get("/users", rest.ListUsersHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -266,15 +259,14 @@ func TestUsersHandle(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John Doe"}
-		m.EXPECT().List(gomock.Any(), uint(100)).Return([]*entity.User{user}, fmt.Errorf("not working"))
+		m.EXPECT().FilterUsers(gomock.Any(), iface.FilterUsers{Limit: 100}).Return([]*entity.User{user}, fmt.Errorf("not working"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/users", rest.ListUsersHandle(us))
+		r.Get("/users", rest.ListUsersHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -295,18 +287,17 @@ func TestUserHandle(t *testing.T) {
 
 	// succeed
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John Doe"}
 
 		m.EXPECT().
-			ByID(gomock.Any(), user.ID).
+			GetUserByID(gomock.Any(), user.ID).
 			Return(user, nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(us))
+		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -327,12 +318,11 @@ func TestUserHandle(t *testing.T) {
 
 	// fail - bad-request
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(us))
+		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -345,18 +335,17 @@ func TestUserHandle(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockUserRepository(ctrl)
-		us := service.NewUser(m)
+		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John Doe"}
 
 		m.EXPECT().
-			ByID(gomock.Any(), user.ID).
+			GetUserByID(gomock.Any(), user.ID).
 			Return(nil, fmt.Errorf("failed"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(us))
+		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -374,19 +363,18 @@ func TestAddEmailHandle(t *testing.T) {
 
 	// succeed
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		userID := 12
 		address := "example@email.com"
 
 		m.EXPECT().
-			Add(gomock.Any(), userID, address).
+			AddEmail(gomock.Any(), userID, address).
 			Return(5, nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -408,12 +396,11 @@ func TestAddEmailHandle(t *testing.T) {
 
 	// fail with invalid payload
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -432,12 +419,11 @@ func TestAddEmailHandle(t *testing.T) {
 
 	// fail with invalid email address
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -456,12 +442,11 @@ func TestAddEmailHandle(t *testing.T) {
 
 	// fail with invalid user ID
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -480,20 +465,19 @@ func TestAddEmailHandle(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		userID := 12
 		address := "example@email.com"
 		myErr := fmt.Errorf("fails")
 
 		m.EXPECT().
-			Add(gomock.Any(), userID, address).
+			AddEmail(gomock.Any(), userID, address).
 			Return(0, myErr)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Post("/emails", rest.AddEmailHandle(es))
+		r.Post("/emails", rest.AddEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -517,18 +501,17 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 	// succeed
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		emailID := 12
 
 		m.EXPECT().
-			Delete(gomock.Any(), emailID).
+			DeleteEmail(gomock.Any(), emailID).
 			Return(nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(es))
+		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -545,8 +528,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 	// fails if emailID is invalid
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		emailID := 0
 
@@ -556,7 +538,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(es))
+		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -572,18 +554,17 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		emailID := 1
 
 		m.EXPECT().
-			Delete(gomock.Any(), emailID).
+			DeleteEmail(gomock.Any(), emailID).
 			Return(fmt.Errorf("opz"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(es))
+		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -608,8 +589,7 @@ func TestEmailsHandle(t *testing.T) {
 
 	// succeed
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		user := entity.User{ID: 4, Name: "John Doe"}
 		emails := []*entity.Email{
@@ -618,12 +598,12 @@ func TestEmailsHandle(t *testing.T) {
 		}
 
 		m.EXPECT().
-			ByUserID(gomock.Any(), user.ID).
+			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: user.ID}).
 			Return(emails, nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/emails", rest.ListEmailsHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -647,18 +627,17 @@ func TestEmailsHandle(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		user := entity.User{ID: 4, Name: "John Doe"}
 
 		m.EXPECT().
-			ByUserID(gomock.Any(), user.ID).
+			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: user.ID}).
 			Return(nil, fmt.Errorf("failed"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/emails", rest.ListEmailsHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -671,12 +650,11 @@ func TestEmailsHandle(t *testing.T) {
 
 	// fail - bad request
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/emails", rest.ListEmailsHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -689,12 +667,11 @@ func TestEmailsHandle(t *testing.T) {
 
 	// fails if not userID is provided
 	{
-		m := mock.NewMockEmailRepository(ctrl)
-		es := service.NewEmail(m)
+		m := mock.NewMockService(ctrl)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
-		r.Get("/emails", rest.ListEmailsHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(m))
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()

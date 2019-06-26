@@ -7,22 +7,22 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func NewEmail(service iface.UserService) *Email {
+func NewEmail(service iface.Service) *Email {
 	return &Email{
 		service: service,
 	}
 }
 
 type Email struct {
-	service iface.UserService
+	service iface.Service
 }
 
 func (r *Email) ID(ctx context.Context, e *entity.Email) (int, error) {
-	return int(e.ID), nil
+	return e.ID, nil
 }
 
 func (r *Email) User(ctx context.Context, e *entity.Email) (*entity.User, error) {
-	u, err := r.service.ByEmail(ctx, e.Address)
+	u, err := r.service.GetUserByEmail(ctx, e.Address)
 	if err == nil {
 		return entity.NewUser(u), nil
 	}

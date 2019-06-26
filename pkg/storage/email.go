@@ -1,7 +1,8 @@
-package email
+package storage
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -11,16 +12,8 @@ import (
 	"go.uber.org/multierr"
 )
 
-func New(storage iface.Storage) iface.EmailRepository {
-	return &repository{storage}
-}
-
-type repository struct {
-	storage iface.Storage
-}
-
-func (r *repository) Add(ctx context.Context, userID int, address string) (int, error) {
-	result, err := r.storage.SQL().ExecContext(ctx,
+func (s *Storage) AddEmail(ctx context.Context, tx *sql.Tx, userID int, address string) (int, error) {
+	result, err := tx.ExecContext(ctx,
 		"INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())",
 		userID, address,
 	)
@@ -45,8 +38,8 @@ func (r *repository) Add(ctx context.Context, userID int, address string) (int, 
 	return int(id), nil
 }
 
-func (r *repository) Delete(ctx context.Context, emailID int) error {
-	result, err := r.storage.SQL().ExecContext(ctx,
+func (s *Storage) DeleteEmail(ctx context.Context, emailID int) error {
+	result, err := s.sql.ExecContext(ctx,
 		"DELETE FROM emails WHERE id = ?",
 		emailID,
 	)
@@ -66,14 +59,14 @@ func (r *repository) Delete(ctx context.Context, emailID int) error {
 	return nil
 }
 
-func (r *repository) ByUserID(ctx context.Context, userID int) ([]*entity.Email, error) {
-	rows, err := r.storage.SQL().QueryContext(
+func (s *Storage) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {
+	rows, err := s.sql.QueryContext(
 		ctx,
 		"SELECT id, user_id, address, created FROM emails WHERE user_id = ?",
-		userID,
+		filter.UserID,
 	)
 	if err != nil {
-		return nil, multierr.Append(err, errors.WithArg("could not fetch user's emails", "userID", userID))
+		return nil, multierr.Append(err, errors.WithArg("could not fetch user's emails", "userID", filter.UserID))
 	}
 
 	emails := make([]*entity.Email, 0)
@@ -82,7 +75,7 @@ func (r *repository) ByUserID(ctx context.Context, userID int) ([]*entity.Email,
 			break
 		}
 
-		email, err := scan(rows.Scan)
+		email, err := scanEmail(rows.Scan)
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +85,7 @@ func (r *repository) ByUserID(ctx context.Context, userID int) ([]*entity.Email,
 	return emails, nil
 }
 
-func scan(sc func(dest ...interface{}) error) (*entity.Email, error) {
+func scanEmail(sc func(dest ...interface{}) error) (*entity.Email, error) {
 	var id int
 	var userID int
 	var address string

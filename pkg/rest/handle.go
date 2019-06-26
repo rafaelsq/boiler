@@ -13,7 +13,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-func AddUserHandle(us iface.UserService) http.HandlerFunc {
+func AddUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
 			Name string `json:"name"`
@@ -31,7 +31,7 @@ func AddUserHandle(us iface.UserService) http.HandlerFunc {
 			return
 		}
 
-		userID, err := us.Add(r.Context(), payload.Name)
+		userID, err := service.AddUser(r.Context(), payload.Name)
 		if err != nil {
 			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -44,7 +44,7 @@ func AddUserHandle(us iface.UserService) http.HandlerFunc {
 	}
 }
 
-func ListUsersHandle(us iface.UserService) http.HandlerFunc {
+func ListUsersHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		limit := 100
 		rawLimit := r.URL.Query()["limit"]
@@ -58,7 +58,7 @@ func ListUsersHandle(us iface.UserService) http.HandlerFunc {
 			}
 		}
 
-		users, err := us.List(r.Context(), uint(limit))
+		users, err := service.FilterUsers(r.Context(), iface.FilterUsers{Limit: uint(limit)})
 		if err != nil {
 			errors.Log(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -72,7 +72,7 @@ func ListUsersHandle(us iface.UserService) http.HandlerFunc {
 	}
 }
 
-func DeleteUserHandle(us iface.UserService) http.HandlerFunc {
+func DeleteUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil || userID == 0 {
@@ -80,7 +80,7 @@ func DeleteUserHandle(us iface.UserService) http.HandlerFunc {
 			return
 		}
 
-		err = us.Delete(r.Context(), int(userID))
+		err = service.DeleteUser(r.Context(), int(userID))
 		if err != nil {
 			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -91,7 +91,7 @@ func DeleteUserHandle(us iface.UserService) http.HandlerFunc {
 	}
 }
 
-func GetUserHandle(us iface.UserService) http.HandlerFunc {
+func GetUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil || userID == 0 {
@@ -99,7 +99,7 @@ func GetUserHandle(us iface.UserService) http.HandlerFunc {
 			return
 		}
 
-		user, err := us.ByID(r.Context(), int(userID))
+		user, err := service.GetUserByID(r.Context(), int(userID))
 		if err != nil {
 			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -112,7 +112,7 @@ func GetUserHandle(us iface.UserService) http.HandlerFunc {
 	}
 }
 
-func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
+func AddEmailHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
 			UserID  int    `json:"userID"`
@@ -137,7 +137,7 @@ func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 			return
 		}
 
-		emailID, err := es.Add(r.Context(), payload.UserID, email.Address)
+		emailID, err := service.AddEmail(r.Context(), payload.UserID, email.Address)
 		if err != nil {
 			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -150,7 +150,7 @@ func AddEmailHandle(es iface.EmailService) http.HandlerFunc {
 	}
 }
 
-func DeleteEmailHandle(es iface.EmailService) http.HandlerFunc {
+func DeleteEmailHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		emailID, err := strconv.ParseUint(chi.URLParam(r, "emailID"), 10, 64)
 		if err != nil || emailID <= 0 {
@@ -158,7 +158,7 @@ func DeleteEmailHandle(es iface.EmailService) http.HandlerFunc {
 			return
 		}
 
-		err = es.Delete(r.Context(), int(emailID))
+		err = service.DeleteEmail(r.Context(), int(emailID))
 		if err != nil {
 			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -169,7 +169,7 @@ func DeleteEmailHandle(es iface.EmailService) http.HandlerFunc {
 	}
 }
 
-func ListEmailsHandle(es iface.EmailService) http.HandlerFunc {
+func ListEmailsHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()["userID"]
 		if len(params) == 0 {
@@ -183,7 +183,7 @@ func ListEmailsHandle(es iface.EmailService) http.HandlerFunc {
 			return
 		}
 
-		emails, err := es.ByUserID(r.Context(), int(userID))
+		emails, err := service.FilterEmails(r.Context(), iface.FilterEmails{UserID: int(userID)})
 		if err != nil {
 			errors.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")

@@ -8,169 +8,147 @@ import (
 	context "context"
 	gomock "github.com/golang/mock/gomock"
 	entity "github.com/rafaelsq/boiler/pkg/entity"
+	iface "github.com/rafaelsq/boiler/pkg/iface"
 	reflect "reflect"
 )
 
-// MockUserService is a mock of UserService interface
-type MockUserService struct {
+// MockService is a mock of Service interface
+type MockService struct {
 	ctrl     *gomock.Controller
-	recorder *MockUserServiceMockRecorder
+	recorder *MockServiceMockRecorder
 }
 
-// MockUserServiceMockRecorder is the mock recorder for MockUserService
-type MockUserServiceMockRecorder struct {
-	mock *MockUserService
+// MockServiceMockRecorder is the mock recorder for MockService
+type MockServiceMockRecorder struct {
+	mock *MockService
 }
 
-// NewMockUserService creates a new mock instance
-func NewMockUserService(ctrl *gomock.Controller) *MockUserService {
-	mock := &MockUserService{ctrl: ctrl}
-	mock.recorder = &MockUserServiceMockRecorder{mock}
+// NewMockService creates a new mock instance
+func NewMockService(ctrl *gomock.Controller) *MockService {
+	mock := &MockService{ctrl: ctrl}
+	mock.recorder = &MockServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
+func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
-// Add mocks base method
-func (m *MockUserService) Add(arg0 context.Context, arg1 string) (int, error) {
+// AddUser mocks base method
+func (m *MockService) AddUser(arg0 context.Context, arg1 string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", arg0, arg1)
+	ret := m.ctrl.Call(m, "AddUser", arg0, arg1)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Add indicates an expected call of Add
-func (mr *MockUserServiceMockRecorder) Add(arg0, arg1 interface{}) *gomock.Call {
+// AddUser indicates an expected call of AddUser
+func (mr *MockServiceMockRecorder) AddUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockUserService)(nil).Add), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockService)(nil).AddUser), arg0, arg1)
 }
 
-// Delete mocks base method
-func (m *MockUserService) Delete(arg0 context.Context, arg1 int) error {
+// DeleteUser mocks base method
+func (m *MockService) DeleteUser(arg0 context.Context, arg1 int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteUser", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Delete indicates an expected call of Delete
-func (mr *MockUserServiceMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+// DeleteUser indicates an expected call of DeleteUser
+func (mr *MockServiceMockRecorder) DeleteUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUserService)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockService)(nil).DeleteUser), arg0, arg1)
 }
 
-// ByID mocks base method
-func (m *MockUserService) ByID(arg0 context.Context, arg1 int) (*entity.User, error) {
+// FilterUsers mocks base method
+func (m *MockService) FilterUsers(arg0 context.Context, arg1 iface.FilterUsers) ([]*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ByID", arg0, arg1)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ByID indicates an expected call of ByID
-func (mr *MockUserServiceMockRecorder) ByID(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ByID", reflect.TypeOf((*MockUserService)(nil).ByID), arg0, arg1)
-}
-
-// ByEmail mocks base method
-func (m *MockUserService) ByEmail(arg0 context.Context, arg1 string) (*entity.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ByEmail", arg0, arg1)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ByEmail indicates an expected call of ByEmail
-func (mr *MockUserServiceMockRecorder) ByEmail(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ByEmail", reflect.TypeOf((*MockUserService)(nil).ByEmail), arg0, arg1)
-}
-
-// List mocks base method
-func (m *MockUserService) List(arg0 context.Context, arg1 uint) ([]*entity.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret := m.ctrl.Call(m, "FilterUsers", arg0, arg1)
 	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// List indicates an expected call of List
-func (mr *MockUserServiceMockRecorder) List(arg0, arg1 interface{}) *gomock.Call {
+// FilterUsers indicates an expected call of FilterUsers
+func (mr *MockServiceMockRecorder) FilterUsers(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserService)(nil).List), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterUsers", reflect.TypeOf((*MockService)(nil).FilterUsers), arg0, arg1)
 }
 
-// MockEmailService is a mock of EmailService interface
-type MockEmailService struct {
-	ctrl     *gomock.Controller
-	recorder *MockEmailServiceMockRecorder
-}
-
-// MockEmailServiceMockRecorder is the mock recorder for MockEmailService
-type MockEmailServiceMockRecorder struct {
-	mock *MockEmailService
-}
-
-// NewMockEmailService creates a new mock instance
-func NewMockEmailService(ctrl *gomock.Controller) *MockEmailService {
-	mock := &MockEmailService{ctrl: ctrl}
-	mock.recorder = &MockEmailServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockEmailService) EXPECT() *MockEmailServiceMockRecorder {
-	return m.recorder
-}
-
-// ByUserID mocks base method
-func (m *MockEmailService) ByUserID(arg0 context.Context, arg1 int) ([]*entity.Email, error) {
+// GetUserByID mocks base method
+func (m *MockService) GetUserByID(arg0 context.Context, arg1 int) (*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ByUserID", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetUserByID", arg0, arg1)
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByID indicates an expected call of GetUserByID
+func (mr *MockServiceMockRecorder) GetUserByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockService)(nil).GetUserByID), arg0, arg1)
+}
+
+// GetUserByEmail mocks base method
+func (m *MockService) GetUserByEmail(arg0 context.Context, arg1 string) (*entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", arg0, arg1)
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail
+func (mr *MockServiceMockRecorder) GetUserByEmail(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockService)(nil).GetUserByEmail), arg0, arg1)
+}
+
+// FilterEmails mocks base method
+func (m *MockService) FilterEmails(arg0 context.Context, arg1 iface.FilterEmails) ([]*entity.Email, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterEmails", arg0, arg1)
 	ret0, _ := ret[0].([]*entity.Email)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ByUserID indicates an expected call of ByUserID
-func (mr *MockEmailServiceMockRecorder) ByUserID(arg0, arg1 interface{}) *gomock.Call {
+// FilterEmails indicates an expected call of FilterEmails
+func (mr *MockServiceMockRecorder) FilterEmails(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ByUserID", reflect.TypeOf((*MockEmailService)(nil).ByUserID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterEmails", reflect.TypeOf((*MockService)(nil).FilterEmails), arg0, arg1)
 }
 
-// Add mocks base method
-func (m *MockEmailService) Add(arg0 context.Context, arg1 int, arg2 string) (int, error) {
+// AddEmail mocks base method
+func (m *MockService) AddEmail(arg0 context.Context, arg1 int, arg2 string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "AddEmail", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Add indicates an expected call of Add
-func (mr *MockEmailServiceMockRecorder) Add(arg0, arg1, arg2 interface{}) *gomock.Call {
+// AddEmail indicates an expected call of AddEmail
+func (mr *MockServiceMockRecorder) AddEmail(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockEmailService)(nil).Add), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEmail", reflect.TypeOf((*MockService)(nil).AddEmail), arg0, arg1, arg2)
 }
 
-// Delete mocks base method
-func (m *MockEmailService) Delete(arg0 context.Context, arg1 int) error {
+// DeleteEmail mocks base method
+func (m *MockService) DeleteEmail(arg0 context.Context, arg1 int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteEmail", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Delete indicates an expected call of Delete
-func (mr *MockEmailServiceMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+// DeleteEmail indicates an expected call of DeleteEmail
+func (mr *MockServiceMockRecorder) DeleteEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockEmailService)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmail", reflect.TypeOf((*MockService)(nil).DeleteEmail), arg0, arg1)
 }

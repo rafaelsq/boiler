@@ -19,6 +19,21 @@ func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
+/*
+type Error struct {
+	parent *error
+	msg    string
+	args   map[string]interface{}
+	caller string
+}
+
+err = errors.New("err, but have caller")
+err = errors.WithArg("err, but have caller and argument", "id", 1)
+er2 = errors.WithArgs("combined", map[string]interface{}{"id":1,"name":"err"})
+err = errors.Stack(err, er2)
+err = errors.Cause(err)
+errs = errors.List(err)
+*/
 type Error struct {
 	msg    string
 	args   map[string]interface{}

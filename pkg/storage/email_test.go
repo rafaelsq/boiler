@@ -1,8 +1,7 @@
-package email_test
+package storage_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"regexp"
 	"testing"
@@ -11,17 +10,11 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-sql-driver/mysql"
 	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/repository/email"
+	"github.com/rafaelsq/boiler/pkg/storage"
 	"github.com/stretchr/testify/assert"
 )
 
-type StorageMock struct{ sql *sql.DB }
-
-func (s *StorageMock) SQL() *sql.DB {
-	return s.sql
-}
-
-func TestAdd(t *testing.T) {
+func TestAddEmail(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -29,19 +22,27 @@ func TestAdd(t *testing.T) {
 	}
 	defer mdb.Close()
 
+	const address = "user@example.com"
+
 	// succeed
 	{
 		userID := 3
-		address := "user@example.com"
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
 		).WithArgs(userID, address).WillReturnResult(sqlmock.NewResult(3, 1))
+		mock.ExpectCommit()
 
-		r := email.New(&StorageMock{mdb})
-		userID, err := r.Add(ctx, userID, address)
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		userID, err = r.AddEmail(ctx, tx, userID, address)
 		assert.Nil(t, err)
 		assert.Equal(t, userID, 3)
+		assert.Nil(t, tx.Commit())
 	}
 
 	// fail
@@ -50,14 +51,21 @@ func TestAdd(t *testing.T) {
 		address := "user@example.com"
 		myErr := fmt.Errorf("opz")
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
 		).WithArgs(userID, address).WillReturnError(myErr)
+		mock.ExpectCommit()
 
-		r := email.New(&StorageMock{mdb})
-		emailID, err := r.Add(ctx, userID, address)
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		emailID, err := r.AddEmail(ctx, tx, userID, address)
 		assert.Equal(t, err.Error(), "opz; could not insert email")
 		assert.Equal(t, emailID, 0)
+		assert.Nil(t, tx.Commit())
 	}
 
 	// fails if duplicate
@@ -69,14 +77,21 @@ func TestAdd(t *testing.T) {
 			Number:  1062,
 		}
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
 		).WithArgs(userID, address).WillReturnError(&myErr)
+		mock.ExpectCommit()
 
-		r := email.New(&StorageMock{mdb})
-		emailID, err := r.Add(ctx, userID, address)
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		emailID, err := r.AddEmail(ctx, tx, userID, address)
 		assert.Equal(t, err, iface.ErrAlreadyExists)
 		assert.Equal(t, emailID, 0)
+		assert.Nil(t, tx.Commit())
 	}
 
 	// last insert failed
@@ -85,18 +100,25 @@ func TestAdd(t *testing.T) {
 		address := "user@example.com"
 		myErr := fmt.Errorf("opz")
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
 		).WithArgs(userID, address).WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
+		mock.ExpectCommit()
 
-		r := email.New(&StorageMock{mdb})
-		emailID, err := r.Add(ctx, userID, address)
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		emailID, err := r.AddEmail(ctx, tx, userID, address)
 		assert.Equal(t, err.Error(), "opz; last insert id failed after add email address")
 		assert.Equal(t, emailID, 0)
+		assert.Nil(t, tx.Commit())
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteEmail(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -112,8 +134,8 @@ func TestDelete(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
 		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(3, 1))
 
-		r := email.New(&StorageMock{mdb})
-		err := r.Delete(ctx, emailID)
+		r := storage.New(mdb)
+		err := r.DeleteEmail(ctx, emailID)
 		assert.Nil(t, err)
 	}
 
@@ -125,8 +147,8 @@ func TestDelete(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
 		).WithArgs(emailID).WillReturnError(fmt.Errorf("opz"))
 
-		r := email.New(&StorageMock{mdb})
-		err := r.Delete(ctx, emailID)
+		r := storage.New(mdb)
+		err := r.DeleteEmail(ctx, emailID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz; could not remove email")
 	}
@@ -140,8 +162,8 @@ func TestDelete(t *testing.T) {
 		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(1, 1)).
 			WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("opz")))
 
-		r := email.New(&StorageMock{mdb})
-		err := r.Delete(ctx, emailID)
+		r := storage.New(mdb)
+		err := r.DeleteEmail(ctx, emailID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz; could not fetch rows affected after remove email")
 	}
@@ -154,14 +176,14 @@ func TestDelete(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
 		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(0, 0))
 
-		r := email.New(&StorageMock{mdb})
-		err := r.Delete(ctx, emailID)
+		r := storage.New(mdb)
+		err := r.DeleteEmail(ctx, emailID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "not found; no rows affected")
 	}
 }
 
-func TestByUserID(t *testing.T) {
+func TestFilterEmails(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -180,8 +202,8 @@ func TestByUserID(t *testing.T) {
 				AddRow(3, userID, "user@example.com", time.Time{}),
 		)
 
-		r := email.New(&StorageMock{mdb})
-		emails, err := r.ByUserID(ctx, userID)
+		r := storage.New(mdb)
+		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
 		assert.Nil(t, err)
 		assert.Len(t, emails, 1)
 	}
@@ -197,8 +219,8 @@ func TestByUserID(t *testing.T) {
 				AddRow("opz", userID, "user@example.com", time.Time{}),
 		)
 
-		r := email.New(&StorageMock{mdb})
-		emails, err := r.ByUserID(ctx, userID)
+		r := storage.New(mdb)
+		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Len(t, emails, 0)
@@ -213,8 +235,8 @@ func TestByUserID(t *testing.T) {
 			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE user_id = ?"),
 		).WithArgs(userID).WillReturnError(myErr)
 
-		r := email.New(&StorageMock{mdb})
-		emails, err := r.ByUserID(ctx, userID)
+		r := storage.New(mdb)
+		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
 		assert.Equal(t, err.Error(), "opz; could not fetch user's emails")
 		assert.Len(t, emails, 0)
 	}

@@ -23,7 +23,7 @@ func ApplyMiddlewares(r chi.Router) {
 	r.Use(middleware.Timeout(2 * time.Second))
 }
 
-func ApplyRoute(r chi.Router, us iface.UserService, es iface.EmailService) {
+func ApplyRoute(r chi.Router, service iface.Service) {
 	// website
 	r.Get("/", website.Handle)
 	r.Get("/favicon.ico", http.NotFound)
@@ -32,18 +32,18 @@ func ApplyRoute(r chi.Router, us iface.UserService, es iface.EmailService) {
 	// graphql
 	r.Route("/graphql", func(g chi.Router) {
 		g.Get("/play", graphql.PlayHandle())
-		g.HandleFunc("/query", graphql.QueryHandleFunc(us, es))
+		g.HandleFunc("/query", graphql.QueryHandleFunc(service))
 	})
 
 	// rest
 	r.Route("/rest", func(r chi.Router) {
-		r.Get("/users", rest.ListUsersHandle(us))
-		r.Post("/users", rest.AddUserHandle(us))
-		r.Get("/users/{userID:[0-9]+}", rest.GetUserHandle(us))
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(us))
+		r.Get("/users", rest.ListUsersHandle(service))
+		r.Post("/users", rest.AddUserHandle(service))
+		r.Get("/users/{userID:[0-9]+}", rest.GetUserHandle(service))
+		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(service))
 
-		r.Get("/emails", rest.ListEmailsHandle(es))
-		r.Post("/emails", rest.AddEmailHandle(es))
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(es))
+		r.Get("/emails", rest.ListEmailsHandle(service))
+		r.Post("/emails", rest.AddEmailHandle(service))
+		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(service))
 	})
 }

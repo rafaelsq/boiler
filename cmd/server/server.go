@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -10,27 +11,48 @@ import (
 	"os/signal"
 	"time"
 
+	// mariadb
 	"github.com/go-chi/chi"
-	er "github.com/rafaelsq/boiler/pkg/repository/email"
-	ur "github.com/rafaelsq/boiler/pkg/repository/user"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/rafaelsq/boiler/pkg/router"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
+
+func newMariaDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	db.SetMaxIdleConns(2)
+	db.SetMaxOpenConns(2)
+	db.SetConnMaxLifetime(time.Minute)
+
+	err = db.Ping()
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return db, err
+}
 
 func main() {
 	var port = flag.Int("port", 2000, "")
 
 	flag.Parse()
 
-	st := storage.New("root:boiler@tcp(127.0.0.1:3307)/boiler?timeout=5s&parseTime=true&loc=Local")
+	sql, err := newMariaDB("root:boiler@tcp(127.0.0.1:3307)/boiler?timeout=5s&parseTime=true&loc=Local")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	us := service.NewUser(ur.New(st))
-	es := service.NewEmail(er.New(st))
+	st := storage.New(sql)
 
 	r := chi.NewRouter()
 	router.ApplyMiddlewares(r)
-	router.ApplyRoute(r, us, es)
+	router.ApplyRoute(r, service.New(st))
 
 	// graceful shutdown
 	srv := http.Server{Addr: fmt.Sprintf(":%d", *port), Handler: r}

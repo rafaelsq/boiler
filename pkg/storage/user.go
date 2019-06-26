@@ -1,7 +1,8 @@
-package user
+package storage
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
@@ -10,16 +11,8 @@ import (
 	"go.uber.org/multierr"
 )
 
-func New(storage iface.Storage) iface.UserRepository {
-	return &repository{storage}
-}
-
-type repository struct {
-	storage iface.Storage
-}
-
-func (r *repository) Add(ctx context.Context, name string) (int, error) {
-	result, err := r.storage.SQL().ExecContext(ctx,
+func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, error) {
+	result, err := tx.ExecContext(ctx,
 		"INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())",
 		name,
 	)
@@ -35,8 +28,8 @@ func (r *repository) Add(ctx context.Context, name string) (int, error) {
 	return int(id), nil
 }
 
-func (r *repository) Delete(ctx context.Context, userID int) error {
-	result, err := r.storage.SQL().ExecContext(ctx,
+func (s *Storage) DeleteUser(ctx context.Context, userID int) error {
+	result, err := s.sql.ExecContext(ctx,
 		"DELETE FROM users WHERE id = ?",
 		userID,
 	)
@@ -56,8 +49,35 @@ func (r *repository) Delete(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (r *repository) List(ctx context.Context, limit uint) ([]*entity.User, error) {
-	rows, err := r.storage.SQL().QueryContext(
+func (s *Storage) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
+	limit := iface.FilterUsersDefaultLimit
+	if filter.Limit != 0 {
+		limit = filter.Limit
+	}
+
+	if filter.UserID > 0 {
+		u, err := s.filterUsersByID(ctx, filter.UserID)
+		if err != nil || u == nil {
+			return nil, err
+		}
+
+		return []*entity.User{u}, nil
+	}
+
+	if len(filter.Email) != 0 {
+		u, err := s.filterUsersByEmail(ctx, filter.Email)
+		if err != nil || u == nil {
+			return nil, err
+		}
+
+		return []*entity.User{u}, nil
+	}
+
+	return s.filterUsers(ctx, limit)
+}
+
+func (s *Storage) filterUsers(ctx context.Context, limit uint) ([]*entity.User, error) {
+	rows, err := s.sql.QueryContext(
 		ctx,
 		"SELECT id, name, created, updated FROM users LIMIT ?",
 		limit,
@@ -72,7 +92,7 @@ func (r *repository) List(ctx context.Context, limit uint) ([]*entity.User, erro
 			break
 		}
 
-		user, err := scan(rows.Scan)
+		user, err := scanUser(rows.Scan)
 		if err != nil {
 			return nil, err
 		}
@@ -82,8 +102,8 @@ func (r *repository) List(ctx context.Context, limit uint) ([]*entity.User, erro
 	return users, nil
 }
 
-func (r *repository) ByID(ctx context.Context, userID int) (*entity.User, error) {
-	rows, err := r.storage.SQL().QueryContext(
+func (s *Storage) filterUsersByID(ctx context.Context, userID int) (*entity.User, error) {
+	rows, err := s.sql.QueryContext(
 		ctx,
 		"SELECT id, name, created, updated FROM users WHERE id = ?",
 		userID,
@@ -96,11 +116,11 @@ func (r *repository) ByID(ctx context.Context, userID int) (*entity.User, error)
 		return nil, nil
 	}
 
-	return scan(rows.Scan)
+	return scanUser(rows.Scan)
 }
 
-func (r *repository) ByEmail(ctx context.Context, email string) (*entity.User, error) {
-	rows, err := r.storage.SQL().QueryContext(
+func (s *Storage) filterUsersByEmail(ctx context.Context, email string) (*entity.User, error) {
+	rows, err := s.sql.QueryContext(
 		ctx,
 		"SELECT u.id, name, created, updated FROM users u INNER JOIN emails ON(user_id = u.id) WHERE email = ?",
 		email,
@@ -113,10 +133,10 @@ func (r *repository) ByEmail(ctx context.Context, email string) (*entity.User, e
 		return nil, nil
 	}
 
-	return scan(rows.Scan)
+	return scanUser(rows.Scan)
 }
 
-func scan(sc func(dest ...interface{}) error) (*entity.User, error) {
+func scanUser(sc func(dest ...interface{}) error) (*entity.User, error) {
 	var id int
 	var name string
 	var created time.Time
