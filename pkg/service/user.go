@@ -2,31 +2,31 @@ package service
 
 import (
 	"context"
-	"fmt"
-
-	"go.uber.org/multierr"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
+	"github.com/rafaelsq/errors"
 )
 
 func (s *Service) AddUser(ctx context.Context, name string) (int, error) {
 	tx, err := s.storage.Tx()
 	if err != nil {
-		return 0, multierr.Combine(err, fmt.Errorf("could not begin transaction"))
+		return 0, errors.New("could not begin transaction").SetParent(err)
 	}
 
 	ID, err := s.storage.AddUser(ctx, tx, name)
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
-			return 0, multierr.Combine(err, er, fmt.Errorf("could not add user"))
+			return 0, errors.New("could not add user").SetParent(
+				errors.New(er.Error()).SetParent(err),
+			)
 		}
 
-		return 0, multierr.Combine(err, fmt.Errorf("could not add user"))
+		return 0, errors.New("could not add user").SetParent(err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, multierr.Combine(err, fmt.Errorf("could not add user"))
+		return 0, errors.New("could not add user").SetParent(err)
 	}
 
 	return ID, nil

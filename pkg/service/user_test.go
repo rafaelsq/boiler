@@ -57,7 +57,7 @@ func TestAddUser(t *testing.T) {
 
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "opz; could not begin transaction")
+		assert.Equal(t, err.Error(), "could not begin transaction; opz")
 		assert.Equal(t, 0, id)
 	}
 
@@ -81,7 +81,7 @@ func TestAddUser(t *testing.T) {
 
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "rollback; could not add user")
+		assert.Equal(t, err.Error(), "could not add user; rollback")
 		assert.Equal(t, 0, id)
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
@@ -107,7 +107,7 @@ func TestAddUser(t *testing.T) {
 
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "rollback; rollbackerr; could not add user")
+		assert.Equal(t, err.Error(), "could not add user; rollbackerr; rollback")
 		assert.Equal(t, 0, id)
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
@@ -133,7 +133,7 @@ func TestAddUser(t *testing.T) {
 
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "commit failed; could not add user")
+		assert.Equal(t, err.Error(), "could not add user; commit failed")
 		assert.Equal(t, 0, id)
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}

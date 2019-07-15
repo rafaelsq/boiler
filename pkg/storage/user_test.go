@@ -66,7 +66,7 @@ func TestAddUser(t *testing.T) {
 		assert.Nil(t, err)
 
 		userID, err := r.AddUser(ctx, tx, name)
-		assert.Equal(t, err.Error(), "err; could not insert user")
+		assert.Equal(t, err.Error(), "could not insert user; err")
 		assert.Equal(t, userID, 0)
 		assert.Nil(t, tx.Commit())
 	}
@@ -88,7 +88,7 @@ func TestAddUser(t *testing.T) {
 		assert.Nil(t, err)
 
 		userID, err := r.AddUser(ctx, tx, name)
-		assert.Equal(t, err.Error(), "err; last insert id failed after add user")
+		assert.Equal(t, err.Error(), "last insert id failed after add user; err")
 		assert.Equal(t, userID, 0)
 		assert.Nil(t, tx.Commit())
 	}
@@ -126,7 +126,7 @@ func TestDeleteUser(t *testing.T) {
 		r := storage.New(mdb)
 		err := r.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "opz; could not remove user")
+		assert.Equal(t, err.Error(), "could not remove user; opz")
 	}
 
 	// fail if no rows affected
@@ -140,7 +140,7 @@ func TestDeleteUser(t *testing.T) {
 		r := storage.New(mdb)
 		err := r.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "not found; no rows affected")
+		assert.Equal(t, err.Error(), "no rows affected; not found")
 	}
 
 	// fail fatching rows affected
@@ -155,7 +155,7 @@ func TestDeleteUser(t *testing.T) {
 		r := storage.New(mdb)
 		err := r.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "opz; could not fetch rows affected after remove user")
+		assert.Equal(t, err.Error(), "could not fetch rows affected after remove user; opz")
 	}
 }
 
@@ -212,7 +212,7 @@ func TestFilterUsers(t *testing.T) {
 
 		r := storage.New(mdb)
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
-		assert.Equal(t, err.Error(), "err; could not list users")
+		assert.Equal(t, err.Error(), "could not list users; err")
 		assert.Len(t, users, 0)
 	}
 }
@@ -282,7 +282,7 @@ func TestFilterUsersByID(t *testing.T) {
 
 		r := storage.New(mdb)
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
-		assert.Equal(t, err.Error(), "opz; could not fetch user")
+		assert.Equal(t, err.Error(), "could not fetch user; opz")
 		assert.Nil(t, users)
 	}
 }
@@ -356,7 +356,7 @@ func TestFilterUsersByMail(t *testing.T) {
 
 		r := storage.New(mdb)
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
-		assert.Equal(t, err.Error(), "opz; could not fetch user")
+		assert.Equal(t, err.Error(), "could not fetch user; opz")
 		assert.Nil(t, users)
 	}
 }

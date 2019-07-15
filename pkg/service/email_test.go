@@ -59,7 +59,7 @@ func TestAddEmail(t *testing.T) {
 
 		id, err := srv.AddEmail(ctx, userID, address)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "opz; could not begin transaction")
+		assert.Equal(t, err.Error(), "could not begin transaction; opz")
 		assert.Equal(t, 0, id)
 	}
 
@@ -83,7 +83,7 @@ func TestAddEmail(t *testing.T) {
 
 		id, err := srv.AddEmail(ctx, userID, address)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "rollback; could not add email")
+		assert.Equal(t, err.Error(), "could not add email; rollback")
 		assert.Equal(t, 0, id)
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
@@ -109,7 +109,7 @@ func TestAddEmail(t *testing.T) {
 
 		id, err := srv.AddEmail(ctx, userID, address)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "rollback; rollbackerr; could not add email")
+		assert.Equal(t, err.Error(), "could not add email; rollbackerr; rollback")
 		assert.Equal(t, 0, id)
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
@@ -135,7 +135,7 @@ func TestAddEmail(t *testing.T) {
 
 		id, err := srv.AddEmail(ctx, userID, address)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "commit failed; could not add email")
+		assert.Equal(t, err.Error(), "could not add email; commit failed")
 		assert.Equal(t, 0, id)
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}

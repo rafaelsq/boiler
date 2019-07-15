@@ -63,7 +63,7 @@ func TestAddEmail(t *testing.T) {
 		assert.Nil(t, err)
 
 		emailID, err := r.AddEmail(ctx, tx, userID, address)
-		assert.Equal(t, err.Error(), "opz; could not insert email")
+		assert.Equal(t, err.Error(), "could not insert email; opz")
 		assert.Equal(t, emailID, 0)
 		assert.Nil(t, tx.Commit())
 	}
@@ -112,7 +112,7 @@ func TestAddEmail(t *testing.T) {
 		assert.Nil(t, err)
 
 		emailID, err := r.AddEmail(ctx, tx, userID, address)
-		assert.Equal(t, err.Error(), "opz; last insert id failed after add email address")
+		assert.Equal(t, err.Error(), "last insert id failed after add email address; opz")
 		assert.Equal(t, emailID, 0)
 		assert.Nil(t, tx.Commit())
 	}
@@ -150,7 +150,7 @@ func TestDeleteEmail(t *testing.T) {
 		r := storage.New(mdb)
 		err := r.DeleteEmail(ctx, emailID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "opz; could not remove email")
+		assert.Equal(t, err.Error(), "could not remove email; opz")
 	}
 
 	// fails if rows affect fails
@@ -165,7 +165,7 @@ func TestDeleteEmail(t *testing.T) {
 		r := storage.New(mdb)
 		err := r.DeleteEmail(ctx, emailID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "opz; could not fetch rows affected after remove email")
+		assert.Equal(t, err.Error(), "could not fetch rows affected after remove email; opz")
 	}
 
 	// fails if no rows affect
@@ -179,7 +179,7 @@ func TestDeleteEmail(t *testing.T) {
 		r := storage.New(mdb)
 		err := r.DeleteEmail(ctx, emailID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "not found; no rows affected")
+		assert.Equal(t, err.Error(), "no rows affected; not found")
 	}
 }
 
@@ -237,7 +237,7 @@ func TestFilterEmails(t *testing.T) {
 
 		r := storage.New(mdb)
 		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
-		assert.Equal(t, err.Error(), "opz; could not fetch user's emails")
+		assert.Equal(t, err.Error(), "could not fetch user's emails; opz")
 		assert.Len(t, emails, 0)
 	}
 }

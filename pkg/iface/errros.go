@@ -1,10 +1,10 @@
 package iface
 
 import (
-	"github.com/rafaelsq/boiler/pkg/errors"
+	"github.com/rafaelsq/errors"
 )
 
 var (
-	ErrNotFound      = errors.WithArg("not found", "code", "e0")
-	ErrAlreadyExists = errors.WithArg("already exists", "code", "s1")
+	ErrNotFound      = errors.New("not found").SetArg("code", "e0")
+	ErrAlreadyExists = errors.New("already exists").SetArg("code", "s1")
 )

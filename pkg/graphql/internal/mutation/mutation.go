@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/mail"
 
-	"github.com/rafaelsq/boiler/pkg/errors"
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
+	"github.com/rafaelsq/boiler/pkg/log"
+	"github.com/rafaelsq/errors"
 	"github.com/vektah/gqlparser/gqlerror"
 )
 
@@ -24,7 +25,7 @@ type Mutation struct {
 func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.User, error) {
 	userID, err := m.service.AddUser(ctx, input.Name)
 	if err != nil {
-		errors.Log(err)
+		log.Log(err)
 		return nil, fmt.Errorf("service failed")
 	}
 
@@ -57,12 +58,12 @@ func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*ent
 			return nil, &gqlerror.Error{
 				Message: er.Error(),
 				Extensions: map[string]interface{}{
-					"code": er.(*errors.Error).Arg("code").(string),
+					"code": er.(*errors.Error).Args["code"].(string),
 				},
 			}
 		}
 
-		errors.Log(err)
+		log.Log(err)
 		return nil, fmt.Errorf("service failed")
 	}
 

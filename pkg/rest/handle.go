@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
-	"github.com/rafaelsq/boiler/pkg/errors"
 	"github.com/rafaelsq/boiler/pkg/iface"
+	"github.com/rafaelsq/boiler/pkg/log"
 )
 
 func AddUserHandle(service iface.Service) http.HandlerFunc {
@@ -33,7 +33,7 @@ func AddUserHandle(service iface.Service) http.HandlerFunc {
 
 		userID, err := service.AddUser(r.Context(), payload.Name)
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -60,7 +60,7 @@ func ListUsersHandle(service iface.Service) http.HandlerFunc {
 
 		users, err := service.FilterUsers(r.Context(), iface.FilterUsers{Limit: uint(limit)})
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "service failed")
 			return
@@ -82,7 +82,7 @@ func DeleteUserHandle(service iface.Service) http.HandlerFunc {
 
 		err = service.DeleteUser(r.Context(), int(userID))
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -101,7 +101,7 @@ func GetUserHandle(service iface.Service) http.HandlerFunc {
 
 		user, err := service.GetUserByID(r.Context(), int(userID))
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -121,7 +121,7 @@ func AddEmailHandle(service iface.Service) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			Fail(w, r, http.StatusBadRequest, "invalid payload")
 			return
 		}
@@ -139,7 +139,7 @@ func AddEmailHandle(service iface.Service) http.HandlerFunc {
 
 		emailID, err := service.AddEmail(r.Context(), payload.UserID, email.Address)
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -160,7 +160,7 @@ func DeleteEmailHandle(service iface.Service) http.HandlerFunc {
 
 		err = service.DeleteEmail(r.Context(), int(emailID))
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}
@@ -185,7 +185,7 @@ func ListEmailsHandle(service iface.Service) http.HandlerFunc {
 
 		emails, err := service.FilterEmails(r.Context(), iface.FilterEmails{UserID: int(userID)})
 		if err != nil {
-			errors.Log(err)
+			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
 			return
 		}

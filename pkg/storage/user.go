@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/errors"
 	"github.com/rafaelsq/boiler/pkg/iface"
-	"go.uber.org/multierr"
+	"github.com/rafaelsq/errors"
 )
 
 func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, error) {
@@ -17,12 +16,12 @@ func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, er
 		name,
 	)
 	if err != nil {
-		return 0, multierr.Append(err, errors.WithArg("could not insert user", "name", name))
+		return 0, errors.New("could not insert user").SetArg("name", name).SetParent(err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, multierr.Append(err, errors.New("last insert id failed after add user"))
+		return 0, errors.New("last insert id failed after add user").SetParent(err)
 	}
 
 	return int(id), nil
@@ -34,16 +33,16 @@ func (s *Storage) DeleteUser(ctx context.Context, userID int) error {
 		userID,
 	)
 	if err != nil {
-		return multierr.Append(err, errors.WithArg("could not remove user", "userID", userID))
+		return errors.New("could not remove user").SetArg("userID", userID).SetParent(err)
 	}
 
 	n, err := result.RowsAffected()
 	if err != nil {
-		return multierr.Append(err, errors.WithArg("could not fetch rows affected after remove user", "userID", userID))
+		return errors.New("could not fetch rows affected after remove user").SetArg("userID", userID).SetParent(err)
 	}
 
 	if n == 0 {
-		return multierr.Append(iface.ErrNotFound, errors.WithArg("no rows affected", "userID", userID))
+		return errors.New("no rows affected").SetArg("userID", userID).SetParent(iface.ErrNotFound)
 	}
 
 	return nil
@@ -83,7 +82,7 @@ func (s *Storage) filterUsers(ctx context.Context, limit uint) ([]*entity.User, 
 		limit,
 	)
 	if err != nil {
-		return nil, multierr.Append(err, errors.WithArg("could not list users", "limit", limit))
+		return nil, errors.New("could not list users").SetArg("limit", limit).SetParent(err)
 	}
 
 	users := make([]*entity.User, 0, limit)
@@ -109,7 +108,7 @@ func (s *Storage) filterUsersByID(ctx context.Context, userID int) (*entity.User
 		userID,
 	)
 	if err != nil {
-		return nil, multierr.Append(err, errors.WithArg("could not fetch user", "userID", userID))
+		return nil, errors.New("could not fetch user").SetArg("userID", userID).SetParent(err)
 	}
 
 	if !rows.Next() {
@@ -126,7 +125,7 @@ func (s *Storage) filterUsersByEmail(ctx context.Context, email string) (*entity
 		email,
 	)
 	if err != nil {
-		return nil, multierr.Append(err, errors.WithArg("could not fetch user", "email", email))
+		return nil, errors.New("could not fetch user").SetArg("email", email).SetParent(err)
 	}
 
 	if !rows.Next() {
@@ -144,7 +143,7 @@ func scanUser(sc func(dest ...interface{}) error) (*entity.User, error) {
 
 	err := sc(&id, &name, &created, &updated)
 	if err != nil {
-		return nil, multierr.Append(err, errors.New("could not scan user"))
+		return nil, errors.New("could not scan user").SetParent(err)
 	}
 
 	return &entity.User{

@@ -7,7 +7,7 @@ import (
 	"runtime/debug"
 
 	"github.com/go-chi/chi/middleware"
-	"github.com/rafaelsq/boiler/pkg/errors"
+	"github.com/rafaelsq/boiler/pkg/log"
 )
 
 func Recoverer(next http.Handler) http.Handler {
@@ -18,11 +18,11 @@ func Recoverer(next http.Handler) http.Handler {
 				if logEntry != nil {
 					logEntry.Panic(rvr, debug.Stack())
 				} else if e, is := rvr.(error); is {
-					errors.Zerolog(e)
+					log.Zerolog(e)
 				} else {
-					errors.Zerolog(fmt.Errorf(rvr.(string)))
+					log.Zerolog(fmt.Errorf(rvr.(string)))
 				}
-				errors.WriteStack(os.Stderr)
+				log.WriteStack(os.Stderr)
 
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
