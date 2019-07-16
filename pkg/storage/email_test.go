@@ -130,56 +130,141 @@ func TestDeleteEmail(t *testing.T) {
 	{
 		emailID := 3
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
 		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(3, 1))
+		mock.ExpectCommit()
 
 		r := storage.New(mdb)
-		err := r.DeleteEmail(ctx, emailID)
+
+		tx, err := r.Tx()
 		assert.Nil(t, err)
+
+		err = r.DeleteEmail(ctx, tx, emailID)
+		assert.Nil(t, err)
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	}
 
-	// fails if query fails
+	// fails if exec fails
 	{
 		emailID := 3
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
 		).WithArgs(emailID).WillReturnError(fmt.Errorf("opz"))
 
 		r := storage.New(mdb)
-		err := r.DeleteEmail(ctx, emailID)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteEmail(ctx, tx, emailID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not remove email; opz")
 	}
 
-	// fails if rows affect fails
+	// fails if rows affected fails
 	{
 		emailID := 3
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
-		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(1, 1)).
+		).WithArgs(emailID).
+			WillReturnResult(sqlmock.NewResult(1, 1)).
 			WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("opz")))
 
+		mock.ExpectCommit()
+
 		r := storage.New(mdb)
-		err := r.DeleteEmail(ctx, emailID)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteEmail(ctx, tx, emailID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not fetch rows affected after remove email; opz")
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	}
 
-	// fails if no rows affect
+	// fails if no rows affected
 	{
 		emailID := 3
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
-		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(0, 0))
+		).WithArgs(emailID).
+			WillReturnResult(sqlmock.NewResult(0, 0))
+
+		mock.ExpectCommit()
 
 		r := storage.New(mdb)
-		err := r.DeleteEmail(ctx, emailID)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteEmail(ctx, tx, emailID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "no rows affected; not found")
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
+	}
+}
+
+func TestDeleteEmailsByUserID(t *testing.T) {
+	ctx := context.Background()
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mdb.Close()
+
+	// succeed
+	{
+		userID := 3
+
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM emails WHERE user_id = ?"),
+		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(3, 1))
+		mock.ExpectCommit()
+
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteEmailsByUserID(ctx, tx, userID)
+		assert.Nil(t, err)
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
+	}
+
+	// fails
+	{
+		userID := 3
+
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM emails WHERE user_id = ?"),
+		).WithArgs(userID).WillReturnError(fmt.Errorf("opz"))
+		mock.ExpectCommit()
+
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteEmailsByUserID(ctx, tx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "could not remove emails by user ID; opz")
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	}
 }
 

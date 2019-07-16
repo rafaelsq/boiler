@@ -33,7 +33,38 @@ func (s *Service) AddUser(ctx context.Context, name string) (int, error) {
 }
 
 func (s *Service) DeleteUser(ctx context.Context, userID int) error {
-	return s.storage.DeleteUser(ctx, userID)
+	tx, err := s.storage.Tx()
+	if err != nil {
+		return errors.New("could not begin delete user transaction").SetParent(err)
+	}
+
+	err = s.storage.DeleteUser(ctx, tx, userID)
+	if err != nil {
+		if er := tx.Rollback(); er != nil {
+			return errors.New("could not rollback delete user").SetParent(
+				errors.New(er.Error()).SetParent(err),
+			)
+		}
+
+		return errors.New("could not delete user").SetParent(err)
+	}
+
+	err = s.storage.DeleteEmailsByUserID(ctx, tx, userID)
+	if err != nil {
+		if er := tx.Rollback(); er != nil {
+			return errors.New("could not rollback delete emails by user ID").SetParent(
+				errors.New(er.Error()).SetParent(err),
+			)
+		}
+
+		return errors.New("could not delete user emails").SetParent(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return errors.New("could not commit delete user").SetParent(err)
+	}
+
+	return nil
 }
 
 func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {

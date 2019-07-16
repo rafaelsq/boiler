@@ -31,7 +31,27 @@ func (s *Service) AddEmail(ctx context.Context, userID int, address string) (int
 }
 
 func (s *Service) DeleteEmail(ctx context.Context, emailID int) error {
-	return s.storage.DeleteEmail(ctx, emailID)
+	tx, err := s.storage.Tx()
+	if err != nil {
+		return errors.New("could not begin delete email transaction").SetParent(err)
+	}
+
+	err = s.storage.DeleteEmail(ctx, tx, emailID)
+	if err != nil {
+		if er := tx.Rollback(); er != nil {
+			return errors.New("could not rollback delete email").SetParent(
+				errors.New(er.Error()).SetParent(err),
+			)
+		}
+
+		return errors.New("could not delete email").SetParent(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return errors.New("could not commit delete email").SetParent(err)
+	}
+
+	return nil
 }
 
 func (s *Service) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {

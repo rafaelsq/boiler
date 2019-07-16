@@ -150,13 +150,176 @@ func TestDeleteUser(t *testing.T) {
 	userID := 99
 
 	ctx := context.Background()
-	m.
-		EXPECT().
-		DeleteUser(ctx, userID).
-		Return(nil)
 
-	err := srv.DeleteUser(ctx, userID)
-	assert.Nil(t, err)
+	// succeed
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteUser(ctx, tx, userID).
+			Return(nil)
+		m.
+			EXPECT().
+			DeleteEmailsByUserID(ctx, tx, userID).
+			Return(nil)
+		mdb.ExpectCommit()
+
+		err = srv.DeleteUser(ctx, userID)
+		assert.Nil(t, err)
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// fails if Tx fails
+	{
+		m.EXPECT().Tx().Return(nil, fmt.Errorf("tx fails"))
+
+		err := srv.DeleteUser(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "could not begin delete user transaction; tx fails")
+	}
+
+	// DeleteUser fail
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteUser(ctx, tx, userID).
+			Return(fmt.Errorf("deletefail"))
+		mdb.ExpectRollback()
+
+		err = srv.DeleteUser(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not delete user; deletefail", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// DeleteUser rollback fail
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteUser(ctx, tx, userID).
+			Return(fmt.Errorf("deletefail"))
+
+		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackfail"))
+
+		err = srv.DeleteUser(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not rollback delete user; rollbackfail; deletefail", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// DeleteEmail fail
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteUser(ctx, tx, userID).
+			Return(nil)
+		m.
+			EXPECT().
+			DeleteEmailsByUserID(ctx, tx, userID).
+			Return(fmt.Errorf("deletefail"))
+		mdb.ExpectRollback()
+
+		err = srv.DeleteUser(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not delete user emails; deletefail", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// DeleteEmail rollback fail
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteUser(ctx, tx, userID).
+			Return(nil)
+		m.
+			EXPECT().
+			DeleteEmailsByUserID(ctx, tx, userID).
+			Return(fmt.Errorf("deletefail"))
+
+		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackfail"))
+
+		err = srv.DeleteUser(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not rollback delete emails by user ID; rollbackfail; deletefail", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// commit fail
+	{
+		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteUser(ctx, tx, userID).
+			Return(nil)
+		m.
+			EXPECT().
+			DeleteEmailsByUserID(ctx, tx, userID).
+			Return(nil)
+		mdb.ExpectCommit().WillReturnError(fmt.Errorf("commitfail"))
+
+		err = srv.DeleteUser(ctx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not commit delete user; commitfail", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
 }
 
 func TestFilterUsers(t *testing.T) {

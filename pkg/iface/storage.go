@@ -14,11 +14,12 @@ type Storage interface {
 
 	// user
 	AddUser(ctx context.Context, tx *sql.Tx, name string) (int, error)
-	DeleteUser(ctx context.Context, userID int) error
+	DeleteUser(ctx context.Context, tx *sql.Tx, userID int) error
 	FilterUsers(ctx context.Context, filter FilterUsers) ([]*entity.User, error)
 
 	// email
 	AddEmail(ctx context.Context, tx *sql.Tx, userID int, address string) (int, error)
-	DeleteEmail(ctx context.Context, emailID int) error
+	DeleteEmail(ctx context.Context, tx *sql.Tx, emailID int) error
+	DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID int) error
 	FilterEmails(ctx context.Context, filter FilterEmails) ([]*entity.Email, error)
 }

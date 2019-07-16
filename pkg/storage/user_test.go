@@ -106,56 +106,89 @@ func TestDeleteUser(t *testing.T) {
 	{
 		userID := 3
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(3, 1))
+		mock.ExpectCommit()
 
 		r := storage.New(mdb)
-		err := r.DeleteUser(ctx, userID)
+
+		tx, err := r.Tx()
 		assert.Nil(t, err)
+
+		err = r.DeleteUser(ctx, tx, userID)
+		assert.Nil(t, err)
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	}
 
-	// fail if query fails
+	// fails if exec fails
 	{
 		userID := 3
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnError(fmt.Errorf("opz"))
 
 		r := storage.New(mdb)
-		err := r.DeleteUser(ctx, userID)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteUser(ctx, tx, userID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not remove user; opz")
 	}
 
-	// fail if no rows affected
+	// fails if rows affected fails
 	{
 		userID := 3
 
+		mock.ExpectBegin()
 		mock.ExpectExec(
 			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
-		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 0))
-
-		r := storage.New(mdb)
-		err := r.DeleteUser(ctx, userID)
-		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "no rows affected; not found")
-	}
-
-	// fail fatching rows affected
-	{
-		userID := 3
-
-		mock.ExpectExec(
-			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
-		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(1, 1)).
+		).WithArgs(userID).
+			WillReturnResult(sqlmock.NewResult(1, 1)).
 			WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("opz")))
 
+		mock.ExpectCommit()
+
 		r := storage.New(mdb)
-		err := r.DeleteUser(ctx, userID)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteUser(ctx, tx, userID)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not fetch rows affected after remove user; opz")
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
+	}
+
+	// fails if no rows affected
+	{
+		userID := 3
+
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
+		).WithArgs(userID).
+			WillReturnResult(sqlmock.NewResult(0, 0))
+
+		mock.ExpectCommit()
+
+		r := storage.New(mdb)
+
+		tx, err := r.Tx()
+		assert.Nil(t, err)
+
+		err = r.DeleteUser(ctx, tx, userID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "no rows affected; not found")
+		assert.Nil(t, tx.Commit())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	}
 }
 

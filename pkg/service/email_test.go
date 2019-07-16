@@ -152,13 +152,107 @@ func TestDeleteEmail(t *testing.T) {
 	ID := 13
 
 	ctx := context.Background()
-	m.
-		EXPECT().
-		DeleteEmail(ctx, ID).
-		Return(nil)
 
-	err := srv.DeleteEmail(ctx, ID)
-	assert.Nil(t, err)
+	// succeed
+	{
+		db, mdb, err := sqlmock.New()
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteEmail(ctx, tx, ID).
+			Return(nil)
+
+		mdb.ExpectCommit()
+
+		err = srv.DeleteEmail(ctx, ID)
+		assert.Nil(t, err)
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// tx
+	{
+		m.EXPECT().Tx().Return(nil, fmt.Errorf("tx fail"))
+
+		err := srv.DeleteEmail(ctx, ID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not begin delete email transaction; tx fail", err.Error())
+	}
+
+	// storage fail
+	{
+		db, mdb, err := sqlmock.New()
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteEmail(ctx, tx, ID).
+			Return(fmt.Errorf("opz"))
+		mdb.ExpectRollback()
+
+		err = srv.DeleteEmail(ctx, ID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not delete email; opz", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// commit fail
+	{
+		db, mdb, err := sqlmock.New()
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteEmail(ctx, tx, ID).
+			Return(nil)
+
+		mdb.ExpectCommit().WillReturnError(fmt.Errorf("commit fail"))
+
+		err = srv.DeleteEmail(ctx, ID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not commit delete email; commit fail", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
+
+	// rollback fail
+	{
+		db, mdb, err := sqlmock.New()
+		defer db.Close()
+
+		mdb.ExpectBegin()
+
+		tx, err := db.Begin()
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
+		m.
+			EXPECT().
+			DeleteEmail(ctx, tx, ID).
+			Return(fmt.Errorf("storage fail"))
+
+		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackfail"))
+
+		err = srv.DeleteEmail(ctx, ID)
+		assert.NotNil(t, err)
+		assert.Equal(t, "could not rollback delete email; rollbackfail; storage fail", err.Error())
+		assert.Nil(t, mdb.ExpectationsWereMet())
+	}
 }
 
 func TestFilterEmails(t *testing.T) {

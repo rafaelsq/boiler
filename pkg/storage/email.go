@@ -37,8 +37,8 @@ func (s *Storage) AddEmail(ctx context.Context, tx *sql.Tx, userID int, address 
 	return int(id), nil
 }
 
-func (s *Storage) DeleteEmail(ctx context.Context, emailID int) error {
-	result, err := s.sql.ExecContext(ctx,
+func (s *Storage) DeleteEmail(ctx context.Context, tx *sql.Tx, emailID int) error {
+	result, err := tx.ExecContext(ctx,
 		"DELETE FROM emails WHERE id = ?",
 		emailID,
 	)
@@ -55,6 +55,18 @@ func (s *Storage) DeleteEmail(ctx context.Context, emailID int) error {
 
 	if n == 0 {
 		return errors.New("no rows affected").SetArg("emailID", emailID).SetParent(iface.ErrNotFound)
+	}
+
+	return nil
+}
+
+func (s *Storage) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID int) error {
+	_, err := tx.ExecContext(ctx,
+		"DELETE FROM emails WHERE user_id = ?",
+		userID,
+	)
+	if err != nil {
+		return errors.New("could not remove emails by user ID").SetArg("userID", userID).SetParent(err)
 	}
 
 	return nil

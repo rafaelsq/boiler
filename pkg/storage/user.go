@@ -27,8 +27,8 @@ func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, er
 	return int(id), nil
 }
 
-func (s *Storage) DeleteUser(ctx context.Context, userID int) error {
-	result, err := s.sql.ExecContext(ctx,
+func (s *Storage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int) error {
+	result, err := tx.ExecContext(ctx,
 		"DELETE FROM users WHERE id = ?",
 		userID,
 	)
