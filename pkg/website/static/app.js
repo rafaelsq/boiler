@@ -60,7 +60,7 @@ const handleAddUser = (state, {data, err}) => {
 
     return [
         Unlock({...state, newUser: ''}),
-        [(d, {action}) => d(action), {action: FetchUsers}],
+        [d => d(FetchUsers)],
     ]
 }
 const AddUser = state => [
@@ -82,6 +82,7 @@ const handleDeleteUser = (state, {data, err, args}) => {
     if (err) {
         alert('could not remove user')
         console.error(err)
+        return Unlock
     }
 
     return Unlock({...state, users: state.users.filter(u => u.id != args)})
@@ -103,6 +104,7 @@ const handleDeleteEmail = (state, {data, err, args}) => {
     if (err) {
         alert('could not remove email')
         console.error(err)
+        return Unlock
     }
 
     return Unlock({...state, emails: state.emails.filter(u => u.id != args)})
@@ -132,7 +134,7 @@ const handleAddEmail = (state, {data, err}) => {
 
     return [
         Unlock(state),
-        [(d, {action}) => d(action), {action: [FetchEmails, state.newEmail.userID]}],
+        [d => d([FetchEmails, state.newEmail.userID])],
     ]
 }
 const AddEmail = state => [
