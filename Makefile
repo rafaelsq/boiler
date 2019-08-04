@@ -14,11 +14,7 @@ start-db:
 		fi; \
 		docker run -d -p 3307:3306 --name=boilerdb \
 			-v ${PWD}/db:/var/lib/mysql \
+			-v ${PWD}/schema.sql:/docker-entrypoint-initdb.d/schema.sql \
 			-e MYSQL_ROOT_PASSWORD=boiler \
 			mariadb; \
-	fi
-	@if [ ! -f "./db/schema.sql" ]; then \
-		sleep 10; \
-		sudo cp schema.sql db/; \
-		docker exec -it -w /var/lib/mysql boilerdb bash -c "mysql -pboiler < schema.sql"; \
 	fi
