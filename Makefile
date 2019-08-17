@@ -1,5 +1,5 @@
 run:
-	@go run cmd/server/server.go
+	@go run -mod=vendor cmd/server/server.go
 
 gen:
 	go generate ./...
