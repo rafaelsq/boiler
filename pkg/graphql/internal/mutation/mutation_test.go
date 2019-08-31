@@ -3,6 +3,7 @@ package mutation
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -67,17 +68,17 @@ func TestAddEmail(t *testing.T) {
 		service.EXPECT().AddEmail(ctx, userID, address).Return(1, nil)
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
-			UserID:  userID,
+			UserID:  strconv.Itoa(userID),
 			Address: address,
 		})
 		assert.Nil(t, err)
-		assert.Equal(t, u.ID, userID)
+		assert.Equal(t, u.ID, strconv.Itoa(userID))
 	}
 
 	// fails if userID is invalid
 	{
 		address := "email@email.com"
-		userID := 0
+		userID := "0"
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
 			UserID:  userID,
@@ -90,7 +91,7 @@ func TestAddEmail(t *testing.T) {
 	// fails if email is invalid
 	{
 		address := "email"
-		userID := 1
+		userID := "1"
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
 			UserID:  userID,
@@ -108,7 +109,7 @@ func TestAddEmail(t *testing.T) {
 		service.EXPECT().AddEmail(ctx, userID, address).Return(0, iface.ErrAlreadyExists)
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
-			UserID:  userID,
+			UserID:  strconv.Itoa(userID),
 			Address: address,
 		})
 		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", iface.ErrAlreadyExists))
@@ -123,7 +124,7 @@ func TestAddEmail(t *testing.T) {
 		service.EXPECT().AddEmail(ctx, userID, address).Return(0, fmt.Errorf("opz"))
 
 		u, err := m.AddMail(ctx, entity.AddMailInput{
-			UserID:  userID,
+			UserID:  strconv.Itoa(userID),
 			Address: address,
 		})
 		assert.Equal(t, err.Error(), "service failed")

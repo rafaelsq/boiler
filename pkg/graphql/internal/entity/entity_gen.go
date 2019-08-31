@@ -3,19 +3,19 @@
 package entity
 
 type Email struct {
-	ID      int    `json:"id"`
+	ID      string `json:"id"`
 	Address string `json:"address"`
-	User    User   `json:"user"`
+	User    *User  `json:"user"`
 }
 
 type User struct {
-	ID     int      `json:"id"`
+	ID     string   `json:"id"`
 	Name   string   `json:"name"`
 	Emails []*Email `json:"emails"`
 }
 
 type AddMailInput struct {
-	UserID  int    `json:"userID"`
+	UserID  string `json:"userID"`
 	Address string `json:"address"`
 }
 

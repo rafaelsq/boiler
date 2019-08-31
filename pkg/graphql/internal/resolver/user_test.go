@@ -3,6 +3,7 @@ package resolver_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -13,18 +14,6 @@ import (
 	"github.com/rafaelsq/boiler/pkg/mock"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestUserID(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	m := mock.NewMockService(ctrl)
-	r := resolver.NewUser(m)
-
-	userID, err := r.ID(context.TODO(), &gentity.User{ID: 4})
-	assert.Nil(t, err)
-	assert.Equal(t, 4, userID)
-}
 
 func TestUserUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -41,11 +30,21 @@ func TestUserUser(t *testing.T) {
 			GetUserByID(gomock.Any(), user.ID).
 			Return(user, nil)
 
-		u, err := r.User(context.TODO(), user.ID)
+		u, err := r.User(context.TODO(), strconv.Itoa(user.ID))
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
-		assert.Equal(t, user.ID, u.ID)
+		assert.Equal(t, strconv.Itoa(user.ID), u.ID)
 		assert.Equal(t, user.Name, u.Name)
+	}
+
+	// fail if invalid ID
+	{
+		m := mock.NewMockService(ctrl)
+		r := resolver.NewUser(m)
+
+		u, err := r.User(context.TODO(), "fail")
+		assert.Nil(t, u)
+		assert.Equal(t, err.Error(), "invalid user ID")
 	}
 
 	// fails if service fails
@@ -59,7 +58,7 @@ func TestUserUser(t *testing.T) {
 			GetUserByID(gomock.Any(), user.ID).
 			Return(nil, fmt.Errorf("opz"))
 
-		u, err := r.User(context.TODO(), user.ID)
+		u, err := r.User(context.TODO(), strconv.Itoa(user.ID))
 		assert.Nil(t, u)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")
@@ -118,10 +117,20 @@ func TestUserEmails(t *testing.T) {
 			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: user.ID}).
 			Return([]*entity.Email{user}, nil)
 
-		emails, err := r.Emails(context.TODO(), &gentity.User{ID: user.ID})
+		emails, err := r.Emails(context.TODO(), &gentity.User{ID: strconv.Itoa(user.ID)})
 		assert.Nil(t, err)
 		assert.NotNil(t, emails)
 		assert.Equal(t, len(emails), 1)
+	}
+
+	// fail if invalid ID
+	{
+		m := mock.NewMockService(ctrl)
+		r := resolver.NewUser(m)
+
+		emails, err := r.Emails(context.TODO(), &gentity.User{ID: "0"})
+		assert.Nil(t, emails)
+		assert.Equal(t, err.Error(), "invalid user ID")
 	}
 
 	// fails if service fails
@@ -133,7 +142,7 @@ func TestUserEmails(t *testing.T) {
 			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: 2}).
 			Return(nil, fmt.Errorf("opz"))
 
-		users, err := r.Emails(context.TODO(), &gentity.User{ID: 2})
+		users, err := r.Emails(context.TODO(), &gentity.User{ID: strconv.Itoa(2)})
 		assert.Nil(t, users)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")

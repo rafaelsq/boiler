@@ -1,22 +1,22 @@
 type User {
-	id: Int!
+	id: ID!
 	name: String!
 	emails: [Email]!
 }
 
 type Email {
-	id: Int!
+	id: ID!
 	address: String!
 	user: User!
 }
 
 type Query {
 	users(limit: Int = 100): [User]!
-	user(userID: Int!): User!
+	user(userID: ID!): User!
 }
 
 input addMailInput {
-	userID: Int!
+	userID: ID!
 	address: String!
 }
 

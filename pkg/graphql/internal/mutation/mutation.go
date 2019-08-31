@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/mail"
+	"strconv"
 
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
@@ -29,11 +30,12 @@ func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*ent
 		return nil, fmt.Errorf("service failed")
 	}
 
-	return &entity.User{ID: userID}, nil
+	return &entity.User{ID: strconv.Itoa(userID)}, nil
 }
 
 func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*entity.User, error) {
-	if input.UserID <= 0 {
+	userID, err := strconv.Atoi(input.UserID)
+	if err != nil || userID == 0 {
 		return nil, &gqlerror.Error{
 			Message: "invalid userID",
 			Extensions: map[string]interface{}{
@@ -52,7 +54,7 @@ func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*ent
 		}
 	}
 
-	_, err = m.service.AddEmail(ctx, input.UserID, address.Address)
+	_, err = m.service.AddEmail(ctx, userID, address.Address)
 	if err != nil {
 		if er := errors.Cause(err); er == iface.ErrAlreadyExists {
 			return nil, &gqlerror.Error{

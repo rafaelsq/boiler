@@ -2,6 +2,8 @@ package resolver
 
 import (
 	"context"
+	"errors"
+	"strconv"
 
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
@@ -17,11 +19,12 @@ type User struct {
 	service iface.Service
 }
 
-func (*User) ID(ctx context.Context, u *entity.User) (int, error) {
-	return u.ID, nil
-}
+func (r *User) User(ctx context.Context, rawUserID string) (*entity.User, error) {
+	userID, err := strconv.Atoi(rawUserID)
+	if err != nil || userID == 0 {
+		return nil, errors.New("invalid user ID")
+	}
 
-func (r *User) User(ctx context.Context, userID int) (*entity.User, error) {
 	u, err := r.service.GetUserByID(ctx, userID)
 	if err == nil {
 		return entity.NewUser(u), nil
@@ -42,7 +45,12 @@ func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
 }
 
 func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, error) {
-	es, err := r.service.FilterEmails(ctx, iface.FilterEmails{UserID: u.ID})
+	userID, err := strconv.Atoi(u.ID)
+	if err != nil || userID == 0 {
+		return nil, errors.New("invalid user ID")
+	}
+
+	es, err := r.service.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
 	if err == nil {
 		emails := make([]*entity.Email, 0, len(es))
 		for _, e := range es {

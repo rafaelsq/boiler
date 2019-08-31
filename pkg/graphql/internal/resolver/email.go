@@ -17,10 +17,6 @@ type Email struct {
 	service iface.Service
 }
 
-func (r *Email) ID(ctx context.Context, e *entity.Email) (int, error) {
-	return e.ID, nil
-}
-
 func (r *Email) User(ctx context.Context, e *entity.Email) (*entity.User, error) {
 	u, err := r.service.GetUserByEmail(ctx, e.Address)
 	if err == nil {
