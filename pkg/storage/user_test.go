@@ -66,7 +66,7 @@ func TestAddUser(t *testing.T) {
 		assert.Nil(t, err)
 
 		userID, err := r.AddUser(ctx, tx, name)
-		assert.Equal(t, err.Error(), "could not insert user; err")
+		assert.Equal(t, err.Error(), "could not insert; err")
 		assert.Equal(t, userID, 0)
 		assert.Nil(t, tx.Commit())
 	}
@@ -88,7 +88,7 @@ func TestAddUser(t *testing.T) {
 		assert.Nil(t, err)
 
 		userID, err := r.AddUser(ctx, tx, name)
-		assert.Equal(t, err.Error(), "last insert id failed after add user; err")
+		assert.Equal(t, err.Error(), "fail to retrieve last inserted ID; err")
 		assert.Equal(t, userID, 0)
 		assert.Nil(t, tx.Commit())
 	}
@@ -139,7 +139,7 @@ func TestDeleteUser(t *testing.T) {
 
 		err = r.DeleteUser(ctx, tx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "could not remove user; opz")
+		assert.Equal(t, err.Error(), "could not remove; opz")
 	}
 
 	// fails if rows affected fails
@@ -162,7 +162,7 @@ func TestDeleteUser(t *testing.T) {
 
 		err = r.DeleteUser(ctx, tx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "could not fetch rows affected after remove user; opz")
+		assert.Equal(t, err.Error(), "could not fetch rows affected; opz")
 		assert.Nil(t, tx.Commit())
 		assert.Nil(t, mock.ExpectationsWereMet())
 	}
@@ -245,7 +245,7 @@ func TestFilterUsers(t *testing.T) {
 
 		r := storage.New(mdb)
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
-		assert.Equal(t, err.Error(), "could not list users; err")
+		assert.Equal(t, err.Error(), "could not fetch rows; err")
 		assert.Len(t, users, 0)
 	}
 }
@@ -315,7 +315,7 @@ func TestFilterUsersByID(t *testing.T) {
 
 		r := storage.New(mdb)
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
-		assert.Equal(t, err.Error(), "could not fetch user; opz")
+		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Nil(t, users)
 	}
 }
@@ -389,7 +389,7 @@ func TestFilterUsersByMail(t *testing.T) {
 
 		r := storage.New(mdb)
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
-		assert.Equal(t, err.Error(), "could not fetch user; opz")
+		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Nil(t, users)
 	}
 }

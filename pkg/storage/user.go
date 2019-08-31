@@ -11,41 +11,11 @@ import (
 )
 
 func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, error) {
-	result, err := tx.ExecContext(ctx,
-		"INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())",
-		name,
-	)
-	if err != nil {
-		return 0, errors.New("could not insert user").SetArg("name", name).SetParent(err)
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, errors.New("last insert id failed after add user").SetParent(err)
-	}
-
-	return int(id), nil
+	return Insert(ctx, tx, "INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())", name)
 }
 
 func (s *Storage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int) error {
-	result, err := tx.ExecContext(ctx,
-		"DELETE FROM users WHERE id = ?",
-		userID,
-	)
-	if err != nil {
-		return errors.New("could not remove user").SetArg("userID", userID).SetParent(err)
-	}
-
-	n, err := result.RowsAffected()
-	if err != nil {
-		return errors.New("could not fetch rows affected after remove user").SetArg("userID", userID).SetParent(err)
-	}
-
-	if n == 0 {
-		return errors.New("no rows affected").SetArg("userID", userID).SetParent(iface.ErrNotFound)
-	}
-
-	return nil
+	return Delete(ctx, tx, "DELETE FROM users WHERE id = ?", userID)
 }
 
 func (s *Storage) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
@@ -54,88 +24,34 @@ func (s *Storage) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]
 		limit = filter.Limit
 	}
 
+	var args []interface{}
+	var query string
+
 	if filter.UserID > 0 {
-		u, err := s.filterUsersByID(ctx, filter.UserID)
-		if err != nil || u == nil {
-			return nil, err
-		}
-
-		return []*entity.User{u}, nil
+		query = "SELECT id, name, created, updated FROM users WHERE id = ?"
+		args = append(args, filter.UserID)
+	} else if len(filter.Email) != 0 {
+		query = "SELECT u.id, name, created, updated FROM users u INNER JOIN emails ON(user_id = u.id) WHERE email = ?"
+		args = append(args, filter.Email)
+	} else {
+		query = "SELECT id, name, created, updated FROM users LIMIT ?"
+		args = append(args, limit)
 	}
 
-	if len(filter.Email) != 0 {
-		u, err := s.filterUsersByEmail(ctx, filter.Email)
-		if err != nil || u == nil {
-			return nil, err
-		}
-
-		return []*entity.User{u}, nil
-	}
-
-	return s.filterUsers(ctx, limit)
-}
-
-func (s *Storage) filterUsers(ctx context.Context, limit uint) ([]*entity.User, error) {
-	rows, err := s.sql.QueryContext(
-		ctx,
-		"SELECT id, name, created, updated FROM users LIMIT ?",
-		limit,
-	)
+	rows, err := Select(ctx, s.sql, scanUser, query, args...)
 	if err != nil {
-		return nil, errors.New("could not list users").SetArg("limit", limit).SetParent(err)
+		return nil, err
 	}
 
-	users := make([]*entity.User, 0, limit)
-	for {
-		if !rows.Next() {
-			break
-		}
+	users := make([]*entity.User, 0, len(rows))
+	for _, row := range rows {
+		users = append(users, row.(*entity.User))
 
-		user, err := scanUser(rows.Scan)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, user)
 	}
-
 	return users, nil
 }
 
-func (s *Storage) filterUsersByID(ctx context.Context, userID int) (*entity.User, error) {
-	rows, err := s.sql.QueryContext(
-		ctx,
-		"SELECT id, name, created, updated FROM users WHERE id = ?",
-		userID,
-	)
-	if err != nil {
-		return nil, errors.New("could not fetch user").SetArg("userID", userID).SetParent(err)
-	}
-
-	if !rows.Next() {
-		return nil, nil
-	}
-
-	return scanUser(rows.Scan)
-}
-
-func (s *Storage) filterUsersByEmail(ctx context.Context, email string) (*entity.User, error) {
-	rows, err := s.sql.QueryContext(
-		ctx,
-		"SELECT u.id, name, created, updated FROM users u INNER JOIN emails ON(user_id = u.id) WHERE email = ?",
-		email,
-	)
-	if err != nil {
-		return nil, errors.New("could not fetch user").SetArg("email", email).SetParent(err)
-	}
-
-	if !rows.Next() {
-		return nil, nil
-	}
-
-	return scanUser(rows.Scan)
-}
-
-func scanUser(sc func(dest ...interface{}) error) (*entity.User, error) {
+func scanUser(sc func(dest ...interface{}) error) (interface{}, error) {
 	var id int
 	var name string
 	var created time.Time

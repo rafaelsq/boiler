@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/rafaelsq/boiler/pkg/iface"
+	"github.com/rafaelsq/errors"
 
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -20,4 +23,64 @@ func New(sql *sql.DB) iface.Storage {
 	return &Storage{
 		sql: sql,
 	}
+}
+
+func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) (int, error) {
+	result, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		if mysqlError, ok := err.(*mysql.MySQLError); ok {
+			if mysqlError.Number == 1062 {
+				return 0, iface.ErrAlreadyExists
+			}
+		}
+
+		return 0, errors.New("could not insert").SetArg("args", args).SetParent(err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, errors.New("fail to retrieve last inserted ID").SetParent(err)
+	}
+
+	return int(id), nil
+}
+
+func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) error {
+	result, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		return errors.New("could not remove").SetArg("args", args).SetParent(err)
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return errors.New("could not fetch rows affected").SetArg("args", args).SetParent(err)
+	}
+
+	if n == 0 {
+		return errors.New("no rows affected").SetArg("args", args).SetParent(iface.ErrNotFound)
+	}
+
+	return nil
+}
+
+func Select(ctx context.Context, sql *sql.DB, scan func(func(...interface{}) error) (interface{}, error), query string, args ...interface{}) ([]interface{}, error) {
+	rawRows, err := sql.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.New("could not fetch rows").SetArg("args", args).SetParent(err)
+	}
+
+	var rows []interface{}
+	for {
+		if !rawRows.Next() {
+			break
+		}
+
+		row, err := scan(rawRows.Scan)
+		if err != nil {
+			return nil, err
+		}
+		rows = append(rows, row)
+	}
+
+	return rows, nil
 }
