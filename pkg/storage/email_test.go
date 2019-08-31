@@ -210,7 +210,7 @@ func TestDeleteEmail(t *testing.T) {
 
 		err = r.DeleteEmail(ctx, tx, emailID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "no rows affected; not found")
+		assert.Equal(t, err, iface.ErrNotFound)
 		assert.Nil(t, tx.Commit())
 		assert.Nil(t, mock.ExpectationsWereMet())
 	}
@@ -289,6 +289,23 @@ func TestFilterEmails(t *testing.T) {
 
 		r := storage.New(mdb)
 		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
+		assert.Nil(t, err)
+		assert.Len(t, emails, 1)
+	}
+
+	// filter by emailID
+	{
+		emailID := 3
+
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE id = ?"),
+		).WithArgs(emailID).WillReturnRows(
+			sqlmock.NewRows([]string{"id", "user_id", "address", "created"}).
+				AddRow(3, emailID, "user@example.com", time.Time{}),
+		)
+
+		r := storage.New(mdb)
+		emails, err := r.FilterEmails(ctx, iface.FilterEmails{EmailID: emailID})
 		assert.Nil(t, err)
 		assert.Len(t, emails, 1)
 	}

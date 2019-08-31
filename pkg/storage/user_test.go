@@ -186,7 +186,7 @@ func TestDeleteUser(t *testing.T) {
 
 		err = r.DeleteUser(ctx, tx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "no rows affected; not found")
+		assert.Equal(t, err, iface.ErrNotFound)
 		assert.Nil(t, tx.Commit())
 		assert.Nil(t, mock.ExpectationsWereMet())
 	}

@@ -72,7 +72,7 @@ func TestAddEmail(t *testing.T) {
 			Address: address,
 		})
 		assert.Nil(t, err)
-		assert.Equal(t, u.ID, strconv.Itoa(userID))
+		assert.Equal(t, u.Email.ID, "1")
 	}
 
 	// fails if userID is invalid

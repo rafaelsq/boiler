@@ -23,17 +23,17 @@ type Mutation struct {
 	service iface.Service
 }
 
-func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.User, error) {
+func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.UserResponse, error) {
 	userID, err := m.service.AddUser(ctx, input.Name)
 	if err != nil {
 		log.Log(err)
 		return nil, fmt.Errorf("service failed")
 	}
 
-	return &entity.User{ID: strconv.Itoa(userID)}, nil
+	return &entity.UserResponse{User: &entity.User{ID: strconv.Itoa(userID)}}, nil
 }
 
-func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.User, error) {
+func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.EmailResponse, error) {
 	userID, err := strconv.Atoi(input.UserID)
 	if err != nil || userID == 0 {
 		return nil, &gqlerror.Error{
@@ -54,7 +54,7 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 		}
 	}
 
-	_, err = m.service.AddEmail(ctx, userID, address.Address)
+	emailID, err := m.service.AddEmail(ctx, userID, address.Address)
 	if err != nil {
 		if er := errors.Cause(err); er == iface.ErrAlreadyExists {
 			return nil, &gqlerror.Error{
@@ -69,5 +69,5 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 		return nil, fmt.Errorf("service failed")
 	}
 
-	return &entity.User{ID: input.UserID}, nil
+	return &entity.EmailResponse{Email: &entity.Email{ID: strconv.Itoa(emailID)}}, nil
 }

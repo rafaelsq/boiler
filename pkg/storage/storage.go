@@ -57,7 +57,7 @@ func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 	}
 
 	if n == 0 {
-		return errors.New("no rows affected").SetArg("args", args).SetParent(iface.ErrNotFound)
+		return iface.ErrNotFound
 	}
 
 	return nil

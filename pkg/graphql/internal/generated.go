@@ -36,9 +36,11 @@ type Config struct {
 
 type ResolverRoot interface {
 	Email() EmailResolver
+	EmailResponse() EmailResponseResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	User() UserResolver
+	UserResponse() UserResponseResolver
 }
 
 type DirectiveRoot struct {
@@ -49,6 +51,10 @@ type ComplexityRoot struct {
 		Address func(childComplexity int) int
 		ID      func(childComplexity int) int
 		User    func(childComplexity int) int
+	}
+
+	EmailResponse struct {
+		Email func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -66,14 +72,21 @@ type ComplexityRoot struct {
 		ID     func(childComplexity int) int
 		Name   func(childComplexity int) int
 	}
+
+	UserResponse struct {
+		User func(childComplexity int) int
+	}
 }
 
 type EmailResolver interface {
 	User(ctx context.Context, obj *entity.Email) (*entity.User, error)
 }
+type EmailResponseResolver interface {
+	Email(ctx context.Context, obj *entity.EmailResponse) (*entity.Email, error)
+}
 type MutationResolver interface {
-	AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.User, error)
-	AddUser(ctx context.Context, input entity.AddUserInput) (*entity.User, error)
+	AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.EmailResponse, error)
+	AddUser(ctx context.Context, input entity.AddUserInput) (*entity.UserResponse, error)
 }
 type QueryResolver interface {
 	Users(ctx context.Context, limit *int) ([]*entity.User, error)
@@ -81,6 +94,9 @@ type QueryResolver interface {
 }
 type UserResolver interface {
 	Emails(ctx context.Context, obj *entity.User) ([]*entity.Email, error)
+}
+type UserResponseResolver interface {
+	User(ctx context.Context, obj *entity.UserResponse) (*entity.User, error)
 }
 
 type executableSchema struct {
@@ -118,6 +134,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Email.User(childComplexity), true
+
+	case "EmailResponse.email":
+		if e.complexity.EmailResponse.Email == nil {
+			break
+		}
+
+		return e.complexity.EmailResponse.Email(childComplexity), true
 
 	case "Mutation.addEmail":
 		if e.complexity.Mutation.AddEmail == nil {
@@ -188,6 +211,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Name(childComplexity), true
 
+	case "UserResponse.user":
+		if e.complexity.UserResponse.User == nil {
+			break
+		}
+
+		return e.complexity.UserResponse.User(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -250,7 +280,17 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "schema.graphql", Input: `type User {
+	&ast.Source{Name: "schema.graphql", Input: `type Query {
+	users(limit: Int = 100): [User]!
+	user(userID: ID!): User!
+}
+
+type Mutation {
+	addEmail(input: addEmailInput!): EmailResponse!
+	addUser(input: addUserInput!): UserResponse!
+}
+
+type User {
 	id: ID!
 	name: String!
 	emails: [Email]!
@@ -262,11 +302,6 @@ type Email {
 	user: User!
 }
 
-type Query {
-	users(limit: Int = 100): [User]!
-	user(userID: ID!): User!
-}
-
 input addEmailInput {
 	userID: ID!
 	address: String!
@@ -276,9 +311,12 @@ input addUserInput {
 	name: String!
 }
 
-type Mutation {
-	addEmail(input: addEmailInput!): User!
-	addUser(input: addUserInput!): User!
+type UserResponse {
+	user: User!
+}
+
+type EmailResponse {
+	email: Email!
 }
 `},
 )
@@ -504,6 +542,43 @@ func (ec *executionContext) _Email_user(ctx context.Context, field graphql.Colle
 	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EmailResponse_email(ctx context.Context, field graphql.CollectedField, obj *entity.EmailResponse) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EmailResponse",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.EmailResponse().Email(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Email)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEmail2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -542,10 +617,10 @@ func (ec *executionContext) _Mutation_addEmail(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*entity.User)
+	res := resTmp.(*entity.EmailResponse)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNEmailResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmailResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -586,10 +661,10 @@ func (ec *executionContext) _Mutation_addUser(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*entity.User)
+	res := resTmp.(*entity.UserResponse)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUserResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUserResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -864,6 +939,43 @@ func (ec *executionContext) _User_emails(ctx context.Context, field graphql.Coll
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNEmail2ᚕᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserResponse_user(ctx context.Context, field graphql.CollectedField, obj *entity.UserResponse) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserResponse",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserResponse().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*entity.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2113,6 +2225,42 @@ func (ec *executionContext) _Email(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var emailResponseImplementors = []string{"EmailResponse"}
+
+func (ec *executionContext) _EmailResponse(ctx context.Context, sel ast.SelectionSet, obj *entity.EmailResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, emailResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EmailResponse")
+		case "email":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EmailResponse_email(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -2237,6 +2385,42 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_emails(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userResponseImplementors = []string{"UserResponse"}
+
+func (ec *executionContext) _UserResponse(ctx context.Context, sel ast.SelectionSet, obj *entity.UserResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, userResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserResponse")
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserResponse_user(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -2512,6 +2696,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNEmail2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v entity.Email) graphql.Marshaler {
+	return ec._Email(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNEmail2ᚕᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v []*entity.Email) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -2547,6 +2735,30 @@ func (ec *executionContext) marshalNEmail2ᚕᚖgithubᚗcomᚋrafaelsqᚋboiler
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNEmail2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v *entity.Email) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Email(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEmailResponse2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmailResponse(ctx context.Context, sel ast.SelectionSet, v entity.EmailResponse) graphql.Marshaler {
+	return ec._EmailResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEmailResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmailResponse(ctx context.Context, sel ast.SelectionSet, v *entity.EmailResponse) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EmailResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -2626,6 +2838,20 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋp
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserResponse2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUserResponse(ctx context.Context, sel ast.SelectionSet, v entity.UserResponse) graphql.Marshaler {
+	return ec._UserResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUserResponse(ctx context.Context, sel ast.SelectionSet, v *entity.UserResponse) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

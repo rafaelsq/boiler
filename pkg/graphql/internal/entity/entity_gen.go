@@ -8,10 +8,18 @@ type Email struct {
 	User    *User  `json:"user"`
 }
 
+type EmailResponse struct {
+	Email *Email `json:"email"`
+}
+
 type User struct {
 	ID     string   `json:"id"`
 	Name   string   `json:"name"`
 	Emails []*Email `json:"emails"`
+}
+
+type UserResponse struct {
+	User *User `json:"user"`
 }
 
 type AddEmailInput struct {

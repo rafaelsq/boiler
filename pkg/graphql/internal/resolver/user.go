@@ -2,7 +2,6 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"strconv"
 
 	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
@@ -22,7 +21,7 @@ type User struct {
 func (r *User) User(ctx context.Context, rawUserID string) (*entity.User, error) {
 	userID, err := strconv.Atoi(rawUserID)
 	if err != nil || userID == 0 {
-		return nil, errors.New("invalid user ID")
+		return nil, iface.ErrInvalidID
 	}
 
 	u, err := r.service.GetUserByID(ctx, userID)
@@ -47,7 +46,7 @@ func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
 func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, error) {
 	userID, err := strconv.Atoi(u.ID)
 	if err != nil || userID == 0 {
-		return nil, errors.New("invalid user ID")
+		return nil, iface.ErrInvalidID
 	}
 
 	es, err := r.service.FilterEmails(ctx, iface.FilterEmails{UserID: userID})

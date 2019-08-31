@@ -13,7 +13,8 @@ type FilterUsers struct {
 }
 
 type FilterEmails struct {
-	UserID int
-	Offset uint
-	Limit  uint
+	EmailID int
+	UserID  int
+	Offset  uint
+	Limit   uint
 }

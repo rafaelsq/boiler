@@ -39,7 +39,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID int) error {
 	}
 
 	err = s.storage.DeleteUser(ctx, tx, userID)
-	if err != nil {
+	if err != nil && err != iface.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
 			return errors.New("could not rollback delete user").SetParent(
 				errors.New(er.Error()).SetParent(err),
@@ -50,7 +50,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID int) error {
 	}
 
 	err = s.storage.DeleteEmailsByUserID(ctx, tx, userID)
-	if err != nil {
+	if err != nil && err != iface.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
 			return errors.New("could not rollback delete emails by user ID").SetParent(
 				errors.New(er.Error()).SetParent(err),

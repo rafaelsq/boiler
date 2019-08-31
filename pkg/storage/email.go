@@ -26,8 +26,17 @@ func (s *Storage) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID i
 }
 
 func (s *Storage) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {
+	args := []interface{}{filter.UserID}
+	where := "user_id = ?"
+	if filter.EmailID > 0 {
+		where = "id = ?"
+		args = []interface{}{filter.EmailID}
+	}
+
 	rows, err := Select(ctx, s.sql, scanEmail,
-		"SELECT id, user_id, address, created FROM emails WHERE user_id = ?", filter.UserID)
+		"SELECT id, user_id, address, created FROM emails WHERE "+where,
+		args...,
+	)
 	if err != nil {
 		return nil, err
 	}

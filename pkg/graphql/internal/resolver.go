@@ -27,6 +27,14 @@ func (r *Resolver) User() UserResolver {
 	return resolver.NewUser(r.service)
 }
 
+func (r *Resolver) UserResponse() UserResponseResolver {
+	return resolver.NewResponse(r.service)
+}
+
 func (r *Resolver) Email() EmailResolver {
 	return resolver.NewEmail(r.service)
+}
+
+func (r *Resolver) EmailResponse() EmailResponseResolver {
+	return resolver.NewResponse(r.service)
 }

@@ -44,7 +44,7 @@ func TestUserUser(t *testing.T) {
 
 		u, err := r.User(context.TODO(), "fail")
 		assert.Nil(t, u)
-		assert.Equal(t, err.Error(), "invalid user ID")
+		assert.Equal(t, err, iface.ErrInvalidID)
 	}
 
 	// fails if service fails
@@ -130,7 +130,7 @@ func TestUserEmails(t *testing.T) {
 
 		emails, err := r.Emails(context.TODO(), &gentity.User{ID: "0"})
 		assert.Nil(t, emails)
-		assert.Equal(t, err.Error(), "invalid user ID")
+		assert.Equal(t, err, iface.ErrInvalidID)
 	}
 
 	// fails if service fails
