@@ -82,9 +82,14 @@ func main() {
         Str("Scale", "833 cents").
         Float64("Interval", 833.09).
         Msg("Fibonacci is everywhere")
+    
+    log.Debug().
+        Str("Name", "Tom").
+        Send()
 }
 
-// Output: {"time":1524104936,"level":"debug","Scale":"833 cents","Interval":833.09,"message":"Fibonacci is everywhere"}
+// Output: {"level":"debug","Scale":"833 cents","Interval":833.09,"time":1562212768,"message":"Fibonacci is everywhere"}
+// Output: {"level":"debug","Name":"Tom","time":1562212768}
 ```
 
 > You'll note in the above example that when adding contextual fields, the fields are strongly typed. You can find the full list of supported fields [here](#standard-types)
@@ -577,7 +582,7 @@ Log a static string, without any context or `printf`-style templating:
 
 ## Caveats
 
-Note that zerolog does de-duplication fields. Using the same key multiple times creates multiple keys in final JSON:
+Note that zerolog does no de-duplication of fields. Using the same key multiple times creates multiple keys in final JSON:
 
 ```go
 logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
@@ -587,4 +592,4 @@ logger.Info().
 // Output: {"level":"info","time":1494567715,"time":1494567715,"message":"dup"}
 ```
 
-However, it’s not a big deal as JSON accepts dup keys; the last one prevails.
+In this case, many consumers will take the last value, but this is not guaranteed; check yours if in doubt.
