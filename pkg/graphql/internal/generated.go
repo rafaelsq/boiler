@@ -52,8 +52,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddMail func(childComplexity int, input entity.AddMailInput) int
-		AddUser func(childComplexity int, input entity.AddUserInput) int
+		AddEmail func(childComplexity int, input entity.AddEmailInput) int
+		AddUser  func(childComplexity int, input entity.AddUserInput) int
 	}
 
 	Query struct {
@@ -72,7 +72,7 @@ type EmailResolver interface {
 	User(ctx context.Context, obj *entity.Email) (*entity.User, error)
 }
 type MutationResolver interface {
-	AddMail(ctx context.Context, input entity.AddMailInput) (*entity.User, error)
+	AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.User, error)
 	AddUser(ctx context.Context, input entity.AddUserInput) (*entity.User, error)
 }
 type QueryResolver interface {
@@ -119,17 +119,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Email.User(childComplexity), true
 
-	case "Mutation.addMail":
-		if e.complexity.Mutation.AddMail == nil {
+	case "Mutation.addEmail":
+		if e.complexity.Mutation.AddEmail == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addMail_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addEmail_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddMail(childComplexity, args["input"].(entity.AddMailInput)), true
+		return e.complexity.Mutation.AddEmail(childComplexity, args["input"].(entity.AddEmailInput)), true
 
 	case "Mutation.addUser":
 		if e.complexity.Mutation.AddUser == nil {
@@ -267,7 +267,7 @@ type Query {
 	user(userID: ID!): User!
 }
 
-input addMailInput {
+input addEmailInput {
 	userID: ID!
 	address: String!
 }
@@ -277,7 +277,7 @@ input addUserInput {
 }
 
 type Mutation {
-	addMail(input: addMailInput!): User!
+	addEmail(input: addEmailInput!): User!
 	addUser(input: addUserInput!): User!
 }
 `},
@@ -287,12 +287,12 @@ type Mutation {
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_addMail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 entity.AddMailInput
+	var arg0 entity.AddEmailInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNaddMailInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddMailInput(ctx, tmp)
+		arg0, err = ec.unmarshalNaddEmailInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddEmailInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -504,7 +504,7 @@ func (ec *executionContext) _Email_user(ctx context.Context, field graphql.Colle
 	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addMail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_addEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -521,7 +521,7 @@ func (ec *executionContext) _Mutation_addMail(ctx context.Context, field graphql
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addMail_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_addEmail_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -530,7 +530,7 @@ func (ec *executionContext) _Mutation_addMail(ctx context.Context, field graphql
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddMail(rctx, args["input"].(entity.AddMailInput))
+		return ec.resolvers.Mutation().AddEmail(rctx, args["input"].(entity.AddEmailInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2017,8 +2017,8 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputaddMailInput(ctx context.Context, obj interface{}) (entity.AddMailInput, error) {
-	var it entity.AddMailInput
+func (ec *executionContext) unmarshalInputaddEmailInput(ctx context.Context, obj interface{}) (entity.AddEmailInput, error) {
+	var it entity.AddEmailInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -2128,8 +2128,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "addMail":
-			out.Values[i] = ec._Mutation_addMail(ctx, field)
+		case "addEmail":
+			out.Values[i] = ec._Mutation_addEmail(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2854,8 +2854,8 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNaddMailInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddMailInput(ctx context.Context, v interface{}) (entity.AddMailInput, error) {
-	return ec.unmarshalInputaddMailInput(ctx, v)
+func (ec *executionContext) unmarshalNaddEmailInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddEmailInput(ctx context.Context, v interface{}) (entity.AddEmailInput, error) {
+	return ec.unmarshalInputaddEmailInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNaddUserInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddUserInput(ctx context.Context, v interface{}) (entity.AddUserInput, error) {

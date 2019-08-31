@@ -14,7 +14,7 @@ type User struct {
 	Emails []*Email `json:"emails"`
 }
 
-type AddMailInput struct {
+type AddEmailInput struct {
 	UserID  string `json:"userID"`
 	Address string `json:"address"`
 }

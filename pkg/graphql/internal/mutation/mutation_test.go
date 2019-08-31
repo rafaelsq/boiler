@@ -67,7 +67,7 @@ func TestAddEmail(t *testing.T) {
 
 		service.EXPECT().AddEmail(ctx, userID, address).Return(1, nil)
 
-		u, err := m.AddMail(ctx, entity.AddMailInput{
+		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.Itoa(userID),
 			Address: address,
 		})
@@ -80,7 +80,7 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := "0"
 
-		u, err := m.AddMail(ctx, entity.AddMailInput{
+		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  userID,
 			Address: address,
 		})
@@ -93,7 +93,7 @@ func TestAddEmail(t *testing.T) {
 		address := "email"
 		userID := "1"
 
-		u, err := m.AddMail(ctx, entity.AddMailInput{
+		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  userID,
 			Address: address,
 		})
@@ -108,7 +108,7 @@ func TestAddEmail(t *testing.T) {
 
 		service.EXPECT().AddEmail(ctx, userID, address).Return(0, iface.ErrAlreadyExists)
 
-		u, err := m.AddMail(ctx, entity.AddMailInput{
+		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.Itoa(userID),
 			Address: address,
 		})
@@ -123,7 +123,7 @@ func TestAddEmail(t *testing.T) {
 
 		service.EXPECT().AddEmail(ctx, userID, address).Return(0, fmt.Errorf("opz"))
 
-		u, err := m.AddMail(ctx, entity.AddMailInput{
+		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.Itoa(userID),
 			Address: address,
 		})

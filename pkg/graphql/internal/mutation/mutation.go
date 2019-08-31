@@ -33,7 +33,7 @@ func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*ent
 	return &entity.User{ID: strconv.Itoa(userID)}, nil
 }
 
-func (m *Mutation) AddMail(ctx context.Context, input entity.AddMailInput) (*entity.User, error) {
+func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.User, error) {
 	userID, err := strconv.Atoi(input.UserID)
 	if err != nil || userID == 0 {
 		return nil, &gqlerror.Error{
