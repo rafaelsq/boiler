@@ -2,6 +2,7 @@ package router
 
 import (
 	"compress/flate"
+	"context"
 	"net/http"
 	"time"
 
@@ -21,6 +22,20 @@ func ApplyMiddlewares(r chi.Router) {
 	r.Use(middleware.RedirectSlashes)
 	r.Use(middleware.Compress(flate.BestCompression))
 	r.Use(middleware.Timeout(2 * time.Second))
+
+	r.Use(func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			if len(r.URL.Query()["debug"]) != 0 {
+				ctx := r.Context()
+				ctx = context.WithValue(ctx, "debug", struct{}{})
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	})
 }
 
 func ApplyRoute(r chi.Router, service iface.Service) {

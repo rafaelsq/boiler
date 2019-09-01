@@ -31,7 +31,7 @@ func (s *Storage) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]
 		query = "SELECT id, name, created, updated FROM users WHERE id = ?"
 		args = append(args, filter.UserID)
 	} else if len(filter.Email) != 0 {
-		query = "SELECT u.id, name, created, updated FROM users u INNER JOIN emails ON(user_id = u.id) WHERE email = ?"
+		query = "SELECT u.id, name, u.created, u.updated FROM users u INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"
 		args = append(args, filter.Email)
 	} else {
 		query = "SELECT id, name, created, updated FROM users LIMIT ?"

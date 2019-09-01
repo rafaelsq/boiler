@@ -332,8 +332,8 @@ func TestFilterUsersByMail(t *testing.T) {
 	{
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
-				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
 				AddRow(3, "user", time.Time{}, time.Now()),
@@ -349,8 +349,8 @@ func TestFilterUsersByMail(t *testing.T) {
 	{
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
-				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}),
 		)
@@ -365,8 +365,8 @@ func TestFilterUsersByMail(t *testing.T) {
 	{
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
-				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
 				AddRow("err", "user", time.Time{}, time.Now()),
@@ -383,8 +383,8 @@ func TestFilterUsersByMail(t *testing.T) {
 		myErr := fmt.Errorf("opz")
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, created, updated FROM users u" +
-				" INNER JOIN emails ON(user_id = u.id) WHERE email = ?"),
+			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnError(myErr)
 
 		r := storage.New(mdb)

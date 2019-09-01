@@ -28,7 +28,7 @@ func (r *User) User(ctx context.Context, rawUserID string) (*entity.User, error)
 	if err == nil {
 		return entity.NewUser(u), nil
 	}
-	return nil, err
+	return nil, Wrap(ctx, err, "fail to get user")
 }
 
 func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
@@ -40,7 +40,7 @@ func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
 		}
 		return users, nil
 	}
-	return nil, err
+	return nil, Wrap(ctx, err, "fail to filter users")
 }
 
 func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, error) {
@@ -57,5 +57,6 @@ func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, err
 		}
 		return emails, nil
 	}
-	return nil, err
+
+	return nil, Wrap(ctx, err, "fail to filter emails")
 }

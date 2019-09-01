@@ -26,7 +26,7 @@ type Mutation struct {
 func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.UserResponse, error) {
 	userID, err := m.service.AddUser(ctx, input.Name)
 	if err != nil {
-		log.Log(err)
+		log.Log(errors.New("fail to add user").SetParent(err))
 		return nil, fmt.Errorf("service failed")
 	}
 
@@ -65,7 +65,7 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 			}
 		}
 
-		log.Log(err)
+		log.Log(errors.New("fail to add email").SetParent(err))
 		return nil, fmt.Errorf("service failed")
 	}
 
