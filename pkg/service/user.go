@@ -8,7 +8,7 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
-func (s *Service) AddUser(ctx context.Context, name string) (int, error) {
+func (s *Service) AddUser(ctx context.Context, name string) (int64, error) {
 	tx, err := s.storage.Tx()
 	if err != nil {
 		return 0, errors.New("could not begin transaction").SetParent(err)
@@ -32,7 +32,7 @@ func (s *Service) AddUser(ctx context.Context, name string) (int, error) {
 	return ID, nil
 }
 
-func (s *Service) DeleteUser(ctx context.Context, userID int) error {
+func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	tx, err := s.storage.Tx()
 	if err != nil {
 		return errors.New("could not begin delete user transaction").SetParent(err)
@@ -71,7 +71,7 @@ func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]
 	return s.storage.FilterUsers(ctx, filter)
 }
 
-func (s *Service) GetUserByID(ctx context.Context, userID int) (*entity.User, error) {
+func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, error) {
 	us, err := s.storage.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
 	if err != nil {
 		return nil, err

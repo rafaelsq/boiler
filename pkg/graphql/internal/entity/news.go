@@ -8,15 +8,15 @@ import (
 
 func NewUser(u *entity.User) *User {
 	return &User{
-		ID:   strconv.Itoa(u.ID),
+		ID:   strconv.FormatInt(u.ID, 10),
 		Name: u.Name,
 	}
 }
 
 func NewEmail(e *entity.Email) *Email {
 	return &Email{
-		ID:      strconv.Itoa(e.ID),
+		ID:      strconv.FormatInt(e.ID, 10),
 		Address: e.Address,
-		User:    &User{ID: strconv.Itoa(e.UserID)},
+		User:    &User{ID: strconv.FormatInt(e.UserID, 10)},
 	}
 }

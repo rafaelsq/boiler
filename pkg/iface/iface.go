@@ -6,15 +6,15 @@ const (
 )
 
 type FilterUsers struct {
-	UserID int
+	UserID int64
 	Email  string
 	Offset uint
 	Limit  uint
 }
 
 type FilterEmails struct {
-	EmailID int
-	UserID  int
+	EmailID int64
+	UserID  int64
 	Offset  uint
 	Limit   uint
 }

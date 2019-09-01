@@ -10,18 +10,18 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
-func (s *Storage) AddEmail(ctx context.Context, tx *sql.Tx, userID int, address string) (int, error) {
+func (s *Storage) AddEmail(ctx context.Context, tx *sql.Tx, userID int64, address string) (int64, error) {
 	return Insert(ctx, tx,
 		"INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())",
 		userID, address,
 	)
 }
 
-func (s *Storage) DeleteEmail(ctx context.Context, tx *sql.Tx, emailID int) error {
+func (s *Storage) DeleteEmail(ctx context.Context, tx *sql.Tx, emailID int64) error {
 	return Delete(ctx, tx, "DELETE FROM emails WHERE id = ?", emailID)
 }
 
-func (s *Storage) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID int) error {
+func (s *Storage) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID int64) error {
 	return Delete(ctx, tx, "DELETE FROM emails WHERE user_id = ?", userID)
 }
 
@@ -51,8 +51,8 @@ func (s *Storage) FilterEmails(ctx context.Context, filter iface.FilterEmails) (
 }
 
 func scanEmail(sc func(dest ...interface{}) error) (interface{}, error) {
-	var id int
-	var userID int
+	var id int64
+	var userID int64
 	var address string
 	var created time.Time
 

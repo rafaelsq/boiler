@@ -25,7 +25,7 @@ func New(sql *sql.DB) iface.Storage {
 	}
 }
 
-func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) (int, error) {
+func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) (int64, error) {
 	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		if mysqlError, ok := err.(*mysql.MySQLError); ok {
@@ -42,7 +42,7 @@ func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 		return 0, errors.New("fail to retrieve last inserted ID").SetParent(err)
 	}
 
-	return int(id), nil
+	return id, nil
 }
 
 func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) error {
@@ -66,7 +66,9 @@ func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 func Select(ctx context.Context, sql *sql.DB, scan func(func(...interface{}) error) (interface{}, error), query string, args ...interface{}) ([]interface{}, error) {
 	rawRows, err := sql.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, errors.New("could not fetch rows").SetArg("args", args).SetParent(err)
+		cerr := errors.New("could not fetch rows")
+		cerr.Caller = errors.Caller(1)
+		return nil, cerr.SetArg("args", args).SetParent(err)
 	}
 
 	var rows []interface{}

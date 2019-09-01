@@ -8,7 +8,7 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
-func (s *Service) AddEmail(ctx context.Context, userID int, address string) (int, error) {
+func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (int64, error) {
 	tx, err := s.storage.Tx()
 	if err != nil {
 		return 0, errors.New("could not begin transaction").SetParent(err)
@@ -30,7 +30,7 @@ func (s *Service) AddEmail(ctx context.Context, userID int, address string) (int
 	return ID, nil
 }
 
-func (s *Service) DeleteEmail(ctx context.Context, emailID int) error {
+func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
 	tx, err := s.storage.Tx()
 	if err != nil {
 		return errors.New("could not begin delete email transaction").SetParent(err)

@@ -74,13 +74,13 @@ func ListUsersHandle(service iface.Service) http.HandlerFunc {
 
 func DeleteUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
+		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil || userID == 0 {
 			Fail(w, r, http.StatusBadRequest, "invalid user ID")
 			return
 		}
 
-		err = service.DeleteUser(r.Context(), int(userID))
+		err = service.DeleteUser(r.Context(), userID)
 		if err != nil {
 			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -93,13 +93,13 @@ func DeleteUserHandle(service iface.Service) http.HandlerFunc {
 
 func GetUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID, err := strconv.ParseUint(chi.URLParam(r, "userID"), 10, 64)
+		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil || userID == 0 {
 			Fail(w, r, http.StatusBadRequest, "invalid user ID")
 			return
 		}
 
-		user, err := service.GetUserByID(r.Context(), int(userID))
+		user, err := service.GetUserByID(r.Context(), userID)
 		if err != nil {
 			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -115,7 +115,7 @@ func GetUserHandle(service iface.Service) http.HandlerFunc {
 func AddEmailHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
-			UserID  int    `json:"userID"`
+			UserID  int64  `json:"userID"`
 			Address string `json:"address"`
 		}{}
 
@@ -145,20 +145,20 @@ func AddEmailHandle(service iface.Service) http.HandlerFunc {
 		}
 
 		JSON(w, r, struct {
-			EmailID int `json:"emailID"`
+			EmailID int64 `json:"emailID"`
 		}{emailID})
 	}
 }
 
 func DeleteEmailHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		emailID, err := strconv.ParseUint(chi.URLParam(r, "emailID"), 10, 64)
+		emailID, err := strconv.ParseInt(chi.URLParam(r, "emailID"), 10, 64)
 		if err != nil || emailID <= 0 {
 			Fail(w, r, http.StatusBadRequest, "invalid email ID")
 			return
 		}
 
-		err = service.DeleteEmail(r.Context(), int(emailID))
+		err = service.DeleteEmail(r.Context(), emailID)
 		if err != nil {
 			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -177,13 +177,13 @@ func ListEmailsHandle(service iface.Service) http.HandlerFunc {
 			return
 		}
 
-		userID, err := strconv.ParseUint(params[0], 10, 64)
+		userID, err := strconv.ParseInt(params[0], 10, 64)
 		if err != nil || userID == 0 {
 			Fail(w, r, http.StatusBadRequest, "invalid URL query userID")
 			return
 		}
 
-		emails, err := service.FilterEmails(r.Context(), iface.FilterEmails{UserID: int(userID)})
+		emails, err := service.FilterEmails(r.Context(), iface.FilterEmails{UserID: userID})
 		if err != nil {
 			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")

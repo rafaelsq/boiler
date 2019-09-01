@@ -34,7 +34,7 @@ func TestEmailEmails(t *testing.T) {
 		u, err := r.User(ctxDebug, &gentity.Email{Address: email.Address})
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
-		assert.Equal(t, u.ID, strconv.Itoa(user.ID))
+		assert.Equal(t, u.ID, strconv.FormatInt(user.ID, 10))
 	}
 
 	// fails if service fails
@@ -72,10 +72,10 @@ func TestEmailEmail(t *testing.T) {
 			}).
 			Return([]*entity.Email{email}, nil)
 
-		e, err := r.Email(ctxDebug, strconv.Itoa(email.ID))
+		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
 		assert.Nil(t, err)
 		assert.NotNil(t, e)
-		assert.Equal(t, e.ID, strconv.Itoa(email.ID))
+		assert.Equal(t, e.ID, strconv.FormatInt(email.ID, 10))
 	}
 
 	// fails if invalid ID
@@ -85,7 +85,7 @@ func TestEmailEmail(t *testing.T) {
 		m := mock.NewMockService(ctrl)
 		r := resolver.NewEmail(m)
 
-		e, err := r.Email(ctxDebug, strconv.Itoa(email.ID))
+		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
 		assert.Nil(t, e)
 		assert.Equal(t, iface.ErrInvalidID, err)
 	}
@@ -103,7 +103,7 @@ func TestEmailEmail(t *testing.T) {
 			}).
 			Return(nil, errors.New("err"))
 
-		e, err := r.Email(ctxDebug, strconv.Itoa(email.ID))
+		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "err")
 		assert.Nil(t, e)
@@ -122,7 +122,7 @@ func TestEmailEmail(t *testing.T) {
 			}).
 			Return([]*entity.Email{}, nil)
 
-		e, err := r.Email(ctxDebug, strconv.Itoa(email.ID))
+		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
 		assert.Equal(t, err, iface.ErrNotFound)
 		assert.Nil(t, e)
 	}

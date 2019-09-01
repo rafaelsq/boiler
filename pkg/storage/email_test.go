@@ -26,7 +26,7 @@ func TestAddEmail(t *testing.T) {
 
 	// succeed
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -41,13 +41,13 @@ func TestAddEmail(t *testing.T) {
 
 		userID, err = r.AddEmail(ctx, tx, userID, address)
 		assert.Nil(t, err)
-		assert.Equal(t, userID, 3)
+		assert.Equal(t, 3, int(userID))
 		assert.Nil(t, tx.Commit())
 	}
 
 	// fail
 	{
-		userID := 3
+		userID := int64(3)
 		address := "user@example.com"
 		myErr := fmt.Errorf("opz")
 
@@ -64,13 +64,13 @@ func TestAddEmail(t *testing.T) {
 
 		emailID, err := r.AddEmail(ctx, tx, userID, address)
 		assert.Equal(t, err.Error(), "could not insert; opz")
-		assert.Equal(t, emailID, 0)
+		assert.Equal(t, 0, int(emailID))
 		assert.Nil(t, tx.Commit())
 	}
 
 	// fails if duplicate
 	{
-		userID := 3
+		userID := int64(3)
 		address := "a@a.com"
 		myErr := mysql.MySQLError{
 			Message: "Duplicate entry 'a@a.com' for key 'address'",
@@ -90,13 +90,13 @@ func TestAddEmail(t *testing.T) {
 
 		emailID, err := r.AddEmail(ctx, tx, userID, address)
 		assert.Equal(t, err, iface.ErrAlreadyExists)
-		assert.Equal(t, emailID, 0)
+		assert.Equal(t, 0, int(emailID))
 		assert.Nil(t, tx.Commit())
 	}
 
 	// last insert failed
 	{
-		userID := 3
+		userID := int64(3)
 		address := "user@example.com"
 		myErr := fmt.Errorf("opz")
 
@@ -113,7 +113,7 @@ func TestAddEmail(t *testing.T) {
 
 		emailID, err := r.AddEmail(ctx, tx, userID, address)
 		assert.Equal(t, err.Error(), "fail to retrieve last inserted ID; opz")
-		assert.Equal(t, emailID, 0)
+		assert.Equal(t, 0, int(emailID))
 		assert.Nil(t, tx.Commit())
 	}
 }
@@ -128,7 +128,7 @@ func TestDeleteEmail(t *testing.T) {
 
 	// succeed
 	{
-		emailID := 3
+		emailID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -149,7 +149,7 @@ func TestDeleteEmail(t *testing.T) {
 
 	// fails if exec fails
 	{
-		emailID := 3
+		emailID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -168,7 +168,7 @@ func TestDeleteEmail(t *testing.T) {
 
 	// fails if rows affected fails
 	{
-		emailID := 3
+		emailID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -193,7 +193,7 @@ func TestDeleteEmail(t *testing.T) {
 
 	// fails if no rows affected
 	{
-		emailID := 3
+		emailID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -226,7 +226,7 @@ func TestDeleteEmailsByUserID(t *testing.T) {
 
 	// succeed
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -247,7 +247,7 @@ func TestDeleteEmailsByUserID(t *testing.T) {
 
 	// fails
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -278,7 +278,7 @@ func TestFilterEmails(t *testing.T) {
 
 	// succeed
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectQuery(
 			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE user_id = ?"),
@@ -295,7 +295,7 @@ func TestFilterEmails(t *testing.T) {
 
 	// filter by emailID
 	{
-		emailID := 3
+		emailID := int64(3)
 
 		mock.ExpectQuery(
 			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE id = ?"),
@@ -312,7 +312,7 @@ func TestFilterEmails(t *testing.T) {
 
 	// scan fail
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectQuery(
 			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE user_id = ?"),
@@ -330,7 +330,7 @@ func TestFilterEmails(t *testing.T) {
 
 	// fail
 	{
-		userID := 3
+		userID := int64(3)
 		myErr := fmt.Errorf("opz")
 
 		mock.ExpectQuery(

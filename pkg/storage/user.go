@@ -10,11 +10,11 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
-func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, error) {
+func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error) {
 	return Insert(ctx, tx, "INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())", name)
 }
 
-func (s *Storage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int) error {
+func (s *Storage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) error {
 	return Delete(ctx, tx, "DELETE FROM users WHERE id = ?", userID)
 }
 
@@ -46,13 +46,13 @@ func (s *Storage) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]
 	users := make([]*entity.User, 0, len(rows))
 	for _, row := range rows {
 		users = append(users, row.(*entity.User))
-
 	}
+
 	return users, nil
 }
 
 func scanUser(sc func(dest ...interface{}) error) (interface{}, error) {
-	var id int
+	var id int64
 	var name string
 	var created time.Time
 	var updated time.Time

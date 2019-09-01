@@ -36,10 +36,10 @@ func TestUserUser(t *testing.T) {
 			GetUserByID(gomock.Any(), user.ID).
 			Return(user, nil)
 
-		u, err := r.User(ctxDebug, strconv.Itoa(user.ID))
+		u, err := r.User(ctxDebug, strconv.FormatInt(user.ID, 10))
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
-		assert.Equal(t, strconv.Itoa(user.ID), u.ID)
+		assert.Equal(t, strconv.FormatInt(user.ID, 10), u.ID)
 		assert.Equal(t, user.Name, u.Name)
 	}
 
@@ -64,7 +64,7 @@ func TestUserUser(t *testing.T) {
 			GetUserByID(gomock.Any(), user.ID).
 			Return(nil, fmt.Errorf("opz"))
 
-		u, err := r.User(ctxDebug, strconv.Itoa(user.ID))
+		u, err := r.User(ctxDebug, strconv.FormatInt(user.ID, 10))
 		assert.Nil(t, u)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")
@@ -123,7 +123,7 @@ func TestUserEmails(t *testing.T) {
 			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: user.ID}).
 			Return([]*entity.Email{user}, nil)
 
-		emails, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.Itoa(user.ID)})
+		emails, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.FormatInt(user.ID, 10)})
 		assert.Nil(t, err)
 		assert.NotNil(t, emails)
 		assert.Equal(t, len(emails), 1)
@@ -148,7 +148,7 @@ func TestUserEmails(t *testing.T) {
 			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: 2}).
 			Return(nil, fmt.Errorf("opz"))
 
-		users, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.Itoa(2)})
+		users, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.FormatInt(2, 10)})
 		assert.Nil(t, users)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")

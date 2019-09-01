@@ -42,7 +42,7 @@ func TestAddUserHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
-		var rm struct{ UserID int }
+		var rm struct{ UserID int64 }
 		_ = json.NewDecoder(res.Body).Decode(&rm)
 		res.Body.Close()
 		assert.Equal(t, rm.UserID, user.ID)
@@ -103,7 +103,7 @@ func TestAddUserHandle(t *testing.T) {
 		myErr := fmt.Errorf("opz")
 
 		user := &entity.User{ID: 4, Name: "John"}
-		m.EXPECT().AddUser(gomock.Any(), user.Name).Return(0, myErr)
+		m.EXPECT().AddUser(gomock.Any(), user.Name).Return(int64(0), myErr)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
@@ -365,12 +365,12 @@ func TestAddEmailHandle(t *testing.T) {
 	{
 		m := mock.NewMockService(ctrl)
 
-		userID := 12
+		userID := int64(12)
 		address := "example@email.com"
 
 		m.EXPECT().
 			AddEmail(gomock.Any(), userID, address).
-			Return(5, nil)
+			Return(int64(5), nil)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
@@ -391,7 +391,7 @@ func TestAddEmailHandle(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&j)
 		res.Body.Close()
 		assert.Nil(t, err)
-		assert.Equal(t, 5, j.EmailID)
+		assert.Equal(t, 5, int(j.EmailID))
 	}
 
 	// fail with invalid payload
@@ -467,13 +467,13 @@ func TestAddEmailHandle(t *testing.T) {
 	{
 		m := mock.NewMockService(ctrl)
 
-		userID := 12
+		userID := int64(12)
 		address := "example@email.com"
 		myErr := fmt.Errorf("fails")
 
 		m.EXPECT().
 			AddEmail(gomock.Any(), userID, address).
-			Return(0, myErr)
+			Return(int64(0), myErr)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
@@ -503,7 +503,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 	{
 		m := mock.NewMockService(ctrl)
 
-		emailID := 12
+		emailID := int64(12)
 
 		m.EXPECT().
 			DeleteEmail(gomock.Any(), emailID).
@@ -530,7 +530,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 	{
 		m := mock.NewMockService(ctrl)
 
-		emailID := 0
+		emailID := int64(0)
 
 		// m.EXPECT().
 		// 	Delete(gomock.Any(), emailID).
@@ -556,7 +556,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 	{
 		m := mock.NewMockService(ctrl)
 
-		emailID := 1
+		emailID := int64(1)
 
 		m.EXPECT().
 			DeleteEmail(gomock.Any(), emailID).

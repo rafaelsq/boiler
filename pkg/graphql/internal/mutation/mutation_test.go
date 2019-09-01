@@ -27,7 +27,7 @@ func TestAddUser(t *testing.T) {
 	{
 		name := "name"
 
-		service.EXPECT().AddUser(ctx, name).Return(1, nil)
+		service.EXPECT().AddUser(ctx, name).Return(int64(1), nil)
 
 		u, err := m.AddUser(ctx, entity.AddUserInput{
 			Name: name,
@@ -40,7 +40,7 @@ func TestAddUser(t *testing.T) {
 	{
 		name := "name"
 
-		service.EXPECT().AddUser(ctx, name).Return(0, fmt.Errorf("opz"))
+		service.EXPECT().AddUser(ctx, name).Return(int64(0), fmt.Errorf("opz"))
 
 		u, err := m.AddUser(ctx, entity.AddUserInput{
 			Name: name,
@@ -63,12 +63,12 @@ func TestAddEmail(t *testing.T) {
 	// succeed
 	{
 		address := "email@email.com"
-		userID := 12
+		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(1, nil)
+		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(1), nil)
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
-			UserID:  strconv.Itoa(userID),
+			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
 		assert.Nil(t, err)
@@ -104,12 +104,12 @@ func TestAddEmail(t *testing.T) {
 	// fails if service fails with duplicated
 	{
 		address := "email@email.com"
-		userID := 12
+		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(0, iface.ErrAlreadyExists)
+		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), iface.ErrAlreadyExists)
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
-			UserID:  strconv.Itoa(userID),
+			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
 		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", iface.ErrAlreadyExists))
@@ -119,12 +119,12 @@ func TestAddEmail(t *testing.T) {
 	// fails if service fails
 	{
 		address := "email@email.com"
-		userID := 12
+		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(0, fmt.Errorf("opz"))
+		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), fmt.Errorf("opz"))
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
-			UserID:  strconv.Itoa(userID),
+			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
 		assert.Equal(t, err.Error(), "service failed")

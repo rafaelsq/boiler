@@ -30,11 +30,11 @@ func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*ent
 		return nil, fmt.Errorf("service failed")
 	}
 
-	return &entity.UserResponse{User: &entity.User{ID: strconv.Itoa(userID)}}, nil
+	return &entity.UserResponse{User: &entity.User{ID: strconv.FormatInt(userID, 10)}}, nil
 }
 
 func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.EmailResponse, error) {
-	userID, err := strconv.Atoi(input.UserID)
+	userID, err := strconv.ParseInt(input.UserID, 10, 64)
 	if err != nil || userID == 0 {
 		return nil, &gqlerror.Error{
 			Message: "invalid userID",
@@ -69,5 +69,5 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 		return nil, fmt.Errorf("service failed")
 	}
 
-	return &entity.EmailResponse{Email: &entity.Email{ID: strconv.Itoa(emailID)}}, nil
+	return &entity.EmailResponse{Email: &entity.Email{ID: strconv.FormatInt(emailID, 10)}}, nil
 }

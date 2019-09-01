@@ -36,10 +36,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // AddUser mocks base method
-func (m *MockService) AddUser(arg0 context.Context, arg1 string) (int, error) {
+func (m *MockService) AddUser(arg0 context.Context, arg1 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddUser", arg0, arg1)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,7 +51,7 @@ func (mr *MockServiceMockRecorder) AddUser(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // DeleteUser mocks base method
-func (m *MockService) DeleteUser(arg0 context.Context, arg1 int) error {
+func (m *MockService) DeleteUser(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUser", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -80,7 +80,7 @@ func (mr *MockServiceMockRecorder) FilterUsers(arg0, arg1 interface{}) *gomock.C
 }
 
 // GetUserByID mocks base method
-func (m *MockService) GetUserByID(arg0 context.Context, arg1 int) (*entity.User, error) {
+func (m *MockService) GetUserByID(arg0 context.Context, arg1 int64) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByID", arg0, arg1)
 	ret0, _ := ret[0].(*entity.User)
@@ -125,10 +125,10 @@ func (mr *MockServiceMockRecorder) FilterEmails(arg0, arg1 interface{}) *gomock.
 }
 
 // AddEmail mocks base method
-func (m *MockService) AddEmail(arg0 context.Context, arg1 int, arg2 string) (int, error) {
+func (m *MockService) AddEmail(arg0 context.Context, arg1 int64, arg2 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddEmail", arg0, arg1, arg2)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -140,7 +140,7 @@ func (mr *MockServiceMockRecorder) AddEmail(arg0, arg1, arg2 interface{}) *gomoc
 }
 
 // DeleteEmail mocks base method
-func (m *MockService) DeleteEmail(arg0 context.Context, arg1 int) error {
+func (m *MockService) DeleteEmail(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteEmail", arg0, arg1)
 	ret0, _ := ret[0].(error)

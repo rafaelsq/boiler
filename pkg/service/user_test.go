@@ -22,7 +22,7 @@ func TestAddUser(t *testing.T) {
 
 	srv := service.New(m)
 
-	userID := 99
+	var userID int64 = 99
 	name := "name"
 
 	ctx := context.Background()
@@ -58,7 +58,7 @@ func TestAddUser(t *testing.T) {
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not begin transaction; opz")
-		assert.Equal(t, 0, id)
+		assert.Equal(t, 0, int(id))
 	}
 
 	// fails if service fails
@@ -76,13 +76,13 @@ func TestAddUser(t *testing.T) {
 		m.
 			EXPECT().
 			AddUser(ctx, tx, name).
-			Return(0, fmt.Errorf("rollback"))
+			Return(int64(0), fmt.Errorf("rollback"))
 		mdb.ExpectRollback()
 
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; rollback")
-		assert.Equal(t, 0, id)
+		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -101,14 +101,14 @@ func TestAddUser(t *testing.T) {
 		m.
 			EXPECT().
 			AddUser(ctx, tx, name).
-			Return(0, fmt.Errorf("rollback"))
+			Return(int64(0), fmt.Errorf("rollback"))
 
 		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackerr"))
 
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; rollbackerr; rollback")
-		assert.Equal(t, 0, id)
+		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -134,7 +134,7 @@ func TestAddUser(t *testing.T) {
 		id, err := srv.AddUser(ctx, name)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; commit failed")
-		assert.Equal(t, 0, id)
+		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 }
@@ -147,7 +147,7 @@ func TestDeleteUser(t *testing.T) {
 
 	srv := service.New(m)
 
-	userID := 99
+	var userID int64 = 99
 
 	ctx := context.Background()
 
@@ -330,7 +330,7 @@ func TestFilterUsers(t *testing.T) {
 
 	srv := service.New(m)
 
-	userID := 99
+	var userID int64 = 99
 	name := "name"
 
 	ctx := context.Background()
@@ -357,7 +357,7 @@ func TestGetUserByID(t *testing.T) {
 
 	srv := service.New(m)
 
-	userID := 99
+	var userID int64 = 99
 	name := "userName"
 
 	ctx := context.Background()
@@ -414,7 +414,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	srv := service.New(m)
 
-	userID := 99
+	var userID int64 = 99
 	name := "userName"
 	email := "contact@example.com"
 

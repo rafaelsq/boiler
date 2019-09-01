@@ -52,10 +52,10 @@ func (mr *MockStorageMockRecorder) Tx() *gomock.Call {
 }
 
 // AddUser mocks base method
-func (m *MockStorage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int, error) {
+func (m *MockStorage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddUser", ctx, tx, name)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -67,7 +67,7 @@ func (mr *MockStorageMockRecorder) AddUser(ctx, tx, name interface{}) *gomock.Ca
 }
 
 // DeleteUser mocks base method
-func (m *MockStorage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int) error {
+func (m *MockStorage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUser", ctx, tx, userID)
 	ret0, _ := ret[0].(error)
@@ -96,10 +96,10 @@ func (mr *MockStorageMockRecorder) FilterUsers(ctx, filter interface{}) *gomock.
 }
 
 // AddEmail mocks base method
-func (m *MockStorage) AddEmail(ctx context.Context, tx *sql.Tx, userID int, address string) (int, error) {
+func (m *MockStorage) AddEmail(ctx context.Context, tx *sql.Tx, userID int64, address string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddEmail", ctx, tx, userID, address)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -111,7 +111,7 @@ func (mr *MockStorageMockRecorder) AddEmail(ctx, tx, userID, address interface{}
 }
 
 // DeleteEmail mocks base method
-func (m *MockStorage) DeleteEmail(ctx context.Context, tx *sql.Tx, emailID int) error {
+func (m *MockStorage) DeleteEmail(ctx context.Context, tx *sql.Tx, emailID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteEmail", ctx, tx, emailID)
 	ret0, _ := ret[0].(error)
@@ -125,7 +125,7 @@ func (mr *MockStorageMockRecorder) DeleteEmail(ctx, tx, emailID interface{}) *go
 }
 
 // DeleteEmailsByUserID mocks base method
-func (m *MockStorage) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID int) error {
+func (m *MockStorage) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteEmailsByUserID", ctx, tx, userID)
 	ret0, _ := ret[0].(error)

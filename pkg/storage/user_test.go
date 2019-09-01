@@ -45,7 +45,7 @@ func TestAddUser(t *testing.T) {
 
 		userID, err := r.AddUser(ctx, tx, name)
 		assert.Nil(t, err)
-		assert.Equal(t, userID, 3)
+		assert.Equal(t, 3, int(userID))
 		assert.Nil(t, tx.Commit())
 	}
 
@@ -67,7 +67,7 @@ func TestAddUser(t *testing.T) {
 
 		userID, err := r.AddUser(ctx, tx, name)
 		assert.Equal(t, err.Error(), "could not insert; err")
-		assert.Equal(t, userID, 0)
+		assert.Equal(t, 0, int(userID))
 		assert.Nil(t, tx.Commit())
 	}
 
@@ -89,7 +89,7 @@ func TestAddUser(t *testing.T) {
 
 		userID, err := r.AddUser(ctx, tx, name)
 		assert.Equal(t, err.Error(), "fail to retrieve last inserted ID; err")
-		assert.Equal(t, userID, 0)
+		assert.Equal(t, 0, int(userID))
 		assert.Nil(t, tx.Commit())
 	}
 }
@@ -104,7 +104,7 @@ func TestDeleteUser(t *testing.T) {
 
 	// succeed
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -125,7 +125,7 @@ func TestDeleteUser(t *testing.T) {
 
 	// fails if exec fails
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -144,7 +144,7 @@ func TestDeleteUser(t *testing.T) {
 
 	// fails if rows affected fails
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -169,7 +169,7 @@ func TestDeleteUser(t *testing.T) {
 
 	// fails if no rows affected
 	{
-		userID := 3
+		userID := int64(3)
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
@@ -214,7 +214,7 @@ func TestFilterUsers(t *testing.T) {
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
 		assert.Nil(t, err)
 		assert.Len(t, users, 1)
-		assert.Equal(t, users[0].ID, 3)
+		assert.Equal(t, int64(3), users[0].ID)
 	}
 
 	// fail scan
@@ -260,7 +260,7 @@ func TestFilterUsersByID(t *testing.T) {
 
 	// succeed
 	{
-		userID := 3
+		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnRows(
@@ -276,7 +276,7 @@ func TestFilterUsersByID(t *testing.T) {
 
 	// succeed with no row
 	{
-		userID := 3
+		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnRows(
@@ -291,7 +291,7 @@ func TestFilterUsersByID(t *testing.T) {
 
 	// scan fail
 	{
-		userID := 3
+		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnRows(
@@ -308,7 +308,7 @@ func TestFilterUsersByID(t *testing.T) {
 	// fail
 	{
 		myErr := fmt.Errorf("opz")
-		userID := 3
+		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnError(myErr)
@@ -342,7 +342,7 @@ func TestFilterUsersByMail(t *testing.T) {
 		r := storage.New(mdb)
 		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
 		assert.Nil(t, err)
-		assert.Equal(t, users[0].ID, 3)
+		assert.Equal(t, int64(3), users[0].ID)
 	}
 
 	// succeed with no row
