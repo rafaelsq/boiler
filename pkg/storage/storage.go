@@ -86,3 +86,14 @@ func Select(ctx context.Context, sql *sql.DB, scan func(func(...interface{}) err
 
 	return rows, nil
 }
+
+func scanInt(sc func(dest ...interface{}) error) (interface{}, error) {
+	var id int64
+
+	err := sc(&id)
+	if err != nil {
+		return nil, errors.New("could not scan int").SetParent(err)
+	}
+
+	return id, nil
+}

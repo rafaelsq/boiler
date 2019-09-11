@@ -80,19 +80,39 @@ func (mr *MockStorageMockRecorder) DeleteUser(ctx, tx, userID interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockStorage)(nil).DeleteUser), ctx, tx, userID)
 }
 
-// FilterUsers mocks base method
-func (m *MockStorage) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
+// FilterUsersID mocks base method
+func (m *MockStorage) FilterUsersID(ctx context.Context, filter iface.FilterUsers) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FilterUsers", ctx, filter)
+	ret := m.ctrl.Call(m, "FilterUsersID", ctx, filter)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterUsersID indicates an expected call of FilterUsersID
+func (mr *MockStorageMockRecorder) FilterUsersID(ctx, filter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterUsersID", reflect.TypeOf((*MockStorage)(nil).FilterUsersID), ctx, filter)
+}
+
+// FetchUsers mocks base method
+func (m *MockStorage) FetchUsers(ctx context.Context, ID ...int64) ([]*entity.User, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range ID {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "FetchUsers", varargs...)
 	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FilterUsers indicates an expected call of FilterUsers
-func (mr *MockStorageMockRecorder) FilterUsers(ctx, filter interface{}) *gomock.Call {
+// FetchUsers indicates an expected call of FetchUsers
+func (mr *MockStorageMockRecorder) FetchUsers(ctx interface{}, ID ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterUsers", reflect.TypeOf((*MockStorage)(nil).FilterUsers), ctx, filter)
+	varargs := append([]interface{}{ctx}, ID...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUsers", reflect.TypeOf((*MockStorage)(nil).FetchUsers), varargs...)
 }
 
 // AddEmail mocks base method

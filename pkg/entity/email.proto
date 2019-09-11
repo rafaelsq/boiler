@@ -1,0 +1,9 @@
+syntax = "proto3";
+package entity;
+
+message Email {
+	int64  ID =      1;
+	int64  UserID =  2;
+	string Address = 3;
+	int64  Created = 4;
+}

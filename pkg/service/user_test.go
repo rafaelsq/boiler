@@ -322,7 +322,7 @@ func TestDeleteUser(t *testing.T) {
 	}
 }
 
-func TestFilterUsers(t *testing.T) {
+func TestFilterUsersID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -332,21 +332,41 @@ func TestFilterUsers(t *testing.T) {
 
 	var userID int64 = 99
 	name := "name"
-
+	filter := iface.FilterUsers{Limit: 10}
 	ctx := context.Background()
-	m.
-		EXPECT().
-		FilterUsers(ctx, iface.FilterUsers{Limit: 10}).
-		Return([]*entity.User{{
-			ID:   userID,
-			Name: name,
-		}}, nil)
 
-	vs, err := srv.FilterUsers(ctx, iface.FilterUsers{Limit: 10})
-	assert.Nil(t, err)
-	assert.Len(t, vs, 1)
-	assert.Equal(t, vs[0].ID, userID)
-	assert.Equal(t, vs[0].Name, name)
+	// succed
+	{
+		m.
+			EXPECT().
+			FilterUsersID(ctx, filter).
+			Return([]int64{userID}, nil)
+		m.
+			EXPECT().
+			FetchUsers(ctx, userID).
+			Return([]*entity.User{{
+				ID:   userID,
+				Name: name,
+			}}, nil)
+
+		vs, err := srv.FilterUsers(ctx, filter)
+		assert.Nil(t, err)
+		assert.Len(t, vs, 1)
+		assert.Equal(t, vs[0].ID, userID)
+		assert.Equal(t, vs[0].Name, name)
+	}
+
+	// fail
+	{
+		m.
+			EXPECT().
+			FilterUsersID(ctx, filter).
+			Return(nil, fmt.Errorf("opz"))
+
+		IDs, err := srv.FilterUsers(ctx, filter)
+		assert.Nil(t, IDs)
+		assert.Equal(t, err.Error(), "opz")
+	}
 }
 
 func TestGetUserByID(t *testing.T) {
@@ -366,7 +386,7 @@ func TestGetUserByID(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsers(ctx, iface.FilterUsers{UserID: userID}).
+			FetchUsers(ctx, userID).
 			Return([]*entity.User{
 				{
 					ID:   userID,
@@ -384,7 +404,7 @@ func TestGetUserByID(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsers(ctx, iface.FilterUsers{UserID: userID}).
+			FetchUsers(ctx, userID).
 			Return(nil, fmt.Errorf("opz"))
 
 		v, err := srv.GetUserByID(ctx, userID)
@@ -397,7 +417,7 @@ func TestGetUserByID(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsers(ctx, iface.FilterUsers{UserID: userID}).
+			FetchUsers(ctx, userID).
 			Return([]*entity.User{}, nil)
 
 		v, err := srv.GetUserByID(ctx, userID)
@@ -424,7 +444,11 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsers(ctx, iface.FilterUsers{Email: email}).
+			FilterUsersID(ctx, iface.FilterUsers{Email: email}).
+			Return([]int64{userID}, nil)
+		m.
+			EXPECT().
+			FetchUsers(ctx, userID).
 			Return([]*entity.User{
 				{
 					ID:   userID,
@@ -442,7 +466,7 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsers(ctx, iface.FilterUsers{Email: email}).
+			FilterUsersID(ctx, iface.FilterUsers{Email: email}).
 			Return(nil, fmt.Errorf("opz"))
 
 		v, err := srv.GetUserByEmail(ctx, email)
@@ -455,8 +479,8 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsers(ctx, iface.FilterUsers{Email: email}).
-			Return([]*entity.User{}, nil)
+			FilterUsersID(ctx, iface.FilterUsers{Email: email}).
+			Return([]int64{}, nil)
 
 		v, err := srv.GetUserByEmail(ctx, email)
 		assert.Nil(t, v)

@@ -12,8 +12,11 @@ import (
 	"time"
 
 	// mariadb
-	"github.com/go-chi/chi"
 	_ "github.com/go-sql-driver/mysql"
+
+	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/go-chi/chi"
+	"github.com/rafaelsq/boiler/pkg/cache"
 	"github.com/rafaelsq/boiler/pkg/router"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
@@ -43,12 +46,14 @@ func main() {
 
 	flag.Parse()
 
+	mc := memcache.New("127.0.0.1:11211")
+
 	sql, err := newMariaDB("root:boiler@tcp(127.0.0.1:3307)/boiler?timeout=5s&parseTime=true&loc=Local")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	st := storage.New(sql)
+	st := cache.New(mc, storage.New(sql))
 
 	r := chi.NewRouter()
 	router.ApplyMiddlewares(r)

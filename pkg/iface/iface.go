@@ -6,7 +6,6 @@ const (
 )
 
 type FilterUsers struct {
-	UserID int64
 	Email  string
 	Offset uint
 	Limit  uint

@@ -7,7 +7,14 @@ gen:
 update-graphql-schema:
 	go run github.com/99designs/gqlgen
 
-start-db:
+proto:
+	@mkdir -p pkg/entity
+	@cd pkg/entity && protoc --gogo_out=. *.proto
+
+start-deps:
+	@if [ ! "`docker ps -q -f name=memcached`"  ]; then \
+		docker run --name memcached -p 11211:11211 -d --restart=always memcached; \
+	fi
 	@if [ ! "`docker ps -q -f name=boilerdb`"  ]; then \
 		if [ "`docker ps -aq -f status=exited -f name=boilerdb`" ]; then \
 			docker rm boilerdb; \

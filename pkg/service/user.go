@@ -68,11 +68,16 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 }
 
 func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
-	return s.storage.FilterUsers(ctx, filter)
+	IDs, err := s.storage.FilterUsersID(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.storage.FetchUsers(ctx, IDs...)
 }
 
 func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, error) {
-	us, err := s.storage.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
+	us, err := s.storage.FetchUsers(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,12 +88,13 @@ func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, 
 }
 
 func (s *Service) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
-	us, err := s.storage.FilterUsers(ctx, iface.FilterUsers{Email: email})
+	IDs, err := s.storage.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 	if err != nil {
 		return nil, err
 	}
-	if len(us) != 1 {
+	if len(IDs) != 1 {
 		return nil, iface.ErrNotFound
 	}
-	return us[0], nil
+
+	return s.GetUserByID(ctx, IDs[0])
 }

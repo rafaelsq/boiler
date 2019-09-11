@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/rafaelsq/boiler/pkg/iface"
@@ -192,7 +191,7 @@ func TestDeleteUser(t *testing.T) {
 	}
 }
 
-func TestFilterUsers(t *testing.T) {
+func TestFilterUsersID(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -204,34 +203,34 @@ func TestFilterUsers(t *testing.T) {
 	{
 		var limit uint = 3
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT id, name, created, updated FROM users LIMIT ?"),
+			regexp.QuoteMeta("SELECT id FROM users LIMIT ?"),
 		).WithArgs(limit).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow(3, "user", time.Time{}, time.Now()),
+			sqlmock.NewRows([]string{"id"}).
+				AddRow(3),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
+		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
 		assert.Nil(t, err)
-		assert.Len(t, users, 1)
-		assert.Equal(t, int64(3), users[0].ID)
+		assert.Len(t, IDs, 1)
+		assert.Equal(t, 3, int(IDs[0]))
 	}
 
 	// fail scan
 	{
 		var limit uint = 2
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT id, name, created, updated FROM users LIMIT ?"),
+			regexp.QuoteMeta("SELECT id FROM users LIMIT ?"),
 		).WithArgs(limit).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow("err", "user", time.Time{}, time.Now()),
+			sqlmock.NewRows([]string{"id"}).
+				AddRow("err"),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
+		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Len(t, users, 0)
+		assert.Len(t, IDs, 0)
 	}
 
 	// fail
@@ -240,17 +239,17 @@ func TestFilterUsers(t *testing.T) {
 		myErr := fmt.Errorf("err")
 
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT id, name, created, updated FROM users LIMIT ?"),
+			regexp.QuoteMeta("SELECT id FROM users LIMIT ?"),
 		).WithArgs(limit).WillReturnError(myErr)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
-		assert.Equal(t, err.Error(), "could not fetch rows; err")
-		assert.Len(t, users, 0)
+		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
+		assert.Equal(t, "could not fetch rows; err", err.Error())
+		assert.Len(t, IDs, 0)
 	}
 }
 
-func TestFilterUsersByID(t *testing.T) {
+func TestFetchUsers(t *testing.T) {
 	ctx := context.Background()
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
@@ -262,29 +261,37 @@ func TestFilterUsersByID(t *testing.T) {
 	{
 		userID := int64(3)
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
-		).WithArgs(userID).WillReturnRows(
+			regexp.QuoteMeta(
+				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
+		).WithArgs(userID, userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow(userID, "user", time.Time{}, time.Now()),
+				AddRow(userID, "user", 1, 2),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
+		users, err := r.FetchUsers(ctx, userID)
 		assert.Nil(t, err)
-		assert.Equal(t, users[0].ID, userID)
+		assert.Len(t, users, 1)
+		assert.Equal(t, userID, users[0].ID)
+		assert.Equal(t, "user", users[0].Name)
+		assert.Equal(t, int64(1), users[0].Created)
+		assert.Equal(t, int64(2), users[0].Updated)
 	}
 
 	// succeed with no row
 	{
 		userID := int64(3)
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
-		).WithArgs(userID).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}),
+			regexp.QuoteMeta(
+				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
+		).WithArgs(userID, userID).WillReturnRows(
+			sqlmock.NewRows([]string{"id"}),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
+		users, err := r.FetchUsers(ctx, userID)
 		assert.Nil(t, err)
 		assert.Len(t, users, 0)
 	}
@@ -293,14 +300,16 @@ func TestFilterUsersByID(t *testing.T) {
 	{
 		userID := int64(3)
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
-		).WithArgs(userID).WillReturnRows(
+			regexp.QuoteMeta(
+				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
+		).WithArgs(userID, userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow("err", "user", time.Time{}, time.Now()),
+				AddRow("err", "user", 1, 2),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
+		users, err := r.FetchUsers(ctx, userID)
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Nil(t, users)
 	}
@@ -310,11 +319,13 @@ func TestFilterUsersByID(t *testing.T) {
 		myErr := fmt.Errorf("opz")
 		userID := int64(3)
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT id, name, created, updated FROM users WHERE id = ?"),
-		).WithArgs(userID).WillReturnError(myErr)
+			regexp.QuoteMeta(
+				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
+		).WithArgs(userID, userID).WillReturnError(myErr)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{UserID: userID})
+		users, err := r.FetchUsers(ctx, userID)
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Nil(t, users)
 	}
@@ -332,50 +343,50 @@ func TestFilterUsersByMail(t *testing.T) {
 	{
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+			regexp.QuoteMeta("SELECT u.id FROM users u" +
 				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow(3, "user", time.Time{}, time.Now()),
+			sqlmock.NewRows([]string{"id"}).
+				AddRow(3),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Nil(t, err)
-		assert.Equal(t, int64(3), users[0].ID)
+		assert.Equal(t, 3, int(IDs[0]))
 	}
 
 	// succeed with no row
 	{
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+			regexp.QuoteMeta("SELECT u.id FROM users u" +
 				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}),
+			sqlmock.NewRows([]string{"id"}),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Nil(t, err)
-		assert.Len(t, users, 0)
+		assert.Len(t, IDs, 0)
 	}
 
 	// scan fail
 	{
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+			regexp.QuoteMeta("SELECT u.id FROM users u" +
 				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow("err", "user", time.Time{}, time.Now()),
+			sqlmock.NewRows([]string{"id"}).
+				AddRow("err"),
 		)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Nil(t, users)
+		assert.Nil(t, IDs)
 	}
 
 	// fail
@@ -383,13 +394,13 @@ func TestFilterUsersByMail(t *testing.T) {
 		myErr := fmt.Errorf("opz")
 		email := "example@example.com"
 		mock.ExpectQuery(
-			regexp.QuoteMeta("SELECT u.id, name, u.created, u.updated FROM users u" +
+			regexp.QuoteMeta("SELECT u.id FROM users u" +
 				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnError(myErr)
 
 		r := storage.New(mdb)
-		users, err := r.FilterUsers(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
-		assert.Nil(t, users)
+		assert.Nil(t, IDs)
 	}
 }
