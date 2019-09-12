@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	// mariadb
@@ -45,6 +46,15 @@ func main() {
 	var port = flag.Int("port", 2000, "")
 
 	flag.Parse()
+
+	var rLimit syscall.Rlimit
+	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
+		log.Fatal("Get RLIMIT_NOFILE failed", err)
+	}
+	rLimit.Cur = rLimit.Max
+	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
+		log.Fatal("Set RLIMIT_NOFILE failed", err)
+	}
 
 	mc := memcache.New("127.0.0.1:11211")
 
