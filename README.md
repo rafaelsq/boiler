@@ -1,4 +1,6 @@
-# [WIP] Golang Web Server Example
+# [WIP] Golang Boilerplate
+
+[![GoDoc](https://godoc.org/github.com/rafaelsq/boiler?status.svg)](http://godoc.org/github.com/rafaelsq/boiler) [![Report card](https://goreportcard.com/badge/github.com/rafaelsq/boiler)](https://goreportcard.com/report/github.com/rafaelsq/boiler)
 
 ### Why another boilerplate?
 "Now is better than never."  
