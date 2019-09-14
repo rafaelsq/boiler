@@ -35,6 +35,7 @@ func TestAddEmail(t *testing.T) {
 	// succeed
 	{
 		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
 		defer db.Close()
 
 		mdb.ExpectBegin()
@@ -156,6 +157,7 @@ func TestDeleteEmail(t *testing.T) {
 	// succeed
 	{
 		db, mdb, err := sqlmock.New()
+		assert.Nil(t, err)
 		defer db.Close()
 
 		mdb.ExpectBegin()

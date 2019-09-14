@@ -22,6 +22,7 @@ func TestJSON(t *testing.T) {
 	assert.Nil(t, err)
 
 	b, err := ioutil.ReadAll(res.Body)
+	assert.Nil(t, err)
 	res.Body.Close()
 
 	assert.Equal(t, "could not encode response", string(b))

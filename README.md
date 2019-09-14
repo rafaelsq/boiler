@@ -2,6 +2,9 @@
 
 [![GoDoc](https://godoc.org/github.com/rafaelsq/boiler?status.svg)](http://godoc.org/github.com/rafaelsq/boiler) [![Report card](https://goreportcard.com/badge/github.com/rafaelsq/boiler)](https://goreportcard.com/report/github.com/rafaelsq/boiler)
 
+### Why pkg/iface
+so more than one place can implement the interface
+
 ### Why another boilerplate?
 "Now is better than never."  
 "There should be one-- and preferably only one --obvious way to do it."
@@ -28,9 +31,11 @@ The Zen of Python
 
 # Run
 
-To start the server
+You will need memcache and mysql/mariaDB running.  
+You can start using Docker running; `$ make start-deps`.
+
+To start watching your files for modification;
 ```bash
-$ make start-deps
 $ make
 ```
 
@@ -57,3 +62,4 @@ $ make gen
 ```bash
 $ make update-graphql-schema
 ```
+> ps; `$ make` will watch and run it automatically

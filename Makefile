@@ -1,3 +1,6 @@
+watch:
+	@go run -mod=vendor cmd/watch/watch.go
+
 run:
 	@go run -mod=vendor cmd/server/server.go
 
@@ -20,7 +23,7 @@ start-deps:
 			docker rm boilerdb; \
 		fi; \
 		docker run -d -p 3307:3306 --name=boilerdb \
-			-v ${PWD}/db:/var/lib/mysql \
+			-v ${PWD}/../boilerdb:/var/lib/mysql \
 			-v ${PWD}/schema.sql:/docker-entrypoint-initdb.d/schema.sql \
 			-e MYSQL_ROOT_PASSWORD=boiler \
 			mariadb; \

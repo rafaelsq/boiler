@@ -62,7 +62,6 @@ func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User,
 	for _, ID := range append(IDs, IDs...) {
 		args = append(args, ID)
 	}
-	IDs = append(IDs, IDs...)
 	rows, err := Select(ctx, s.sql, scanUser, query, args...)
 	if err != nil {
 		return nil, err

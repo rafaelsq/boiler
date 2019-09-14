@@ -20,7 +20,7 @@ func init() {
 
 func Log(err error) {
 	errs := errors.List(err)
-	fmt.Printf("\x1b[38;5;1mERROR\x1b[0m(%d):\n", len(errs))
+	fmt.Printf("\x0b[38;5;1mERROR\x1b[0m(%d):\n", len(errs))
 	for _, err := range errs {
 		fmt.Printf(" %v\n", err)
 		if er, is := err.(*errors.Error); is {
