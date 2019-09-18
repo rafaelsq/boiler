@@ -11,11 +11,11 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/golang/mock/gomock"
+	"github.com/rafaelsq/boiler/cmd/server/internal/rest"
+	"github.com/rafaelsq/boiler/cmd/server/internal/router"
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/mock"
-	"github.com/rafaelsq/boiler/pkg/rest"
-	"github.com/rafaelsq/boiler/pkg/router"
 	"github.com/stretchr/testify/assert"
 )
 

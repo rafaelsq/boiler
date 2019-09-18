@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/rafaelsq/boiler/cmd/server/internal/rest"
+	"github.com/rafaelsq/boiler/cmd/server/internal/website"
 	"github.com/rafaelsq/boiler/pkg/graphql"
 	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/rest"
-	"github.com/rafaelsq/boiler/pkg/website"
 )
 
 func ApplyMiddlewares(r chi.Router) {

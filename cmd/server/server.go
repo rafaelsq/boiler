@@ -17,8 +17,8 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/go-chi/chi"
+	"github.com/rafaelsq/boiler/cmd/server/internal/router"
 	"github.com/rafaelsq/boiler/pkg/cache"
-	"github.com/rafaelsq/boiler/pkg/router"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
