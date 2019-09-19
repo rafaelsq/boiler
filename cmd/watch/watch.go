@@ -25,57 +25,69 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	tctx, tcancel := context.WithCancel(context.Background())
 	pctx, pcancel := context.WithCancel(context.Background())
+	cictx, cicancel := context.WithCancel(context.Background())
+
+	dir, _ := os.Getwd()
+
 	go buildNRun(ctx)
-	for {
-		select {
-		case ei := <-c:
-			path := ei.Path()
-			if strings.HasSuffix(path, "schema.graphql") {
-				gqlcancel()
-				gqlctx, gqlcancel = context.WithCancel(context.Background())
-				go func() {
-					gqlctx := gqlctx
-					if err := run(gqlctx, "go", "run", "github.com/99designs/gqlgen"); err != nil &&
-						gqlctx.Err() != context.Canceled {
+	for ei := range c {
+		path := ei.Path()
+		pieces := strings.Split(path, "/")
+		pkg := strings.Join(pieces[:len(pieces)-1], "/")
 
-						fmt.Println("graph fail;", err)
-					}
-				}()
-			} else if strings.Contains(path, "pkg/iface/") {
-				gcancel()
-				gctx, gcancel = context.WithCancel(context.Background())
-				go func() {
-					gctx := gctx
-					if err := run(gctx, "go", "generate", "./..."); err != nil &&
-						gctx.Err() != context.Canceled {
+		// ignore dir
+		if strings.HasPrefix(pkg, dir+"/vendor/") || strings.HasPrefix(pkg, dir+"/.git") {
+			continue
+		}
 
-						fmt.Println("gen fail;", err)
-					}
-				}()
-			} else if strings.HasSuffix(path, "_test.go") {
-				tcancel()
-				tctx, tcancel = context.WithCancel(context.Background())
+		if strings.HasSuffix(path, ".go") {
+			cicancel()
+			cictx, cicancel = context.WithCancel(context.Background())
+			go func() { _ = run(cictx, "golangci-lint", "run", pkg) }()
+		}
 
-				pieces := strings.Split(path, "/")
-				pkg := strings.Join(pieces[:len(pieces)-1], "/")
+		if strings.HasSuffix(path, "schema.graphql") {
+			gqlcancel()
+			gqlctx, gqlcancel = context.WithCancel(context.Background())
+			go func() {
+				gqlctx := gqlctx
+				if err := run(gqlctx, "go", "run", "github.com/99designs/gqlgen"); err != nil &&
+					gqlctx.Err() != context.Canceled {
 
-				go run(tctx, "go", "test", "-mod=vendor", "-cover", pkg)
-			} else if strings.HasSuffix(path, ".go") {
-				cancel()
-				ctx, cancel = context.WithCancel(context.Background())
-				go buildNRun(ctx)
-			} else if strings.HasSuffix(ei.Path(), ".proto") {
-				pcancel()
-				pctx, pcancel = context.WithCancel(context.Background())
-				go func() {
-					pctx := pctx
-					if err := run(pctx, "make", "proto"); err != nil &&
-						pctx.Err() != context.Canceled {
+					fmt.Println("graph fail;", err)
+				}
+			}()
+		} else if strings.Contains(path, "pkg/iface/") {
+			gcancel()
+			gctx, gcancel = context.WithCancel(context.Background())
+			go func() {
+				gctx := gctx
+				if err := run(gctx, "go", "generate", "./..."); err != nil &&
+					gctx.Err() != context.Canceled {
 
-						fmt.Println("proto fail;", err)
-					}
-				}()
-			}
+					fmt.Println("gen fail;", err)
+				}
+			}()
+		} else if strings.HasSuffix(path, "_test.go") {
+			tcancel()
+			tctx, tcancel = context.WithCancel(context.Background())
+
+			go func() { _ = run(tctx, "go", "test", "-mod=vendor", "-cover", pkg) }()
+		} else if strings.HasSuffix(path, ".go") {
+			cancel()
+			ctx, cancel = context.WithCancel(context.Background())
+			go buildNRun(ctx)
+		} else if strings.HasSuffix(ei.Path(), ".proto") {
+			pcancel()
+			pctx, pcancel = context.WithCancel(context.Background())
+			go func() {
+				pctx := pctx
+				if err := run(pctx, "make", "proto"); err != nil &&
+					pctx.Err() != context.Canceled {
+
+					fmt.Println("proto fail;", err)
+				}
+			}()
 		}
 	}
 }

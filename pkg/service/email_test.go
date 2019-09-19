@@ -14,10 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type tx struct{}
-
-func (*tx) Commit() error { return nil }
-
 func TestAddEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -36,7 +32,7 @@ func TestAddEmail(t *testing.T) {
 	{
 		db, mdb, err := sqlmock.New()
 		assert.Nil(t, err)
-		defer db.Close()
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 
@@ -68,7 +64,7 @@ func TestAddEmail(t *testing.T) {
 	{
 		db, mdb, err := sqlmock.New()
 		assert.Nil(t, err)
-		defer db.Close()
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 
@@ -93,7 +89,7 @@ func TestAddEmail(t *testing.T) {
 	{
 		db, mdb, err := sqlmock.New()
 		assert.Nil(t, err)
-		defer db.Close()
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 
@@ -119,7 +115,7 @@ func TestAddEmail(t *testing.T) {
 	{
 		db, mdb, err := sqlmock.New()
 		assert.Nil(t, err)
-		defer db.Close()
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 
@@ -158,7 +154,7 @@ func TestDeleteEmail(t *testing.T) {
 	{
 		db, mdb, err := sqlmock.New()
 		assert.Nil(t, err)
-		defer db.Close()
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 
@@ -189,7 +185,8 @@ func TestDeleteEmail(t *testing.T) {
 	// storage fail
 	{
 		db, mdb, err := sqlmock.New()
-		defer db.Close()
+		assert.Nil(t, err)
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 
@@ -212,7 +209,8 @@ func TestDeleteEmail(t *testing.T) {
 	// commit fail
 	{
 		db, mdb, err := sqlmock.New()
-		defer db.Close()
+		assert.Nil(t, err)
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 
@@ -235,7 +233,8 @@ func TestDeleteEmail(t *testing.T) {
 	// rollback fail
 	{
 		db, mdb, err := sqlmock.New()
-		defer db.Close()
+		assert.Nil(t, err)
+		defer func() { _ = db.Close() }()
 
 		mdb.ExpectBegin()
 

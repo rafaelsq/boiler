@@ -2,7 +2,6 @@ package storage_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"regexp"
 	"testing"
@@ -12,12 +11,6 @@ import (
 	"github.com/rafaelsq/boiler/pkg/storage"
 	"github.com/stretchr/testify/assert"
 )
-
-type StorageMock struct{ sql *sql.DB }
-
-func (s *StorageMock) SQL() *sql.DB {
-	return s.sql
-}
 
 func TestAddUser(t *testing.T) {
 	ctx := context.Background()

@@ -16,10 +16,6 @@ func userCacheKey(ID int64) string {
 	return fmt.Sprintf("user-%d", ID)
 }
 
-func userFilterCacheKey(filter iface.FilterUsers) string {
-	return fmt.Sprintf("user-filter-%s|%d|%d", filter.Email, filter.Offset, filter.Limit)
-}
-
 func New(client *memcache.Client, storage iface.Storage) iface.Storage {
 	return &Cache{client, storage}
 }
@@ -88,7 +84,7 @@ func (c *Cache) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, e
 				log.Log(err)
 				continue
 			}
-			c.client.Set(&memcache.Item{
+			err = c.client.Set(&memcache.Item{
 				Key:   fmt.Sprintf("user-%d", user.ID),
 				Value: b,
 			})

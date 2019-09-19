@@ -46,7 +46,9 @@ You can run it with `$ make start-deps`
 You'll need Docker and Protobuf.  
 To install Protobuf; https://github.com/protocolbuffers/protobuf/releases and `$ go get github.com/gogo/protobuf/protoc-gen-gofast`  
 put the binary anywhere in your path  
-put `include` folder under ~/go/
+put `include` folder under ~/go/  
+
+Watch will run [golangci-lint](https://github.com/golangci/golangci-lint) for each file modified  
 
 pkg/entity was changed?
 ```bash
