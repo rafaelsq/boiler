@@ -6,13 +6,73 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/rjeczalik/notify"
 )
 
+const debounceTimeout = time.Millisecond * 500
+
+var contexts map[string]context.CancelFunc
+var ctxmutex sync.Mutex
+
+func getContext(label string) context.Context {
+	ctxmutex.Lock()
+	defer ctxmutex.Unlock()
+
+	if cancel, has := contexts[label]; has {
+		cancel()
+	}
+
+	var ctx context.Context
+	ctx, contexts[label] = context.WithCancel(context.Background())
+	return ctx
+}
+
+type Task struct {
+	name  string
+	match *regexp.Regexp
+	cmd   []string
+	fn    func(Task, string, string) error
+}
+
+func simpleTask(task Task, _, _ string) error {
+	return run(getContext(task.name), nil, task.cmd[0], task.cmd[1:]...)
+}
+
 func main() {
+	dir, _ := os.Getwd()
+
+	isTest := regexp.MustCompile(`_test\.go$`)
+	tasks := []Task{
+		{"run", regexp.MustCompile(`\.go$`), nil, func(t Task, _, file string) error {
+			if isTest.MatchString(file) {
+				return nil
+			}
+
+			return buildNRun(getContext(t.name))
+		}},
+		{"gqlgen", regexp.MustCompile("schema.graphql$"), []string{"go", "run", "github.com/99designs/gqlgen"}, simpleTask},
+		{"generate", regexp.MustCompile("pkg/iface/"), []string{"go", "generate", "./..."}, simpleTask},
+		{"proto", regexp.MustCompile(".proto$"), []string{"make", "proto"}, simpleTask},
+		{"test", isTest, nil, func(t Task, pkg, _ string) error {
+			log := func() {
+				fmt.Printf("\x1b[38;5;239m[%s]\x1b[0m \x1b[38;5;2mTesting\x1b[0m %s/...\n",
+					time.Now().Format("15:04:05"), pkg[len(dir):])
+			}
+			return run(getContext(t.name), &log, "go", "test", "-mod=vendor", "-cover", pkg)
+		}},
+		{"lint", regexp.MustCompile(`\.go$`), nil, func(t Task, pkg, _ string) error {
+			_ = run(getContext(t.name), nil, "golangci-lint", "run", pkg)
+			return nil
+		}},
+	}
+
+	contexts = make(map[string]context.CancelFunc)
+
 	c := make(chan notify.EventInfo)
 
 	if err := notify.Watch("./...", c, notify.Create, notify.Write, notify.Remove); err != nil {
@@ -20,94 +80,62 @@ func main() {
 	}
 	defer notify.Stop(c)
 
-	gqlctx, gqlcancel := context.WithCancel(context.Background())
-	gctx, gcancel := context.WithCancel(context.Background())
-	ctx, cancel := context.WithCancel(context.Background())
-	tctx, tcancel := context.WithCancel(context.Background())
-	pctx, pcancel := context.WithCancel(context.Background())
-	cictx, cicancel := context.WithCancel(context.Background())
-
-	dir, _ := os.Getwd()
-
-	go buildNRun(ctx)
+	go func() {
+		if err := buildNRun(getContext("run")); err != nil {
+			log.Println(err)
+		}
+	}()
 	for ei := range c {
 		path := ei.Path()
 		pieces := strings.Split(path, "/")
 		pkg := strings.Join(pieces[:len(pieces)-1], "/")
 
-		// ignore dir
+		// ignore
 		if strings.HasPrefix(pkg, dir+"/vendor/") || strings.HasPrefix(pkg, dir+"/.git") {
 			continue
 		}
 
-		if strings.HasSuffix(path, ".go") {
-			cicancel()
-			cictx, cicancel = context.WithCancel(context.Background())
-			go func() { _ = run(cictx, "golangci-lint", "run", pkg) }()
-		}
-
-		if strings.HasSuffix(path, "schema.graphql") {
-			gqlcancel()
-			gqlctx, gqlcancel = context.WithCancel(context.Background())
-			go func() {
-				gqlctx := gqlctx
-				if err := run(gqlctx, "go", "run", "github.com/99designs/gqlgen"); err != nil &&
-					gqlctx.Err() != context.Canceled {
-
-					fmt.Println("graph fail;", err)
-				}
-			}()
-		} else if strings.Contains(path, "pkg/iface/") {
-			gcancel()
-			gctx, gcancel = context.WithCancel(context.Background())
-			go func() {
-				gctx := gctx
-				if err := run(gctx, "go", "generate", "./..."); err != nil &&
-					gctx.Err() != context.Canceled {
-
-					fmt.Println("gen fail;", err)
-				}
-			}()
-		} else if strings.HasSuffix(path, "_test.go") {
-			tcancel()
-			tctx, tcancel = context.WithCancel(context.Background())
-
-			go func() { _ = run(tctx, "go", "test", "-mod=vendor", "-cover", pkg) }()
-		} else if strings.HasSuffix(path, ".go") {
-			cancel()
-			ctx, cancel = context.WithCancel(context.Background())
-			go buildNRun(ctx)
-		} else if strings.HasSuffix(ei.Path(), ".proto") {
-			pcancel()
-			pctx, pcancel = context.WithCancel(context.Background())
-			go func() {
-				pctx := pctx
-				if err := run(pctx, "make", "proto"); err != nil &&
-					pctx.Err() != context.Canceled {
-
-					fmt.Println("proto fail;", err)
-				}
-			}()
+		for _, task := range tasks {
+			task := task
+			if task.match.MatchString(path) {
+				go func() {
+					if err := task.fn(task, pkg, path); err != nil {
+						log.Printf("%s failed; %v\n", task.name, err)
+					}
+				}()
+			}
 		}
 	}
 }
 
-func buildNRun(ctx context.Context) {
-	err := run(ctx, "go", "build", "-mod=vendor", "cmd/server/server.go")
-	if err != nil && err != context.Canceled && ctx.Err() != context.Canceled {
-		fmt.Println("build failed;", err)
-	} else {
-		if err := run(ctx, "./server"); err != nil && err != context.Canceled && ctx.Err() != context.Canceled {
-			fmt.Println("run failed;", err)
-		}
+func buildNRun(ctx context.Context) error {
+	start := time.Now()
+	print := func() {
+		fmt.Printf("\x1b[38;5;239m[%s]\x1b[0m \x1b[38;5;1mBuilding...\x1b[0m\n", start.Format("15:04:05"))
 	}
+	err := run(ctx, &print, "go", "build", "-mod=vendor", "cmd/server/server.go")
+	if err != nil {
+		return fmt.Errorf("build failed; %w", err)
+	}
+
+	if ctx.Err() == nil {
+		fmt.Printf("\x1b[38;5;239m[%s]\x1b[0m \x1b[38;5;243mBuilded %s\x1b[0m\n", time.Now().Format("15:04:05"),
+			time.Since(start))
+		return run(ctx, nil, "./server")
+	}
+
+	return nil
 }
 
-func run(ctx context.Context, command string, args ...string) error {
+func run(ctx context.Context, onStart *func(), command string, args ...string) error {
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(time.Millisecond * 200):
+		return nil
+	case <-time.After(debounceTimeout):
+	}
+
+	if onStart != nil {
+		(*onStart)()
 	}
 
 	cmd := exec.Command(command, args...)
