@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -11,7 +10,7 @@ import (
 func Fail(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	w.WriteHeader(statusCode)
 	if len(r.URL.Query()["debug"]) != 0 {
-		fmt.Fprintf(w, message)
+		_, _ = w.Write([]byte(message))
 	}
 }
 
