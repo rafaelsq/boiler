@@ -44,6 +44,16 @@ To start watching your files for modification;
 $ make
 ```
 
+# Watch
+You can use the watch out of this project
+```bash
+$ go get -u github.com/rafaelsq/boiler/cmd/watch
+$ cd my_go_project
+$ watch "main.go" "./my_go_project"
+// default
+watch "-mod=vendor cmd/server/server.go" "./server"
+```
+
 ### Dependencies
 MySQL and Memcache  
 You can run it with `$ make start-deps`

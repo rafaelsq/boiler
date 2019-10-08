@@ -43,7 +43,17 @@ func simpleTask(task Task, _, _ string) error {
 	return run(getContext(task.name), nil, task.cmd[0], task.cmd[1:]...)
 }
 
+var buildCMD = []string{"-mod=vendor", "cmd/server/server.go"}
+var runCMD = []string{"./server"}
+
 func main() {
+	if len(os.Args) > 1 {
+		buildCMD = strings.Split(os.Args[1], " ")
+		if len(os.Args) > 2 {
+			runCMD = strings.Split(os.Args[2], " ")
+		}
+	}
+
 	dir, _ := os.Getwd()
 
 	isTest := regexp.MustCompile(`_test\.go$`)
@@ -113,7 +123,8 @@ func buildNRun(ctx context.Context) error {
 	print := func() {
 		fmt.Printf("\x1b[38;5;239m[%s]\x1b[0m \x1b[38;5;1mBuilding...\x1b[0m\n", start.Format("15:04:05"))
 	}
-	err := run(ctx, &print, "go", "build", "-mod=vendor", "cmd/server/server.go")
+
+	err := run(ctx, &print, "go", append([]string{"build"}, buildCMD...)...)
 	if err != nil {
 		return fmt.Errorf("build failed; %w", err)
 	}
@@ -121,7 +132,7 @@ func buildNRun(ctx context.Context) error {
 	if ctx.Err() == nil {
 		fmt.Printf("\x1b[38;5;239m[%s]\x1b[0m \x1b[38;5;243mBuilded %s\x1b[0m\n", time.Now().Format("15:04:05"),
 			time.Since(start))
-		return run(ctx, nil, "./server")
+		return run(ctx, nil, runCMD[0], runCMD[1:]...)
 	}
 
 	return nil
