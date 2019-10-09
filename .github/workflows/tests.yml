@@ -18,10 +18,6 @@ jobs:
               run: |
                   curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s v1.19.1
                   ./bin/golangci-lint run
-              env:
-                  GOPATH: /home/runner/work/boiler/go
             - name: Test
               run: |
-                  go test -mod=vendor -race -cover ./...
-              env:
-                  GOPATH: /home/runner/work/boiler/go
+                  make godeps && go test -race -cover ./...
