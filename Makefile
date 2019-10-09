@@ -1,8 +1,8 @@
 watch:
-	@go run -mod=vendor cmd/watch/watch.go
+	@go run cmd/watch/watch.go
 
 run:
-	@go run -mod=vendor cmd/server/server.go
+	@go run cmd/server/server.go
 
 gen:
 	go generate ./...

@@ -51,7 +51,7 @@ $ go get -u github.com/rafaelsq/boiler/cmd/watch
 $ cd my_go_project
 $ watch "main.go" "./my_go_project"
 // default
-watch "-mod=vendor cmd/server/server.go" "./server"
+watch "cmd/server/server.go" "./server"
 ```
 
 ### Dependencies

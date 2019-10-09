@@ -54,7 +54,6 @@ func Zerolog(err error) {
 var (
 	ProjectFolder = []byte("boiler")
 	IgnoreList    = [][]byte{
-		[]byte("/vendor/"),
 		[]byte("/middleware.go"),
 		[]byte("/errors/errors.go"),
 	}
@@ -65,7 +64,7 @@ var (
 	gray  = []byte("\x1b[38;5;239m")
 	light = []byte("\x1b[38;5;243m")
 	white = []byte("\x1b[38;5;249m")
-	rXP   = regexp.MustCompile(fmt.Sprintf(`(.+/)(%s/(vendor/)?.*/)(([^/]+\..{2,3}):\d+)(.*)`, ProjectFolder))
+	rXP   = regexp.MustCompile(fmt.Sprintf(`(.+/)(%s/.*/)(([^/]+\..{2,3}):\d+)(.*)`, ProjectFolder))
 )
 
 func WriteStack(w io.Writer) {

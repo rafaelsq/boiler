@@ -43,7 +43,7 @@ func simpleTask(task Task, _, _ string) error {
 	return run(getContext(task.name), nil, task.cmd[0], task.cmd[1:]...)
 }
 
-var buildCMD = []string{"-mod=vendor", "cmd/server/server.go"}
+var buildCMD = []string{"cmd/server/server.go"}
 var runCMD = []string{"./server"}
 
 func main() {
@@ -73,7 +73,7 @@ func main() {
 				fmt.Printf("\x1b[38;5;239m[%s]\x1b[0m \x1b[38;5;2mTesting\x1b[0m %s/...\n",
 					time.Now().Format("15:04:05"), pkg[len(dir):])
 			}
-			return run(getContext(t.name), &log, "go", "test", "-mod=vendor", "-cover", pkg)
+			return run(getContext(t.name), &log, "go", "test", "-cover", pkg)
 		}},
 		{"lint", regexp.MustCompile(`\.go$`), nil, func(t Task, pkg, _ string) error {
 			_ = run(getContext(t.name), nil, "golangci-lint", "run", pkg)
@@ -101,7 +101,7 @@ func main() {
 		pkg := strings.Join(pieces[:len(pieces)-1], "/")
 
 		// ignore
-		if strings.HasPrefix(pkg, dir+"/vendor/") || strings.HasPrefix(pkg, dir+"/.git") {
+		if strings.HasPrefix(pkg, dir+"/.git") {
 			continue
 		}
 
