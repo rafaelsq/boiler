@@ -7,48 +7,28 @@
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License MIT">
 </a>
 
-### Why pkg/iface
-so more than one place can implement the interface
+The project should;
+* be as explicit as possible
+* use interfaces as little as possible
+* easy to understand
 
-### Why another boilerplate?
-"Now is better than never."  
-"There should be one-- and preferably only one --obvious way to do it."
+**Why only one service?**
+* less interfaces
+* import cycles
 
-### Why only one service?
-"Simple is better than complex."
-> so I don't need to worry about import cycle
-
-### Why injecting storage and service all around?
-"Explicit is better than implicit."
-
-### Why only one storage?
-"If the implementation is easy to explain, it may be a good idea."
-> who uses storage don't need to know what happens inside the storage
-
-### Why cache implements storage?
-"Readability counts."
-
-### Why context on error?
-"In the face of ambiguity, refuse the temptation to guess."
-
-### Where did I read all those quotes before?
-The Zen of Python
+**Why only one storage?**
+* less interfaces
 
 # Run
 
-You will need memcache and mysql/mariaDB running.  
-You can start using Docker running; `$ make start-deps`.
-
 To start watching your files for modification;
 ```bash
+$ make start-deps
 $ make
 ```
 
 ### Dependencies
 MySQL and Memcache  
-You can run it with `$ make start-deps`
-
-Watch will run [golangci-lint](https://github.com/golangci/golangci-lint) for each file modified  
 
 pkg/entity or pkg/iface was changed?
 ```bash
