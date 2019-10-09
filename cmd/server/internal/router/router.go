@@ -42,7 +42,7 @@ func ApplyRoute(r chi.Router, service iface.Service) {
 	// website
 	r.Get("/", website.Handle)
 	r.Get("/favicon.ico", http.NotFound)
-	r.Handle("/static/*", http.FileServer(http.Dir("pkg/website")))
+	r.Handle("/static/*", http.FileServer(http.Dir("cmd/server/internal/website")))
 
 	// graphql
 	r.Route("/graphql", func(g chi.Router) {

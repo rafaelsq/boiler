@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/rafaelsq/boiler/pkg/iface"
@@ -259,7 +260,7 @@ func TestFetchUsers(t *testing.T) {
 					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
 		).WithArgs(userID, userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow(userID, "user", 1, 2),
+				AddRow(userID, "user", time.Time{}, time.Time{}),
 		)
 
 		r := storage.New(mdb)
@@ -268,8 +269,8 @@ func TestFetchUsers(t *testing.T) {
 		assert.Len(t, users, 1)
 		assert.Equal(t, userID, users[0].ID)
 		assert.Equal(t, "user", users[0].Name)
-		assert.Equal(t, int64(1), users[0].Created)
-		assert.Equal(t, int64(2), users[0].Updated)
+		assert.Equal(t, time.Time{}, users[0].Created)
+		assert.Equal(t, time.Time{}, users[0].Updated)
 	}
 
 	// succeed with no row

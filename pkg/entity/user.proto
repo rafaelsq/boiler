@@ -1,9 +1,0 @@
-syntax = "proto3";
-package entity;
-
-message User {
-	int64  ID =      1;
-	string Name =    2;
-	int64  Created = 3;
-	int64  Updated = 4;
-}

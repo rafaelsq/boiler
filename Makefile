@@ -1,18 +1,25 @@
-watch:
+watch: godeps
 	@go run cmd/watch/watch.go
 
-run:
+run: godeps
 	@go run cmd/server/server.go
 
-gen:
+gen: godeps
 	go generate ./...
 
-update-graphql-schema:
-	go run github.com/99designs/gqlgen
+update-graphql-schema: godeps
+	gqlgen
 
-proto:
-	@mkdir -p pkg/entity
-	@cd pkg/entity && protoc --gogo_out=. *.proto
+godeps:
+ifeq (, $(shell which msgp))
+	go get github.com/tinylib/msgp/msgp
+endif
+ifeq (, $(shell which gqlgen))
+	go get github.com/99designs/gqlgen
+endif
+ifeq (, $(shell which mockgen))
+	go get github.com/golang/mock/mockgen
+endif
 
 start-deps:
 	@if [ ! "`docker ps -q -f name=memcached`"  ]; then \

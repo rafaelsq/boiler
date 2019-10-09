@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
@@ -78,8 +79,8 @@ func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User,
 func scanUser(sc func(dest ...interface{}) error) (interface{}, error) {
 	var id int64
 	var name string
-	var created int64
-	var updated int64
+	var created time.Time
+	var updated time.Time
 
 	err := sc(&id, &name, &created, &updated)
 	if err != nil {

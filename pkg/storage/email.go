@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
@@ -53,7 +54,7 @@ func scanEmail(sc func(dest ...interface{}) error) (interface{}, error) {
 	var id int64
 	var userID int64
 	var address string
-	var created int64
+	var created time.Time
 
 	err := sc(&id, &userID, &address, &created)
 	if err != nil {

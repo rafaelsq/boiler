@@ -1,15 +1,16 @@
 package cache
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/gogo/protobuf/proto"
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/log"
+	"github.com/tinylib/msgp/msgp"
 )
 
 func userCacheKey(ID int64) string {
@@ -58,10 +59,11 @@ func (c *Cache) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, e
 	} else {
 		for _, item := range items {
 			var user entity.User
-			if err := proto.Unmarshal(item.Value, &user); err != nil {
+			if err := msgp.Decode(bytes.NewBuffer(item.Value), &user); err != nil {
 				log.Log(err)
 				continue
 			}
+
 			musers[user.ID] = &user
 			hit[user.ID] = true
 		}
@@ -79,14 +81,16 @@ func (c *Cache) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, e
 		}
 
 		for _, user := range dbusers {
-			b, err := proto.Marshal(user)
+			var buf bytes.Buffer
+			err := msgp.Encode(&buf, user)
 			if err != nil {
 				log.Log(err)
 				continue
 			}
+
 			err = c.client.Set(&memcache.Item{
 				Key:   fmt.Sprintf("user-%d", user.ID),
-				Value: b,
+				Value: buf.Bytes(),
 			})
 			if err != nil {
 				log.Log(err)

@@ -30,11 +30,11 @@ const handleFetchEmails = (state, {data, err, args}) => {
         return Unlock
     }
 
-    return Unlock({...state, emails: [...state.emails.filter(e => e.userID != args), ...data.emails], newEmail: {userID: args}})
+    return Unlock({...state, emails: [...state.emails.filter(e => e.user_id != args), ...data.emails], newEmail: {user_id: args}})
 }
-const FetchEmails = (state, userID) => [
+const FetchEmails = (state, user_id) => [
     Lock(state),
-    [_fetchFx, {action: handleFetchEmails, path: '/rest/emails?debug&userID=' + userID, args: userID}],
+    [_fetchFx, {action: handleFetchEmails, path: '/rest/emails?debug&user_id=' + user_id, args: user_id}],
 ]
 
 const handleFetchUsers = (state, {data, err}) => {
@@ -87,14 +87,14 @@ const handleDeleteUser = (state, {data, err, args}) => {
 
     return Unlock({...state, users: state.users.filter(u => u.id != args)})
 }
-const DeleteUser = (state, userID) => [
+const DeleteUser = (state, user_id) => [
     Lock(state),
     [
         _fetchFx,
         {
-            args: userID,
+            args: user_id,
             action: handleDeleteUser,
-            path: `/rest/users/${userID}?debug`,
+            path: `/rest/users/${user_id}?debug`,
             options: {method: 'DELETE'},
         },
     ],
@@ -134,7 +134,7 @@ const handleAddEmail = (state, {data, err}) => {
 
     return [
         Unlock(state),
-        [d => d([FetchEmails, state.newEmail.userID])],
+        [d => d([FetchEmails, state.newEmail.user_id])],
     ]
 }
 const AddEmail = state => [
@@ -155,7 +155,7 @@ const AddEmail = state => [
 const User = (state, user) => h(
     'li',
     {key: user.id},
-    state.newEmail && state.newEmail.userID == user.id && h(
+    state.newEmail && state.newEmail.user_id == user.id && h(
         'div', {className:'card'},
         [
             h('header', {className: 'card-header'}, [
@@ -182,7 +182,7 @@ const User = (state, user) => h(
                         }, '+'))
                     ),
                     state.emails
-                        .filter(e => e.userID == user.id)
+                        .filter(e => e.user_id == user.id)
                         .map(e => h('div', null, e.address, h('a', {className: 'delete is-small', onclick: [DeleteEmail, e.id]}))),
                 ]),
             ]),

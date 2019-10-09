@@ -39,7 +39,7 @@ func AddUserHandle(service iface.Service) http.HandlerFunc {
 		}
 
 		JSON(w, r, map[string]interface{}{
-			"userID": userID,
+			"user_id": userID,
 		})
 	}
 }
@@ -115,7 +115,7 @@ func GetUserHandle(service iface.Service) http.HandlerFunc {
 func AddEmailHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
-			UserID  int64  `json:"userID"`
+			UserID  int64  `json:"user_id"`
 			Address string `json:"address"`
 		}{}
 
@@ -145,7 +145,7 @@ func AddEmailHandle(service iface.Service) http.HandlerFunc {
 		}
 
 		JSON(w, r, struct {
-			EmailID int64 `json:"emailID"`
+			EmailID int64 `json:"email_id"`
 		}{emailID})
 	}
 }
@@ -171,15 +171,15 @@ func DeleteEmailHandle(service iface.Service) http.HandlerFunc {
 
 func ListEmailsHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		params := r.URL.Query()["userID"]
+		params := r.URL.Query()["user_id"]
 		if len(params) == 0 {
-			Fail(w, r, http.StatusBadRequest, "missing URL query userID")
+			Fail(w, r, http.StatusBadRequest, "missing URL query user_id")
 			return
 		}
 
 		userID, err := strconv.ParseInt(params[0], 10, 64)
 		if err != nil || userID == 0 {
-			Fail(w, r, http.StatusBadRequest, "invalid URL query userID")
+			Fail(w, r, http.StatusBadRequest, "invalid URL query user_id")
 			return
 		}
 

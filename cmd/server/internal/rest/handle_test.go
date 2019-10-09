@@ -42,7 +42,9 @@ func TestAddUserHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
-		var rm struct{ UserID int64 }
+		var rm struct {
+			UserID int64 `json:"user_id"`
+		}
 		_ = json.NewDecoder(res.Body).Decode(&rm)
 		res.Body.Close()
 		assert.Equal(t, rm.UserID, user.ID)
@@ -304,7 +306,7 @@ func TestUserHandle(t *testing.T) {
 
 		res, err := http.Get(fmt.Sprintf("%s/user/%d", ts.URL, user.ID))
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusOK)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
 
 		var u struct{ User *entity.User }
 		err = json.NewDecoder(res.Body).Decode(&u)
@@ -379,14 +381,14 @@ func TestAddEmailHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString(fmt.Sprintf("{\"userID\":%d,\"address\":\"%s\"}", userID, address))
+		body := bytes.NewBufferString(fmt.Sprintf("{\"user_id\":%d,\"address\":\"%s\"}", userID, address))
 
 		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
 		j := struct {
-			EmailID int `json:"emailID"`
+			EmailID int `json:"email_id"`
 		}{}
 		err = json.NewDecoder(res.Body).Decode(&j)
 		res.Body.Close()
@@ -482,7 +484,7 @@ func TestAddEmailHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString(fmt.Sprintf("{\"userID\":%d,\"address\":\"%s\"}", userID, address))
+		body := bytes.NewBufferString(fmt.Sprintf("{\"user_id\":%d,\"address\":\"%s\"}", userID, address))
 
 		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
@@ -608,7 +610,7 @@ func TestEmailsHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/emails?debug&userID=%d", ts.URL, user.ID))
+		res, err := http.Get(fmt.Sprintf("%s/emails?debug&user_id=%d", ts.URL, user.ID))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 
@@ -642,7 +644,7 @@ func TestEmailsHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/emails?userID=%d", ts.URL, user.ID))
+		res, err := http.Get(fmt.Sprintf("%s/emails?user_id=%d", ts.URL, user.ID))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
 		res.Body.Close()
@@ -659,7 +661,7 @@ func TestEmailsHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/emails?userID=0", ts.URL))
+		res, err := http.Get(fmt.Sprintf("%s/emails?user_id=0", ts.URL))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
 		res.Body.Close()

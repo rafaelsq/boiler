@@ -57,6 +57,7 @@ func main() {
 	dir, _ := os.Getwd()
 
 	isTest := regexp.MustCompile(`_test\.go$`)
+	isGen := regexp.MustCompile(`_gen_?`)
 	tasks := []Task{
 		{"run", regexp.MustCompile(`\.go$`), nil, func(t Task, _, file string) error {
 			if isTest.MatchString(file) {
@@ -66,8 +67,15 @@ func main() {
 			return buildNRun(getContext(t.name))
 		}},
 		{"gqlgen", regexp.MustCompile("schema.graphql$"), []string{"go", "run", "github.com/99designs/gqlgen"}, simpleTask},
-		{"generate", regexp.MustCompile("pkg/iface/"), []string{"go", "generate", "./..."}, simpleTask},
-		{"proto", regexp.MustCompile(".proto$"), []string{"make", "proto"}, simpleTask},
+		{"generate", regexp.MustCompile("pkg/(iface|entity)/"), []string{"go", "generate", "./..."},
+			func(task Task, _, file string) error {
+				fmt.Println("gen", file)
+
+				if isTest.MatchString(file) || isGen.MatchString(file) {
+					return nil
+				}
+				return run(getContext(task.name), nil, task.cmd[0], task.cmd[1:]...)
+			}},
 		{"test", isTest, nil, func(t Task, pkg, _ string) error {
 			log := func() {
 				fmt.Printf("\x1b[38;5;239m[%s]\x1b[0m \x1b[38;5;2mTesting\x1b[0m %s/...\n",

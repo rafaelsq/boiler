@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-sql-driver/mysql"
@@ -283,7 +284,7 @@ func TestFilterEmails(t *testing.T) {
 			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE user_id = ?"),
 		).WithArgs(userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "user_id", "address", "created"}).
-				AddRow(3, userID, "user@example.com", 0),
+				AddRow(3, userID, "user@example.com", time.Time{}),
 		)
 
 		r := storage.New(mdb)
@@ -300,7 +301,7 @@ func TestFilterEmails(t *testing.T) {
 			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE id = ?"),
 		).WithArgs(emailID).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "user_id", "address", "created"}).
-				AddRow(3, emailID, "user@example.com", 0),
+				AddRow(3, emailID, "user@example.com", time.Time{}),
 		)
 
 		r := storage.New(mdb)

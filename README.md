@@ -44,33 +44,13 @@ To start watching your files for modification;
 $ make
 ```
 
-# Watch
-You can use the watch out of this project
-```bash
-$ go get -u github.com/rafaelsq/boiler/cmd/watch
-$ cd my_go_project
-$ watch "main.go" "./my_go_project"
-// default
-watch "cmd/server/server.go" "./server"
-```
-
 ### Dependencies
 MySQL and Memcache  
 You can run it with `$ make start-deps`
 
-You'll need Docker and Protobuf.  
-To install Protobuf; https://github.com/protocolbuffers/protobuf/releases and `$ go get github.com/gogo/protobuf/protoc-gen-gofast`  
-put the binary anywhere in your path  
-put `include` folder under ~/go/  
-
 Watch will run [golangci-lint](https://github.com/golangci/golangci-lint) for each file modified  
 
-pkg/entity was changed?
-```bash
-$ make proto
-```
-
-pkg/iface was changed?
+pkg/entity or pkg/iface was changed?
 ```bash
 $ make gen
 ```
@@ -79,4 +59,4 @@ $ make gen
 ```bash
 $ make update-graphql-schema
 ```
-> ps; `$ make` will watch and run it automatically
+> ps; `$ make` will watch and run `make gen and update-graphql-schema` automatically
