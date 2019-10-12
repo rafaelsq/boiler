@@ -6,10 +6,11 @@ package mock
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	entity "github.com/rafaelsq/boiler/pkg/entity"
 	iface "github.com/rafaelsq/boiler/pkg/iface"
-	reflect "reflect"
 )
 
 // MockService is a mock of Service interface

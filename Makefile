@@ -1,5 +1,8 @@
 watch: godeps
-	@go run cmd/watch/watch.go
+ifeq (, $(shell which wtc))
+	go get github.com/rafaelsq/wtc
+endif
+	@wtc
 
 run: godeps
 	@go run cmd/server/server.go
@@ -12,7 +15,7 @@ update-graphql-schema: godeps
 
 godeps:
 ifeq (, $(shell which msgp))
-	go get github.com/tinylib/msgp/msgp
+	go get github.com/tinylib/msgp
 endif
 ifeq (, $(shell which gqlgen))
 	go get github.com/99designs/gqlgen
