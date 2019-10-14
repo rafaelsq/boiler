@@ -10,6 +10,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/log"
 )
 
+// Recoverer recover from panic
 func Recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {

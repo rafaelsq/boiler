@@ -12,14 +12,17 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
+// AddUser create a new user in the database
 func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error) {
 	return Insert(ctx, tx, "INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())", name)
 }
 
+// DeleteUser remove an user from the database
 func (s *Storage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) error {
 	return Delete(ctx, tx, "DELETE FROM users WHERE id = ?", userID)
 }
 
+// FilterUsersID retrieve usersID from the database for a given filter
 func (s *Storage) FilterUsersID(ctx context.Context, filter iface.FilterUsers) ([]int64, error) {
 	limit := iface.FilterUsersDefaultLimit
 	if filter.Limit != 0 {
@@ -52,6 +55,7 @@ func (s *Storage) FilterUsersID(ctx context.Context, filter iface.FilterUsers) (
 	return IDs, nil
 }
 
+// FetchUsers retrieve users from the database
 func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, error) {
 	query := fmt.Sprintf(
 		"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+

@@ -9,6 +9,7 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
+// Wrap wrap error 
 func Wrap(ctx context.Context, err error, args ...string) error {
 	if er := errors.Cause(err); err == iface.ErrNotFound {
 		return er

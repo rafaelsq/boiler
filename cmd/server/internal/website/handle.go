@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// Handle handle an http request
 func Handle(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `<!DOCTYPE html>
 <html>

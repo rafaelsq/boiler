@@ -14,6 +14,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
+// ApplyMiddlewares add middlewares to the router
 func ApplyMiddlewares(r chi.Router) {
 	r.Use(Recoverer)
 	r.Use(middleware.RequestID)
@@ -38,6 +39,7 @@ func ApplyMiddlewares(r chi.Router) {
 	})
 }
 
+// ApplyRoute define the routes of the service
 func ApplyRoute(r chi.Router, service iface.Service) {
 	// website
 	r.Get("/", website.Handle)

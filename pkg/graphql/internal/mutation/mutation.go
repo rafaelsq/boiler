@@ -13,16 +13,19 @@ import (
 	"github.com/vektah/gqlparser/gqlerror"
 )
 
+// NewMutation return a new Mutation
 func NewMutation(service iface.Service) *Mutation {
 	return &Mutation{
 		service: service,
 	}
 }
 
+// Mutation handle service mutation
 type Mutation struct {
 	service iface.Service
 }
 
+// AddUser add a new User to the service
 func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.UserResponse, error) {
 	userID, err := m.service.AddUser(ctx, input.Name)
 	if err != nil {
@@ -33,6 +36,7 @@ func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*ent
 	return &entity.UserResponse{User: &entity.User{ID: strconv.FormatInt(userID, 10)}}, nil
 }
 
+// AddEmail add a new Email to the service
 func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.EmailResponse, error) {
 	userID, err := strconv.ParseInt(input.UserID, 10, 64)
 	if err != nil || userID == 0 {

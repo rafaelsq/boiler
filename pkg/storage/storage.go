@@ -8,23 +8,27 @@ import (
 	"github.com/rafaelsq/errors"
 
 	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // Preload mysql extension
 )
 
+// Storage map a database access
 type Storage struct {
 	sql *sql.DB
 }
 
+// Tx start a new transaction
 func (s *Storage) Tx() (*sql.Tx, error) {
 	return s.sql.Begin()
 }
 
+// New create a new storage
 func New(sql *sql.DB) iface.Storage {
 	return &Storage{
 		sql: sql,
 	}
 }
 
+// Insert execute an insert sql statement
 func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) (int64, error) {
 	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
@@ -45,6 +49,7 @@ func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 	return id, nil
 }
 
+// Delete execute a delete sql statement
 func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) error {
 	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
@@ -63,6 +68,7 @@ func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 	return nil
 }
 
+// Select execute a select sql statement
 func Select(ctx context.Context, sql *sql.DB, scan func(func(...interface{}) error) (interface{}, error), query string, args ...interface{}) ([]interface{}, error) {
 	rawRows, err := sql.QueryContext(ctx, query, args...)
 	if err != nil {

@@ -1,3 +1,4 @@
+// Package iface contains all the interface of the system
 //go:generate ../../mock.sh
 package iface
 
@@ -7,6 +8,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/entity"
 )
 
+// Service is the interface of the Service
 type Service interface {
 	// user
 	AddUser(context.Context, string) (int64, error)

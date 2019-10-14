@@ -1,3 +1,4 @@
+// Package graphql contains all the graphql resources
 //go:generate go run github.com/99designs/gqlgen
 package graphql
 
@@ -7,34 +8,42 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
+// NewResolver return a new Resolver
 func NewResolver(service iface.Service) ResolverRoot {
 	return &Resolver{service}
 }
 
+// Resolver is the Resolver of the service
 type Resolver struct {
 	service iface.Service
 }
 
+// Query return a new QueryResolver
 func (r *Resolver) Query() QueryResolver {
 	return NewQuery(resolver.NewUser(r.service))
 }
 
+// Mutation return a new MutationResolver
 func (r *Resolver) Mutation() MutationResolver {
 	return mutation.NewMutation(r.service)
 }
 
+// User return a new UserResolver
 func (r *Resolver) User() UserResolver {
 	return resolver.NewUser(r.service)
 }
 
+// UserResponse return a new UserResponseResolver
 func (r *Resolver) UserResponse() UserResponseResolver {
 	return resolver.NewResponse(r.service)
 }
 
+// Email return a new EmailResolver
 func (r *Resolver) Email() EmailResolver {
 	return resolver.NewEmail(r.service)
 }
 
+// EmailResponse return a new EmailResponseResolver
 func (r *Resolver) EmailResponse() EmailResponseResolver {
 	return resolver.NewResponse(r.service)
 }

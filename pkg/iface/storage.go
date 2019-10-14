@@ -1,3 +1,4 @@
+// Package iface contains all the interface of the system
 //go:generate ../../mock.sh
 package iface
 
@@ -8,6 +9,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/entity"
 )
 
+// Storage is the storage system
 type Storage interface {
 	// begin transaction
 	Tx() (*sql.Tx, error)

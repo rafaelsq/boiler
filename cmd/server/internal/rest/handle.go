@@ -13,6 +13,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/log"
 )
 
+// AddUserHandle handle an AddUser request
 func AddUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
@@ -44,6 +45,7 @@ func AddUserHandle(service iface.Service) http.HandlerFunc {
 	}
 }
 
+// ListUsersHandle handle an ListUsers request
 func ListUsersHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		limit := 100
@@ -72,6 +74,7 @@ func ListUsersHandle(service iface.Service) http.HandlerFunc {
 	}
 }
 
+// DeleteUserHandle handle an DeleteUser request
 func DeleteUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
@@ -91,6 +94,7 @@ func DeleteUserHandle(service iface.Service) http.HandlerFunc {
 	}
 }
 
+// GetUserHandle handle an GetUser request
 func GetUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
@@ -112,6 +116,7 @@ func GetUserHandle(service iface.Service) http.HandlerFunc {
 	}
 }
 
+// AddEmailHandle handle an AddEmail request
 func AddEmailHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
@@ -150,6 +155,7 @@ func AddEmailHandle(service iface.Service) http.HandlerFunc {
 	}
 }
 
+// DeleteEmailHandle handle an DeleteEmail request
 func DeleteEmailHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		emailID, err := strconv.ParseInt(chi.URLParam(r, "emailID"), 10, 64)
@@ -169,6 +175,7 @@ func DeleteEmailHandle(service iface.Service) http.HandlerFunc {
 	}
 }
 
+// ListEmailsHandle handle an ListEmails request
 func ListEmailsHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()["user_id"]

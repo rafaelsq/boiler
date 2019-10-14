@@ -18,6 +18,7 @@ func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
+// Log write an error in the log
 func Log(err error) {
 	errs := errors.List(err)
 	fmt.Printf("\x0b[38;5;1mERROR\x1b[0m(%d):\n", len(errs))
@@ -33,6 +34,7 @@ func Log(err error) {
 	}
 }
 
+// Zerolog log all the related errors of an error
 func Zerolog(err error) {
 	errs := errors.List(err)
 	lg := log.Error().Timestamp()
@@ -52,7 +54,9 @@ func Zerolog(err error) {
 }
 
 var (
+	// ProjectFolder is the main folder of the project 
 	ProjectFolder = []byte("boiler")
+	// IgnoreList are all the files ignored from the log 
 	IgnoreList    = [][]byte{
 		[]byte("/middleware.go"),
 		[]byte("/errors/errors.go"),
@@ -67,6 +71,7 @@ var (
 	rXP   = regexp.MustCompile(fmt.Sprintf(`(.+/)(%s/.*/)(([^/]+\..{2,3}):\d+)(.*)`, ProjectFolder))
 )
 
+// WriteStack write the stack to the writer
 func WriteStack(w io.Writer) {
 	for i, l := range bytes.Split(debug.Stack(), []byte("\n")) {
 		if i == 0 {

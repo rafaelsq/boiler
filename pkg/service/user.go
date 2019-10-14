@@ -8,6 +8,7 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
+// AddUser add a new user
 func (s *Service) AddUser(ctx context.Context, name string) (int64, error) {
 	tx, err := s.storage.Tx()
 	if err != nil {
@@ -32,6 +33,7 @@ func (s *Service) AddUser(ctx context.Context, name string) (int64, error) {
 	return ID, nil
 }
 
+// DeleteUser remove user by ID
 func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	tx, err := s.storage.Tx()
 	if err != nil {
@@ -67,6 +69,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	return nil
 }
 
+// FilterUsers retrive users
 func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
 	IDs, err := s.storage.FilterUsersID(ctx, filter)
 	if err != nil {
@@ -76,6 +79,7 @@ func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]
 	return s.storage.FetchUsers(ctx, IDs...)
 }
 
+// GetUserByID get user by ID
 func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, error) {
 	us, err := s.storage.FetchUsers(ctx, userID)
 	if err != nil {
@@ -87,6 +91,7 @@ func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, 
 	return us[0], nil
 }
 
+// GetUserByEmail get user by Email
 func (s *Service) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	IDs, err := s.storage.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 	if err != nil {
