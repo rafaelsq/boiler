@@ -1,0 +1,9 @@
+linters:
+  enable:
+    - unconvert
+    - gofmt
+    - gocyclo
+    - godox
+    - lll
+    - bodyclose
+    - misspell

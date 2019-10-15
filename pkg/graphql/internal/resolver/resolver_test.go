@@ -14,5 +14,6 @@ func TestWrap(t *testing.T) {
 
 	assert.Equal(t, "service failed", Wrap(context.TODO(), fmt.Errorf("opz"), "fail").Error())
 
-	assert.Equal(t, "opz", Wrap(context.WithValue(context.TODO(), "debug", true), fmt.Errorf("opz")).Error())
+	assert.Equal(t, "opz", Wrap(context.WithValue(
+		context.TODO(), iface.ContextKeyDebug{}, true), fmt.Errorf("opz")).Error())
 }

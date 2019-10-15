@@ -28,7 +28,7 @@ func ApplyMiddlewares(r chi.Router) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if len(r.URL.Query()["debug"]) != 0 {
 				ctx := r.Context()
-				ctx = context.WithValue(ctx, "debug", struct{}{})
+				ctx = context.WithValue(ctx, iface.ContextKeyDebug{}, struct{}{})
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}

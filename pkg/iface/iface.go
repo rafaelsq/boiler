@@ -2,8 +2,8 @@ package iface
 
 const (
 	// FilterUsersDefaultLimit is the default limit for user filtering
-	FilterUsersDefaultLimit  uint = 50
-	// FilterEmailsDefaultLimit is the default limit for email filtering 
+	FilterUsersDefaultLimit uint = 50
+	// FilterEmailsDefaultLimit is the default limit for email filtering
 	FilterEmailsDefaultLimit uint = 50
 )
 
@@ -21,3 +21,5 @@ type FilterEmails struct {
 	Offset  uint
 	Limit   uint
 }
+
+type ContextKeyDebug struct{}

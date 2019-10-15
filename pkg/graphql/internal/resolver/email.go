@@ -29,7 +29,7 @@ func (r *Email) User(ctx context.Context, e *entity.Email) (*entity.User, error)
 	return nil, Wrap(ctx, err, "fail to get user by email")
 }
 
-// Email resolve Email by emailID 
+// Email resolve Email by emailID
 func (r *Email) Email(ctx context.Context, rawEmailID string) (*entity.Email, error) {
 	emailID, err := strconv.ParseInt(rawEmailID, 10, 64)
 	if err != nil || emailID == 0 {

@@ -69,7 +69,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	return nil
 }
 
-// FilterUsers retrive users
+// FilterUsers retrieve users
 func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
 	IDs, err := s.storage.FilterUsersID(ctx, filter)
 	if err != nil {

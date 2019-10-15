@@ -18,7 +18,7 @@ import (
 var ctxDebug context.Context
 
 func init() {
-	ctxDebug = context.WithValue(context.Background(), "debug", true)
+	ctxDebug = context.WithValue(context.Background(), iface.ContextKeyDebug{}, true)
 }
 
 func TestUserUser(t *testing.T) {

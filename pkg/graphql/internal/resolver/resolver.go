@@ -9,13 +9,13 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
-// Wrap wrap error 
+// Wrap wrap error
 func Wrap(ctx context.Context, err error, args ...string) error {
 	if er := errors.Cause(err); err == iface.ErrNotFound {
 		return er
 	}
 
-	if debug := ctx.Value("debug"); debug != nil {
+	if debug := ctx.Value(iface.ContextKeyDebug{}); debug != nil {
 		return err
 	}
 

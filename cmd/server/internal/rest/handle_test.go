@@ -147,6 +147,7 @@ func TestDeleteUserHandle(t *testing.T) {
 		assert.Nil(t, err)
 
 		res, err := http.DefaultClient.Do(req)
+		res.Body.Close()
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 	}
@@ -264,7 +265,8 @@ func TestUsersHandle(t *testing.T) {
 		m := mock.NewMockService(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John Doe"}
-		m.EXPECT().FilterUsers(gomock.Any(), iface.FilterUsers{Limit: 100}).Return([]*entity.User{user}, fmt.Errorf("not working"))
+		m.EXPECT().FilterUsers(gomock.Any(),
+			iface.FilterUsers{Limit: 100}).Return([]*entity.User{user}, fmt.Errorf("not working"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r)
@@ -393,7 +395,7 @@ func TestAddEmailHandle(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&j)
 		res.Body.Close()
 		assert.Nil(t, err)
-		assert.Equal(t, 5, int(j.EmailID))
+		assert.Equal(t, 5, j.EmailID)
 	}
 
 	// fail with invalid payload

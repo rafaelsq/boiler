@@ -17,7 +17,6 @@ jobs:
             - name: GolangCI-Lint
               run: |
                   curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s v1.19.1
-                  ./bin/golangci-lint run
+                  ./bin/golangci-lint run --enable golint --enable gocyclo
             - name: Test
-              run: |
-                  make godeps && go test -race -cover ./...
+              run: make godeps && go test -race -cover ./...

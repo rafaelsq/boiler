@@ -69,7 +69,9 @@ func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 }
 
 // Select execute a select sql statement
-func Select(ctx context.Context, sql *sql.DB, scan func(func(...interface{}) error) (interface{}, error), query string, args ...interface{}) ([]interface{}, error) {
+func Select(ctx context.Context, sql *sql.DB, scan func(func(...interface{}) error) (interface{}, error),
+	query string, args ...interface{}) ([]interface{}, error) {
+
 	rawRows, err := sql.QueryContext(ctx, query, args...)
 	if err != nil {
 		cerr := errors.New("could not fetch rows")

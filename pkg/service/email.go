@@ -8,7 +8,7 @@ import (
 	"github.com/rafaelsq/errors"
 )
 
-// AddEmail add a new email 
+// AddEmail add a new email
 func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (int64, error) {
 	tx, err := s.storage.Tx()
 	if err != nil {
@@ -31,7 +31,7 @@ func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (i
 	return ID, nil
 }
 
-// DeleteEmail remove an email 
+// DeleteEmail remove an email
 func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
 	tx, err := s.storage.Tx()
 	if err != nil {
@@ -56,7 +56,7 @@ func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
 	return nil
 }
 
-// FilterEmails retrieve emails 
+// FilterEmails retrieve emails
 func (s *Service) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {
 	return s.storage.FilterEmails(ctx, filter)
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
-// PlayHandle handle Playground 
+// PlayHandle handle Playground
 func PlayHandle() http.HandlerFunc {
 	return handler.Playground("Users", "/graphql/query")
 }

@@ -54,10 +54,10 @@ func Zerolog(err error) {
 }
 
 var (
-	// ProjectFolder is the main folder of the project 
+	// ProjectFolder is the main folder of the project
 	ProjectFolder = []byte("boiler")
-	// IgnoreList are all the files ignored from the log 
-	IgnoreList    = [][]byte{
+	// IgnoreList are all the files ignored from the log
+	IgnoreList = [][]byte{
 		[]byte("/middleware.go"),
 		[]byte("/errors/errors.go"),
 	}
