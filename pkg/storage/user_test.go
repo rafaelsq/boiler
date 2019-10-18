@@ -256,7 +256,7 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+				"SELECT id, name, created, updated "+
 					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
 		).WithArgs(userID, userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
@@ -278,7 +278,7 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+				"SELECT id, name, created, updated "+
 					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
 		).WithArgs(userID, userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id"}),
@@ -295,7 +295,7 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+				"SELECT id, name, created, updated "+
 					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
 		).WithArgs(userID, userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
@@ -314,7 +314,7 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(updated) "+
+				"SELECT id, name, created, updated "+
 					"FROM users WHERE id IN (?) ORDER BY FIELD(id, ?"),
 		).WithArgs(userID, userID).WillReturnError(myErr)
 
