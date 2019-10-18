@@ -94,7 +94,7 @@ func main() {
 
 	log.Printf("Listening on :%d\n", *port)
 	if err := srv.ListenAndServe(); err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 
 	log.Println("waiting iddle connections...")
