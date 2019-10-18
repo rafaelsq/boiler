@@ -44,6 +44,7 @@ func newMariaDB(dsn string) (*sql.DB, error) {
 
 func main() {
 	var port = flag.Int("port", 2000, "")
+	var useMemcached = flag.Bool("memcached", false, "")
 
 	flag.Parse()
 
@@ -63,7 +64,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	st := cache.New(mc, storage.New(sql))
+	st := storage.New(sql)
+	if useMemcached != nil && *useMemcached {
+		st = cache.New(mc, st)
+	}
 
 	r := chi.NewRouter()
 	router.ApplyMiddlewares(r)
