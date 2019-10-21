@@ -1,14 +1,20 @@
 debounce: 300
 ignore: "\\.git/"
-trig: build
+trig:
+  - start
 rules:
+  - name: start
+    command: go build cmd/server/server.go
+    trig:
+      - run
   - name: build
     match: "\\.go$"
     ignore: "((/(iface|entity)/)|_test\\.go$)"
     command: "go build cmd/server/server.go"
-    trig: run
+    trig:
+      - run
+      - lint
   - name: run
-    match: "^$"
     command: "./server"
   - name: gqlgen
     match: "schema\\.graphql$"
@@ -18,7 +24,8 @@ rules:
     ignore: "(_test\\.go|_gen_?)"
     command: "go generate {PKG}"
     debounce: 1000
-    trig: build
+    trig:
+      - build
   - name: test
     match: "_test\\.go$"
     command: "go test -cover {PKG}"
