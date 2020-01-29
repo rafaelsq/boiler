@@ -97,7 +97,7 @@ func main() {
 	}()
 
 	log.Printf("Listening on :%d\n", *port)
-	if err := srv.ListenAndServe(); err != nil {
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 
