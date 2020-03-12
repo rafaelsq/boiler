@@ -57,6 +57,10 @@ func (s *Storage) FilterUsersID(ctx context.Context, filter iface.FilterUsers) (
 
 // FetchUsers retrieve users from the database
 func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, error) {
+	if len(IDs) == 0 {
+		return make([]*entity.User, 0), nil
+	}
+
 	query := fmt.Sprintf(
 		"SELECT id, name, created, updated "+
 			"FROM users WHERE id IN (%s) ORDER BY FIELD(id, %s)",
