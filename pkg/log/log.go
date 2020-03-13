@@ -21,15 +21,15 @@ func init() {
 // Log write an error in the log
 func Log(err error) {
 	errs := errors.List(err)
-	fmt.Printf("\x0b[38;5;1mERROR\x1b[0m(%d):\n", len(errs))
+	fmt.Printf("\u001b[38;5;1mERROR\033[0m(%d):\n", len(errs))
 	for _, err := range errs {
 		fmt.Printf(" %v\n", err)
 		if er, is := err.(*errors.Error); is {
 			if er.Args != nil {
-				fmt.Printf("  \x1b[38;5;1margs\x1b[0m: ")
+				fmt.Printf("  \033[38;5;1margs\033[0m: ")
 				_ = json.NewEncoder(os.Stderr).Encode(er.Args)
 			}
-			fmt.Printf("  \x1b[38;5;1mfile\x1b[0m: %s\n", er.Caller)
+			fmt.Printf("  \033[38;5;1mfile\033[0m: %s\n", er.Caller)
 		}
 	}
 }
@@ -62,12 +62,12 @@ var (
 		[]byte("/errors/errors.go"),
 	}
 	bl    = []byte("\n")
-	end   = []byte("\x1b[0m")
-	red   = []byte("\x1b[38;5;1m")
-	dark  = []byte("\x1b[38;5;237m")
-	gray  = []byte("\x1b[38;5;240m")
-	light = []byte("\x1b[38;5;244m")
-	white = []byte("\x1b[38;5;250m")
+	end   = []byte("\033[0m")
+	red   = []byte("\033[38;5;1m")
+	dark  = []byte("\033[38;5;237m")
+	gray  = []byte("\033[38;5;240m")
+	light = []byte("\033[38;5;244m")
+	white = []byte("\033[38;5;250m")
 	rXP   = regexp.MustCompile(fmt.Sprintf(`(.+/)(%s/.*/)(([^/]+\..{2,3}):\d+)(.*)`, ProjectFolder))
 )
 
