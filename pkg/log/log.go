@@ -64,10 +64,10 @@ var (
 	bl    = []byte("\n")
 	end   = []byte("\x1b[0m")
 	red   = []byte("\x1b[38;5;1m")
-	dark  = []byte("\x1b[38;5;236m")
-	gray  = []byte("\x1b[38;5;239m")
-	light = []byte("\x1b[38;5;243m")
-	white = []byte("\x1b[38;5;249m")
+	dark  = []byte("\x1b[38;5;237m")
+	gray  = []byte("\x1b[38;5;240m")
+	light = []byte("\x1b[38;5;244m")
+	white = []byte("\x1b[38;5;250m")
 	rXP   = regexp.MustCompile(fmt.Sprintf(`(.+/)(%s/.*/)(([^/]+\..{2,3}):\d+)(.*)`, ProjectFolder))
 )
 
@@ -95,14 +95,22 @@ func WriteStack(w io.Writer) {
 		}
 
 		if len(ms) != 0 && !ignore {
+			// fmt.Println(string(l))
+			// for i := 0; i < len(ms); i++ {
+			// 	fmt.Println(" -", string(ms[i]))
+
+			// }
+
 			_, _ = w.Write(light)
 			_, _ = w.Write(ms[1])
 			_, _ = w.Write(white)
 			_, _ = w.Write(ms[2])
 			_, _ = w.Write(red)
-			_, _ = w.Write(ms[4])
+			_, _ = w.Write(ms[3])
 			_, _ = w.Write(gray)
-			_, _ = w.Write(ms[6])
+			for i := 5; i < len(ms); i++ {
+				_, _ = w.Write(ms[i])
+			}
 			_, _ = w.Write(end)
 			_, _ = w.Write(bl)
 			continue
