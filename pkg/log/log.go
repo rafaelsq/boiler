@@ -21,7 +21,7 @@ func init() {
 // Log write an error in the log
 func Log(err error) {
 	errs := errors.List(err)
-	fmt.Printf("\u001b[38;5;1mERROR\033[0m(%d):\n", len(errs))
+	fmt.Printf("\u001b[38;5;1mERROR\033[0m(%d): %s\n", len(errs), errors.Caller(1))
 	for _, err := range errs {
 		fmt.Printf(" %v\n", err)
 		if er, is := err.(*errors.Error); is {

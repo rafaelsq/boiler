@@ -14,7 +14,8 @@ import (
 
 // AddUser create a new user in the database
 func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error) {
-	return Insert(ctx, tx, "INSERT INTO users (name, created, updated) VALUES (?, NOW(), NOW())", name)
+	now := time.Now()
+	return Insert(ctx, tx, "INSERT INTO users (name, created, updated) VALUES (?, ?, ?)", name, now, now)
 }
 
 // DeleteUser remove an user from the database
@@ -63,12 +64,11 @@ func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User,
 
 	query := fmt.Sprintf(
 		"SELECT id, name, created, updated "+
-			"FROM users WHERE id IN (%s) ORDER BY FIELD(id, %s)",
-		strings.Repeat("?,", len(IDs))[0:len(IDs)*2-1],
+			"FROM users WHERE id IN (%s)",
 		strings.Repeat("?,", len(IDs))[0:len(IDs)*2-1])
 
-	args := make([]interface{}, 0, len(IDs)*2)
-	for _, ID := range append(IDs, IDs...) {
+	args := make([]interface{}, 0, len(IDs))
+	for _, ID := range IDs {
 		args = append(args, ID)
 	}
 	rows, err := Select(ctx, s.sql, scanUser, query, args...)

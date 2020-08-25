@@ -4,11 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/mattn/go-sqlite3"
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/errors"
-
-	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql" // Preload mysql extension
 )
 
 // Storage map a database access
@@ -32,10 +30,8 @@ func New(sql *sql.DB) iface.Storage {
 func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) (int64, error) {
 	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		if mysqlError, ok := err.(*mysql.MySQLError); ok {
-			if mysqlError.Number == 1062 {
-				return 0, iface.ErrAlreadyExists
-			}
+		if e, is := err.(sqlite3.Error); is && e.ExtendedCode == sqlite3.ErrConstraintUnique {
+			return 0, iface.ErrAlreadyExists
 		}
 
 		return 0, errors.New("could not insert").SetArg("args", args).SetParent(err)

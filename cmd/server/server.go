@@ -5,26 +5,34 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
-
-	// mariadb
-	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/go-chi/chi"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/rafaelsq/boiler/cmd/server/internal/router"
 	"github.com/rafaelsq/boiler/pkg/cache"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
-func newMariaDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
+func newDB(path string) (*sql.DB, error) {
+	createTable := !fileExists(path)
+
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +47,22 @@ func newMariaDB(dsn string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	return db, err
+	if createTable {
+		log.Println("Creating DB")
+
+		content, err := ioutil.ReadFile("./schema.sql")
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+
+		if _, err := db.Exec(string(content)); err != nil {
+			db.Close()
+			return nil, err
+		}
+	}
+
+	return db, nil
 }
 
 func main() {
@@ -48,30 +71,22 @@ func main() {
 
 	flag.Parse()
 
-	var rLimit syscall.Rlimit
-	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
-		log.Fatal("Get RLIMIT_NOFILE failed", err)
-	}
-	rLimit.Cur = rLimit.Max
-	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
-		log.Fatal("Set RLIMIT_NOFILE failed", err)
-	}
-
-	mc := memcache.New("127.0.0.1:11211")
-
-	sql, err := newMariaDB("root:boiler@tcp(127.0.0.1:3307)/boiler?timeout=5s&parseTime=true&loc=Local")
+	sql, err := newDB("./db.sqlite3")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	st := storage.New(sql)
 	if useMemcached != nil && *useMemcached {
+		mc := memcache.New("127.0.0.1:11211")
 		st = cache.New(mc, st)
 	}
 
+	sv := service.New(st)
+
 	r := chi.NewRouter()
 	router.ApplyMiddlewares(r)
-	router.ApplyRoute(r, service.New(st))
+	router.ApplyRoute(r, sv)
 
 	// graceful shutdown
 	srv := http.Server{Addr: fmt.Sprintf(":%d", *port), Handler: r}

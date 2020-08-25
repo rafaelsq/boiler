@@ -15,36 +15,17 @@ The project should;
 
 **Why only one service?**
 
-- less interfaces
-- import cycles
-
-**Why only one storage?**
-
+- prevent import cycles
 - less interfaces
 
-# Run
 
-To start watching your files for modification;
+# Run Dev Mode
 
 ```bash
-$ make start-deps
 $ make
 ```
 
-### Dependencies
+if pkg/entity or pkg/iface changes, it will run `$ make gen` automatically  
+if ./schema.graphql changes, it will run `$ make update-graphql-schema` automatically
 
-MySQL and Memcache
-
-pkg/entity or pkg/iface was changed?
-
-```bash
-$ make gen
-```
-
-./schema.graphql was changed?
-
-```bash
-$ make update-graphql-schema
-```
-
-> ps; `$ make` will watch and run `make gen and update-graphql-schema` automatically
+more info on .wtc.yaml

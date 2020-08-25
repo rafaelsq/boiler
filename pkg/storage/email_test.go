@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-sql-driver/mysql"
+	"github.com/mattn/go-sqlite3"
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/storage"
 	"github.com/stretchr/testify/assert"
@@ -30,8 +30,8 @@ func TestAddEmail(t *testing.T) {
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
-		).WithArgs(userID, address).WillReturnResult(sqlmock.NewResult(3, 1))
+			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, ?)"),
+		).WithArgs(userID, address, sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(3, 1))
 		mock.ExpectCommit()
 
 		r := storage.New(mdb)
@@ -53,8 +53,8 @@ func TestAddEmail(t *testing.T) {
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
-		).WithArgs(userID, address).WillReturnError(myErr)
+			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, ?)"),
+		).WithArgs(userID, address, sqlmock.AnyArg()).WillReturnError(myErr)
 		mock.ExpectCommit()
 
 		r := storage.New(mdb)
@@ -72,15 +72,15 @@ func TestAddEmail(t *testing.T) {
 	{
 		userID := int64(3)
 		address := "a@a.com"
-		myErr := mysql.MySQLError{
-			Message: "Duplicate entry 'a@a.com' for key 'address'",
-			Number:  1062,
+
+		myErr := sqlite3.Error{
+			ExtendedCode: sqlite3.ErrConstraintUnique,
 		}
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
-		).WithArgs(userID, address).WillReturnError(&myErr)
+			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, ?)"),
+		).WithArgs(userID, address, sqlmock.AnyArg()).WillReturnError(myErr)
 		mock.ExpectCommit()
 
 		r := storage.New(mdb)
@@ -102,8 +102,9 @@ func TestAddEmail(t *testing.T) {
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())"),
-		).WithArgs(userID, address).WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
+			regexp.QuoteMeta("INSERT INTO emails (user_id, address, created) VALUES (?, ?, ?)"),
+		).WithArgs(userID, address, sqlmock.AnyArg()).
+			WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
 		mock.ExpectCommit()
 
 		r := storage.New(mdb)

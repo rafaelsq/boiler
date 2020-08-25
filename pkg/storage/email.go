@@ -13,8 +13,8 @@ import (
 // AddEmail insert a new emails in the database
 func (s *Storage) AddEmail(ctx context.Context, tx *sql.Tx, userID int64, address string) (int64, error) {
 	return Insert(ctx, tx,
-		"INSERT INTO emails (user_id, address, created) VALUES (?, ?, NOW())",
-		userID, address,
+		"INSERT INTO emails (user_id, address, created) VALUES (?, ?, ?)",
+		userID, address, time.Now(),
 	)
 }
 

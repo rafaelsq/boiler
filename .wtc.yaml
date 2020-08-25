@@ -34,5 +34,3 @@ rules:
     ignore: "_gen_?"
     command: "golangci-lint run {PKG}"
     debounce: 1000
-
-
