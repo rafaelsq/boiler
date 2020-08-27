@@ -10,7 +10,7 @@ import (
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/log"
 	"github.com/rafaelsq/errors"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // NewMutation return a new Mutation
