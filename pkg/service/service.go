@@ -1,15 +1,17 @@
 package service
 
 import (
+	"github.com/rafaelsq/boiler/pkg/config"
 	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
 // New return a new service
-func New(storage iface.Storage) iface.Service {
-	return &Service{storage}
+func New(conf *config.Config, storage iface.Storage) iface.Service {
+	return &Service{conf, storage}
 }
 
 // Service is the main service
 type Service struct {
+	config  *config.Config
 	storage iface.Storage
 }

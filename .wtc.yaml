@@ -17,7 +17,7 @@ rules:
   - name: run
     command: "./server"
   - name: gqlgen
-    match: "schema\\.graphql$"
+    match: (schema\.graphql|gqlgen.yml)$
     command: "go run github.com/99designs/gqlgen"
   - name: generate
     match: "pkg/(iface|entity)/"

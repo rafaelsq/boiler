@@ -38,6 +38,11 @@ func (r *Resolver) UserResponse() UserResponseResolver {
 	return resolver.NewResponse(r.service)
 }
 
+// AuthUserResponse return a new UserResponseResolver
+func (r *Resolver) AuthUserResponse() AuthUserResponseResolver {
+	return resolver.NewAuthUserResponse(r.service)
+}
+
 // Email return a new EmailResolver
 func (r *Resolver) Email() EmailResolver {
 	return resolver.NewEmail(r.service)

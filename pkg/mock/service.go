@@ -9,6 +9,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	entity "github.com/rafaelsq/boiler/pkg/entity"
 	iface "github.com/rafaelsq/boiler/pkg/iface"
+	http "net/http"
 	reflect "reflect"
 )
 
@@ -36,18 +37,18 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // AddUser mocks base method
-func (m *MockService) AddUser(arg0 context.Context, arg1 string) (int64, error) {
+func (m *MockService) AddUser(arg0 context.Context, arg1, arg2 string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddUser", arg0, arg1)
+	ret := m.ctrl.Call(m, "AddUser", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddUser indicates an expected call of AddUser
-func (mr *MockServiceMockRecorder) AddUser(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) AddUser(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockService)(nil).AddUser), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockService)(nil).AddUser), arg0, arg1, arg2)
 }
 
 // DeleteUser mocks base method
@@ -109,6 +110,22 @@ func (mr *MockServiceMockRecorder) GetUserByEmail(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockService)(nil).GetUserByEmail), arg0, arg1)
 }
 
+// AuthUser mocks base method
+func (m *MockService) AuthUser(arg0 context.Context, arg1, arg2 string) (*entity.User, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AuthUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// AuthUser indicates an expected call of AuthUser
+func (mr *MockServiceMockRecorder) AuthUser(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthUser", reflect.TypeOf((*MockService)(nil).AuthUser), arg0, arg1, arg2)
+}
+
 // FilterEmails mocks base method
 func (m *MockService) FilterEmails(arg0 context.Context, arg1 iface.FilterEmails) ([]*entity.Email, error) {
 	m.ctrl.T.Helper()
@@ -151,4 +168,18 @@ func (m *MockService) DeleteEmail(arg0 context.Context, arg1 int64) error {
 func (mr *MockServiceMockRecorder) DeleteEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmail", reflect.TypeOf((*MockService)(nil).DeleteEmail), arg0, arg1)
+}
+
+// AuthUserMiddleware mocks base method
+func (m *MockService) AuthUserMiddleware(arg0 http.Handler) http.Handler {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AuthUserMiddleware", arg0)
+	ret0, _ := ret[0].(http.Handler)
+	return ret0
+}
+
+// AuthUserMiddleware indicates an expected call of AuthUserMiddleware
+func (mr *MockServiceMockRecorder) AuthUserMiddleware(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthUserMiddleware", reflect.TypeOf((*MockService)(nil).AuthUserMiddleware), arg0)
 }

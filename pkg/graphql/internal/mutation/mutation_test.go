@@ -26,11 +26,13 @@ func TestAddUser(t *testing.T) {
 	// succeed
 	{
 		name := "name"
+		password := "pass"
 
-		service.EXPECT().AddUser(ctx, name).Return(int64(1), nil)
+		service.EXPECT().AddUser(ctx, name, password).Return(int64(1), nil)
 
 		u, err := m.AddUser(ctx, entity.AddUserInput{
-			Name: name,
+			Name:     name,
+			Password: password,
 		})
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
@@ -39,11 +41,13 @@ func TestAddUser(t *testing.T) {
 	// fails if service fails
 	{
 		name := "name"
+		password := "pass"
 
-		service.EXPECT().AddUser(ctx, name).Return(int64(0), fmt.Errorf("opz"))
+		service.EXPECT().AddUser(ctx, name, password).Return(int64(0), fmt.Errorf("opz"))
 
 		u, err := m.AddUser(ctx, entity.AddUserInput{
-			Name: name,
+			Name:     name,
+			Password: password,
 		})
 		assert.Equal(t, err.Error(), "service failed")
 		assert.Nil(t, u)

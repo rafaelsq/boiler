@@ -36,6 +36,12 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Name")
 				return
 			}
+		case "Password":
+			z.Password, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Password")
+				return
+			}
 		case "Created":
 			z.Created, err = dc.ReadTime()
 			if err != nil {
@@ -61,9 +67,9 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 4
+	// map header, size 5
 	// write "ID"
-	err = en.Append(0x84, 0xa2, 0x49, 0x44)
+	err = en.Append(0x85, 0xa2, 0x49, 0x44)
 	if err != nil {
 		return
 	}
@@ -80,6 +86,16 @@ func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteString(z.Name)
 	if err != nil {
 		err = msgp.WrapError(err, "Name")
+		return
+	}
+	// write "Password"
+	err = en.Append(0xa8, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Password)
+	if err != nil {
+		err = msgp.WrapError(err, "Password")
 		return
 	}
 	// write "Created"
@@ -108,13 +124,16 @@ func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 4
+	// map header, size 5
 	// string "ID"
-	o = append(o, 0x84, 0xa2, 0x49, 0x44)
+	o = append(o, 0x85, 0xa2, 0x49, 0x44)
 	o = msgp.AppendInt64(o, z.ID)
 	// string "Name"
 	o = append(o, 0xa4, 0x4e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.Name)
+	// string "Password"
+	o = append(o, 0xa8, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
+	o = msgp.AppendString(o, z.Password)
 	// string "Created"
 	o = append(o, 0xa7, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64)
 	o = msgp.AppendTime(o, z.Created)
@@ -154,6 +173,12 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "Name")
 				return
 			}
+		case "Password":
+			z.Password, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Password")
+				return
+			}
 		case "Created":
 			z.Created, bts, err = msgp.ReadTimeBytes(bts)
 			if err != nil {
@@ -180,6 +205,6 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *User) Msgsize() (s int) {
-	s = 1 + 3 + msgp.Int64Size + 5 + msgp.StringPrefixSize + len(z.Name) + 8 + msgp.TimeSize + 8 + msgp.TimeSize
+	s = 1 + 3 + msgp.Int64Size + 5 + msgp.StringPrefixSize + len(z.Name) + 9 + msgp.StringPrefixSize + len(z.Password) + 8 + msgp.TimeSize + 8 + msgp.TimeSize
 	return
 }

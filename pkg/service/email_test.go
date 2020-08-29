@@ -7,6 +7,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
+	"github.com/rafaelsq/boiler/pkg/config"
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/mock"
@@ -20,7 +21,7 @@ func TestAddEmail(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var ID int64 = 13
 	var userID int64 = 99
@@ -144,7 +145,7 @@ func TestDeleteEmail(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var ID int64 = 13
 
@@ -262,7 +263,7 @@ func TestFilterEmails(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var ID int64 = 13
 	var userID int64 = 99

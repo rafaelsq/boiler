@@ -23,3 +23,5 @@ type FilterEmails struct {
 }
 
 type ContextKeyDebug struct{}
+
+type ContextKeyAuthenticationUser struct{}

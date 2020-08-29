@@ -27,7 +27,7 @@ type Mutation struct {
 
 // AddUser add a new User to the service
 func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.UserResponse, error) {
-	userID, err := m.service.AddUser(ctx, input.Name)
+	userID, err := m.service.AddUser(ctx, input.Name, input.Password)
 	if err != nil {
 		log.Log(errors.New("fail to add user").SetParent(err))
 		return nil, fmt.Errorf("service failed")
@@ -74,4 +74,18 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 	}
 
 	return &entity.EmailResponse{Email: &entity.Email{ID: strconv.FormatInt(emailID, 10)}}, nil
+}
+
+// AuthUser returns a JWT token
+func (m *Mutation) AuthUser(ctx context.Context, input entity.AuthUserInput) (*entity.AuthUserResponse, error) {
+	user, token, err := m.service.AuthUser(ctx, input.Email, input.Password)
+	if err != nil {
+		log.Log(errors.New("fail to authenticate user").SetParent(err))
+		return nil, fmt.Errorf("service failed")
+	}
+
+	return &entity.AuthUserResponse{
+		Token: token,
+		User:  &entity.User{ID: strconv.FormatInt(user.ID, 10)},
+	}, nil
 }

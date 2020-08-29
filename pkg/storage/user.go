@@ -13,9 +13,13 @@ import (
 )
 
 // AddUser create a new user in the database
-func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error) {
+func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name, password string) (int64, error) {
 	now := time.Now()
-	return Insert(ctx, tx, "INSERT INTO users (name, created, updated) VALUES (?, ?, ?)", name, now, now)
+	return Insert(
+		ctx, tx,
+		"INSERT INTO users (name, password, created, updated) VALUES (?, ?, ?, ?)",
+		name, password, now, now,
+	)
 }
 
 // DeleteUser remove an user from the database
@@ -63,7 +67,7 @@ func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User,
 	}
 
 	query := fmt.Sprintf(
-		"SELECT id, name, created, updated "+
+		"SELECT id, name, password, created, updated "+
 			"FROM users WHERE id IN (%s)",
 		strings.Repeat("?,", len(IDs))[0:len(IDs)*2-1])
 
@@ -87,18 +91,20 @@ func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User,
 func scanUser(sc func(dest ...interface{}) error) (interface{}, error) {
 	var id int64
 	var name string
+	var password string
 	var created time.Time
 	var updated time.Time
 
-	err := sc(&id, &name, &created, &updated)
+	err := sc(&id, &name, &password, &created, &updated)
 	if err != nil {
 		return nil, errors.New("could not scan user").SetParent(err)
 	}
 
 	return &entity.User{
-		ID:      id,
-		Name:    name,
-		Created: created,
-		Updated: updated,
+		ID:       id,
+		Name:     name,
+		Password: password,
+		Created:  created,
+		Updated:  updated,
 	}, nil
 }

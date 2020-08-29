@@ -52,18 +52,18 @@ func (mr *MockStorageMockRecorder) Tx() *gomock.Call {
 }
 
 // AddUser mocks base method
-func (m *MockStorage) AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error) {
+func (m *MockStorage) AddUser(ctx context.Context, tx *sql.Tx, name, password string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddUser", ctx, tx, name)
+	ret := m.ctrl.Call(m, "AddUser", ctx, tx, name, password)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddUser indicates an expected call of AddUser
-func (mr *MockStorageMockRecorder) AddUser(ctx, tx, name interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) AddUser(ctx, tx, name, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockStorage)(nil).AddUser), ctx, tx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockStorage)(nil).AddUser), ctx, tx, name, password)
 }
 
 // DeleteUser mocks base method

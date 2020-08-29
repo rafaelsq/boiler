@@ -17,6 +17,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rafaelsq/boiler/cmd/server/internal/router"
 	"github.com/rafaelsq/boiler/pkg/cache"
+	"github.com/rafaelsq/boiler/pkg/config"
 	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/rafaelsq/boiler/pkg/storage"
 )
@@ -82,10 +83,11 @@ func main() {
 		st = cache.New(mc, st)
 	}
 
-	sv := service.New(st)
+	conf := config.New()
+	sv := service.New(conf, st)
 
 	r := chi.NewRouter()
-	router.ApplyMiddlewares(r)
+	router.ApplyMiddlewares(r, sv)
 	router.ApplyRoute(r, sv)
 
 	// graceful shutdown

@@ -2,20 +2,30 @@ package service
 
 import (
 	"context"
+	"strconv"
+	"time"
 
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // AddUser add a new user
-func (s *Service) AddUser(ctx context.Context, name string) (int64, error) {
+func (s *Service) AddUser(ctx context.Context, name, password string) (int64, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 16)
+	if err != nil {
+		return 0, errors.New("could not generate password").SetParent(err)
+	}
+
 	tx, err := s.storage.Tx()
 	if err != nil {
 		return 0, errors.New("could not begin transaction").SetParent(err)
 	}
 
-	ID, err := s.storage.AddUser(ctx, tx, name)
+	ID, err := s.storage.AddUser(ctx, tx, name, string(hash))
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
 			return 0, errors.New("could not add user").SetParent(
@@ -31,6 +41,46 @@ func (s *Service) AddUser(ctx context.Context, name string) (int64, error) {
 	}
 
 	return ID, nil
+}
+
+// AuthUser returns a JWT token from users credentials
+func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity.User, string, error) {
+	var token string
+
+	IDs, err := s.storage.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+	if err != nil {
+		return nil, token, err
+	}
+	if len(IDs) != 1 {
+		return nil, token, iface.ErrNotFound
+	}
+
+	user, err := s.GetUserByID(ctx, IDs[0])
+	if err != nil {
+		return nil, token, err
+	}
+
+	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
+		return nil, token, iface.ErrInvalidPassword
+	}
+
+	t := jwt.New()
+
+	// https://tools.ietf.org/html/rfc7519#page-9
+	_ = t.Set(jwt.SubjectKey, strconv.FormatInt(user.ID, 10))
+	_ = t.Set(jwt.IssuedAtKey, time.Now().Unix())
+	_ = t.Set(jwt.ExpirationKey, time.Now().Add(s.config.JWT.ExpireIn).Unix())
+	_ = t.Set(jwt.AudienceKey, "auth")
+	_ = t.Set(jwt.IssuerKey, s.config.JWT.Issuer)
+
+	raw, err := jwt.Sign(t, jwa.RS256, s.config.JWT.PrivateKey)
+	if err != nil {
+		return nil, token, err
+	}
+
+	token = string(raw)
+
+	return user, token, nil
 }
 
 // DeleteUser remove user by ID

@@ -7,6 +7,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
+	"github.com/rafaelsq/boiler/pkg/config"
 	"github.com/rafaelsq/boiler/pkg/entity"
 	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/boiler/pkg/mock"
@@ -20,10 +21,11 @@ func TestAddUser(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var userID int64 = 99
 	name := "name"
+	password := "pass"
 
 	ctx := context.Background()
 
@@ -41,11 +43,11 @@ func TestAddUser(t *testing.T) {
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name).
+			AddUser(ctx, tx, name, gomock.Any()).
 			Return(userID, nil)
 		mdb.ExpectCommit()
 
-		id, err := srv.AddUser(ctx, name)
+		id, err := srv.AddUser(ctx, name, password)
 		assert.Nil(t, err)
 		assert.Equal(t, userID, id)
 		assert.Nil(t, mdb.ExpectationsWereMet())
@@ -55,7 +57,7 @@ func TestAddUser(t *testing.T) {
 	{
 		m.EXPECT().Tx().Return(nil, fmt.Errorf("opz"))
 
-		id, err := srv.AddUser(ctx, name)
+		id, err := srv.AddUser(ctx, name, password)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not begin transaction; opz")
 		assert.Equal(t, 0, int(id))
@@ -75,11 +77,11 @@ func TestAddUser(t *testing.T) {
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name).
+			AddUser(ctx, tx, name, gomock.Any()).
 			Return(int64(0), fmt.Errorf("rollback"))
 		mdb.ExpectRollback()
 
-		id, err := srv.AddUser(ctx, name)
+		id, err := srv.AddUser(ctx, name, password)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; rollback")
 		assert.Equal(t, 0, int(id))
@@ -100,12 +102,12 @@ func TestAddUser(t *testing.T) {
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name).
+			AddUser(ctx, tx, name, gomock.Any()).
 			Return(int64(0), fmt.Errorf("rollback"))
 
 		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackerr"))
 
-		id, err := srv.AddUser(ctx, name)
+		id, err := srv.AddUser(ctx, name, password)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; rollbackerr; rollback")
 		assert.Equal(t, 0, int(id))
@@ -126,12 +128,12 @@ func TestAddUser(t *testing.T) {
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name).
+			AddUser(ctx, tx, name, gomock.Any()).
 			Return(userID, nil)
 
 		mdb.ExpectCommit().WillReturnError(fmt.Errorf("commit failed"))
 
-		id, err := srv.AddUser(ctx, name)
+		id, err := srv.AddUser(ctx, name, password)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; commit failed")
 		assert.Equal(t, 0, int(id))
@@ -145,7 +147,7 @@ func TestDeleteUser(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var userID int64 = 99
 
@@ -328,7 +330,7 @@ func TestFilterUsersID(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var userID int64 = 99
 	name := "name"
@@ -375,7 +377,7 @@ func TestGetUserByID(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var userID int64 = 99
 	name := "userName"
@@ -432,7 +434,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	m := mock.NewMockStorage(ctrl)
 
-	srv := service.New(m)
+	srv := service.New(&config.Config{}, m)
 
 	var userID int64 = 99
 	name := "userName"

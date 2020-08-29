@@ -15,7 +15,7 @@ type Storage interface {
 	Tx() (*sql.Tx, error)
 
 	// user
-	AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error)
+	AddUser(ctx context.Context, tx *sql.Tx, name, password string) (int64, error)
 	DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) error
 	FilterUsersID(ctx context.Context, filter FilterUsers) ([]int64, error)
 	FetchUsers(ctx context.Context, ID ...int64) ([]*entity.User, error)

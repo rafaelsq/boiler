@@ -15,15 +15,19 @@ import (
 )
 
 // ApplyMiddlewares add middlewares to the router
-func ApplyMiddlewares(r chi.Router) {
+func ApplyMiddlewares(r chi.Router, service iface.Service) {
 	r.Use(Recoverer)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	//r.Use(middleware.Logger)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(middleware.Compress(flate.BestCompression))
-	r.Use(middleware.Timeout(2 * time.Second))
+	r.Use(middleware.Timeout(5 * time.Second))
 
+	// custom middlewares
+	r.Use(service.AuthUserMiddleware)
+
+	// Rest Debug
 	r.Use(func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if len(r.URL.Query()["debug"]) != 0 {
@@ -58,6 +62,7 @@ func ApplyRoute(r chi.Router, service iface.Service) {
 		r.Post("/users", rest.AddUserHandle(service))
 		r.Get("/users/{userID:[0-9]+}", rest.GetUserHandle(service))
 		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(service))
+		r.Post("/users/login", rest.LoginHandle(service))
 
 		r.Get("/emails", rest.ListEmailsHandle(service))
 		r.Post("/emails", rest.AddEmailHandle(service))

@@ -21,6 +21,10 @@ models:
     fields:
       user:
         resolver: true
+  AuthUserResponse:
+    fields:
+      user:
+        resolver: true
 
   Email:
     fields:

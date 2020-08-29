@@ -24,11 +24,12 @@ func TestAddUser(t *testing.T) {
 	// succeed
 	{
 		name := "user"
+		password := "pass"
 
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, ?, ?)"),
-		).WithArgs(name, sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(3, 1))
+			regexp.QuoteMeta("INSERT INTO users (name, password, created, updated) VALUES (?, ?, ?, ?)"),
+		).WithArgs(name, password, sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(3, 1))
 		mock.ExpectCommit()
 
 		r := storage.New(mdb)
@@ -36,7 +37,7 @@ func TestAddUser(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		userID, err := r.AddUser(ctx, tx, name)
+		userID, err := r.AddUser(ctx, tx, name, password)
 		assert.Nil(t, err)
 		assert.Equal(t, 3, int(userID))
 		assert.Nil(t, tx.Commit())
@@ -45,12 +46,13 @@ func TestAddUser(t *testing.T) {
 	// fail
 	{
 		name := "user"
+		password := "pass"
 
 		myErr := fmt.Errorf("err")
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, ?, ?)"),
-		).WithArgs(name, sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(myErr)
+			regexp.QuoteMeta("INSERT INTO users (name, password, created, updated) VALUES (?, ?, ?, ?)"),
+		).WithArgs(name, password, sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(myErr)
 		mock.ExpectCommit()
 
 		r := storage.New(mdb)
@@ -58,7 +60,7 @@ func TestAddUser(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		userID, err := r.AddUser(ctx, tx, name)
+		userID, err := r.AddUser(ctx, tx, name, password)
 		assert.Equal(t, err.Error(), "could not insert; err")
 		assert.Equal(t, 0, int(userID))
 		assert.Nil(t, tx.Commit())
@@ -67,12 +69,13 @@ func TestAddUser(t *testing.T) {
 	// last inserted failed
 	{
 		name := "user"
+		password := "pass"
 
 		myErr := fmt.Errorf("err")
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			regexp.QuoteMeta("INSERT INTO users (name, created, updated) VALUES (?, ?, ?)"),
-		).WithArgs(name, sqlmock.AnyArg(), sqlmock.AnyArg()).
+			regexp.QuoteMeta("INSERT INTO users (name, password, created, updated) VALUES (?, ?, ?, ?)"),
+		).WithArgs(name, password, sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
 		mock.ExpectCommit()
 
@@ -81,7 +84,7 @@ func TestAddUser(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		userID, err := r.AddUser(ctx, tx, name)
+		userID, err := r.AddUser(ctx, tx, name, password)
 		assert.Equal(t, err.Error(), "fail to retrieve last inserted ID; err")
 		assert.Equal(t, 0, int(userID))
 		assert.Nil(t, tx.Commit())
@@ -257,11 +260,11 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, created, updated " +
+				"SELECT id, name, password, created, updated " +
 					"FROM users WHERE id IN (?)"),
 		).WithArgs(userID).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow(userID, "user", time.Time{}, time.Time{}),
+			sqlmock.NewRows([]string{"id", "name", "password", "created", "updated"}).
+				AddRow(userID, "user", "pass", time.Time{}, time.Time{}),
 		)
 
 		r := storage.New(mdb)
@@ -270,6 +273,7 @@ func TestFetchUsers(t *testing.T) {
 		assert.Len(t, users, 1)
 		assert.Equal(t, userID, users[0].ID)
 		assert.Equal(t, "user", users[0].Name)
+		assert.Equal(t, "pass", users[0].Password)
 		assert.Equal(t, time.Time{}, users[0].Created)
 		assert.Equal(t, time.Time{}, users[0].Updated)
 	}
@@ -279,7 +283,7 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, created, updated " +
+				"SELECT id, name, password, created, updated " +
 					"FROM users WHERE id IN (?)"),
 		).WithArgs(userID).WillReturnRows(
 			sqlmock.NewRows([]string{"id"}),
@@ -296,11 +300,11 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, created, updated " +
+				"SELECT id, name, password, created, updated " +
 					"FROM users WHERE id IN (?)"),
 		).WithArgs(userID).WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "created", "updated"}).
-				AddRow("err", "user", 1, 2),
+			sqlmock.NewRows([]string{"id", "name", "password", "created", "updated"}).
+				AddRow("err", "user", "pass", 1, 2),
 		)
 
 		r := storage.New(mdb)
@@ -315,7 +319,7 @@ func TestFetchUsers(t *testing.T) {
 		userID := int64(3)
 		mock.ExpectQuery(
 			regexp.QuoteMeta(
-				"SELECT id, name, created, updated " +
+				"SELECT id, name, password, created, updated " +
 					"FROM users WHERE id IN (?)"),
 		).WithArgs(userID).WillReturnError(myErr)
 

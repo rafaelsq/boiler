@@ -17,7 +17,8 @@ import (
 func AddUserHandle(service iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := struct {
-			Name string `json:"name"`
+			Name     string `json:"name"`
+			Password string `json:"password"`
 		}{}
 
 		err := json.NewDecoder(r.Body).Decode(&payload)
@@ -32,7 +33,7 @@ func AddUserHandle(service iface.Service) http.HandlerFunc {
 			return
 		}
 
-		userID, err := service.AddUser(r.Context(), payload.Name)
+		userID, err := service.AddUser(r.Context(), payload.Name, payload.Password)
 		if err != nil {
 			log.Log(err)
 			Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -199,6 +200,34 @@ func ListEmailsHandle(service iface.Service) http.HandlerFunc {
 
 		JSON(w, r, map[string]interface{}{
 			"emails": emails,
+		})
+	}
+}
+
+// LoginHandle handle an authentication request
+func LoginHandle(service iface.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload := struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}{}
+
+		err := json.NewDecoder(r.Body).Decode(&payload)
+		if err != nil {
+			Fail(w, r, http.StatusBadRequest, "could not parse payload")
+			return
+		}
+
+		user, token, err := service.AuthUser(r.Context(), payload.Email, payload.Password)
+		if err != nil {
+			log.Log(err)
+			Fail(w, r, http.StatusInternalServerError, "service failed")
+			return
+		}
+
+		JSON(w, r, map[string]interface{}{
+			"user":  user,
+			"token": token,
 		})
 	}
 }

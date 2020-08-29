@@ -2,6 +2,11 @@
 
 package entity
 
+type AuthUserResponse struct {
+	Token string `json:"token"`
+	User  *User  `json:"user"`
+}
+
 type Email struct {
 	ID      string `json:"id"`
 	Address string `json:"address"`
@@ -28,5 +33,11 @@ type AddEmailInput struct {
 }
 
 type AddUserInput struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
+type AuthUserInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

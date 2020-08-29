@@ -39,8 +39,8 @@ func (c *Cache) Tx() (*sql.Tx, error) {
 }
 
 // AddUser add a new user to the cache storage
-func (c *Cache) AddUser(ctx context.Context, tx *sql.Tx, name string) (int64, error) {
-	userID, err := c.storage.AddUser(ctx, tx, name)
+func (c *Cache) AddUser(ctx context.Context, tx *sql.Tx, name, password string) (int64, error) {
+	userID, err := c.storage.AddUser(ctx, tx, name, password)
 	deleteUserCache(ctx, c.client, userID)
 	return userID, err
 }
