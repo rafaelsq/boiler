@@ -12,14 +12,13 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
+	"boiler/cmd/server/internal/router"
+	"boiler/pkg/service"
+	"boiler/pkg/store/config"
+	"boiler/pkg/store/database"
+
 	"github.com/go-chi/chi"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/rafaelsq/boiler/cmd/server/internal/router"
-	"github.com/rafaelsq/boiler/pkg/cache"
-	"github.com/rafaelsq/boiler/pkg/config"
-	"github.com/rafaelsq/boiler/pkg/service"
-	"github.com/rafaelsq/boiler/pkg/storage"
 )
 
 func fileExists(filename string) bool {
@@ -51,7 +50,7 @@ func newDB(path string) (*sql.DB, error) {
 	if createTable {
 		log.Println("Creating DB")
 
-		content, err := ioutil.ReadFile("./schema.sql")
+		content, err := ioutil.ReadFile("pkg/store/database/schema.sql")
 		if err != nil {
 			db.Close()
 			return nil, err
@@ -68,7 +67,6 @@ func newDB(path string) (*sql.DB, error) {
 
 func main() {
 	var port = flag.Int("port", 2000, "")
-	var useMemcached = flag.Bool("memcached", false, "")
 
 	flag.Parse()
 
@@ -77,13 +75,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	st := storage.New(sql)
-	if useMemcached != nil && *useMemcached {
-		mc := memcache.New("127.0.0.1:11211")
-		st = cache.New(mc, st)
-	}
-
+	st := database.New(sql)
 	conf := config.New()
+
 	sv := service.New(conf, st)
 
 	r := chi.NewRouter()

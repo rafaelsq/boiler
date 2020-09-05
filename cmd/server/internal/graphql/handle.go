@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"boiler/pkg/iface"
+
 	"github.com/99designs/gqlgen/handler"
-	graphql "github.com/rafaelsq/boiler/pkg/graphql/internal"
-	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
 // PlayHandle handle Playground
@@ -20,8 +20,8 @@ func PlayHandle() http.HandlerFunc {
 // QueryHandleFunc return an http HandlerFunc
 func QueryHandleFunc(service iface.Service) http.HandlerFunc {
 	return handler.GraphQL(
-		graphql.NewExecutableSchema(graphql.Config{
-			Resolvers: graphql.NewResolver(service),
+		NewExecutableSchema(Config{
+			Resolvers: NewResolver(service),
 		}),
 		handler.RecoverFunc(func(ctx context.Context, err interface{}) error {
 			log.Print(err)

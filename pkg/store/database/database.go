@@ -1,27 +1,27 @@
-package storage
+package database
 
 import (
 	"context"
 	"database/sql"
 
 	"github.com/mattn/go-sqlite3"
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/pkg/iface"
 	"github.com/rafaelsq/errors"
 )
 
-// Storage map a database access
-type Storage struct {
+// Database map a database access
+type Database struct {
 	sql *sql.DB
 }
 
 // Tx start a new transaction
-func (s *Storage) Tx() (*sql.Tx, error) {
+func (s *Database) Tx() (*sql.Tx, error) {
 	return s.sql.Begin()
 }
 
-// New create a new storage
-func New(sql *sql.DB) iface.Storage {
-	return &Storage{
+// New create a new database
+func New(sql *sql.DB) *Database {
+	return &Database{
 		sql: sql,
 	}
 }

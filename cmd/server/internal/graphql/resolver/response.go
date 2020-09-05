@@ -3,8 +3,8 @@ package resolver
 import (
 	"context"
 
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/pkg/iface"
 )
 
 // NewResponse return a new Response resolver

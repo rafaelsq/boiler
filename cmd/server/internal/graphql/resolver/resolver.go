@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/log"
+	"boiler/pkg/iface"
+	"boiler/pkg/store/log"
+
 	"github.com/rafaelsq/errors"
 )
 

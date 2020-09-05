@@ -6,7 +6,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/rafaelsq/boiler/pkg/entity"
+	"boiler/pkg/entity"
 )
 
 // Service is the interface of the Service

@@ -6,8 +6,9 @@ import (
 	"os"
 	"runtime/debug"
 
+	"boiler/pkg/store/log"
+
 	"github.com/go-chi/chi/middleware"
-	"github.com/rafaelsq/boiler/pkg/log"
 )
 
 // Recoverer recover from panic

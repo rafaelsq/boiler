@@ -1,11 +1,10 @@
 // Package graphql contains all the graphql resources
-//go:generate go run github.com/99designs/gqlgen
 package graphql
 
 import (
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/mutation"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/cmd/server/internal/graphql/mutation"
+	"boiler/cmd/server/internal/graphql/resolver"
+	"boiler/pkg/iface"
 )
 
 // NewResolver return a new Resolver

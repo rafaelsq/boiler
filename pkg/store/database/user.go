@@ -1,4 +1,4 @@
-package storage
+package database
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/pkg/entity"
+	"boiler/pkg/iface"
+
 	"github.com/rafaelsq/errors"
 )
 
 // AddUser create a new user in the database
-func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name, password string) (int64, error) {
+func (s *Database) AddUser(ctx context.Context, tx *sql.Tx, name, password string) (int64, error) {
 	now := time.Now()
 	return Insert(
 		ctx, tx,
@@ -23,12 +24,12 @@ func (s *Storage) AddUser(ctx context.Context, tx *sql.Tx, name, password string
 }
 
 // DeleteUser remove an user from the database
-func (s *Storage) DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) error {
+func (s *Database) DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) error {
 	return Delete(ctx, tx, "DELETE FROM users WHERE id = ?", userID)
 }
 
 // FilterUsersID retrieve usersID from the database for a given filter
-func (s *Storage) FilterUsersID(ctx context.Context, filter iface.FilterUsers) ([]int64, error) {
+func (s *Database) FilterUsersID(ctx context.Context, filter iface.FilterUsers) ([]int64, error) {
 	limit := iface.FilterUsersDefaultLimit
 	if filter.Limit != 0 {
 		limit = filter.Limit
@@ -61,7 +62,7 @@ func (s *Storage) FilterUsersID(ctx context.Context, filter iface.FilterUsers) (
 }
 
 // FetchUsers retrieve users from the database
-func (s *Storage) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, error) {
+func (s *Database) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, error) {
 	if len(IDs) == 0 {
 		return make([]*entity.User, 0), nil
 	}

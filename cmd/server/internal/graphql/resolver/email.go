@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/pkg/iface"
 )
 
 // NewEmail return a new Email resolver

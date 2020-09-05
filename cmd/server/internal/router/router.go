@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"boiler/cmd/server/internal/graphql"
+	"boiler/cmd/server/internal/rest"
+	"boiler/cmd/server/internal/website"
+	"boiler/pkg/iface"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/rafaelsq/boiler/cmd/server/internal/rest"
-	"github.com/rafaelsq/boiler/cmd/server/internal/website"
-	"github.com/rafaelsq/boiler/pkg/graphql"
-	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
 // ApplyMiddlewares add middlewares to the router
@@ -19,7 +20,7 @@ func ApplyMiddlewares(r chi.Router, service iface.Service) {
 	r.Use(Recoverer)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	//r.Use(middleware.Logger)
+	r.Use(middleware.Logger)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(middleware.Compress(flate.BestCompression))
 	r.Use(middleware.Timeout(5 * time.Second))

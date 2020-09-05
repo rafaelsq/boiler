@@ -4,13 +4,13 @@
 # for detailed .gqlgen.yml documentation.
 
 schema:
-- schema.graphql
+- cmd/server/internal/graphql/schema.graphql
 exec:
-  filename: pkg/graphql/internal/generated.go
+  filename: cmd/server/internal/graphql/generated.go
 model:
-  filename: pkg/graphql/internal/entity/entity_gen.go
+  filename: cmd/server/internal/graphql/entity/entity_gen.go
 resolver:
-  filename: pkg/graphql/internal/resolver.go
+  filename: cmd/server/internal/graphql/resolver.go
   type: Resolver
 models:
   User:

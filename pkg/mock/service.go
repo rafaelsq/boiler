@@ -5,10 +5,10 @@
 package mock
 
 import (
+	entity "boiler/pkg/entity"
+	iface "boiler/pkg/iface"
 	context "context"
 	gomock "github.com/golang/mock/gomock"
-	entity "github.com/rafaelsq/boiler/pkg/entity"
-	iface "github.com/rafaelsq/boiler/pkg/iface"
 	http "net/http"
 	reflect "reflect"
 )

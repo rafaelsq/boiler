@@ -3,19 +3,20 @@ package service
 import (
 	"context"
 
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/pkg/entity"
+	"boiler/pkg/iface"
+
 	"github.com/rafaelsq/errors"
 )
 
 // AddEmail add a new email
 func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (int64, error) {
-	tx, err := s.storage.Tx()
+	tx, err := s.store.Tx()
 	if err != nil {
 		return 0, errors.New("could not begin transaction").SetParent(err)
 	}
 
-	ID, err := s.storage.AddEmail(ctx, tx, userID, address)
+	ID, err := s.store.AddEmail(ctx, tx, userID, address)
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
 			return 0, errors.New("could not add email").SetParent(errors.New(er.Error()).SetParent(err))
@@ -33,12 +34,12 @@ func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (i
 
 // DeleteEmail remove an email
 func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
-	tx, err := s.storage.Tx()
+	tx, err := s.store.Tx()
 	if err != nil {
 		return errors.New("could not begin delete email transaction").SetParent(err)
 	}
 
-	err = s.storage.DeleteEmail(ctx, tx, emailID)
+	err = s.store.DeleteEmail(ctx, tx, emailID)
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
 			return errors.New("could not rollback delete email").SetParent(
@@ -58,5 +59,5 @@ func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
 
 // FilterEmails retrieve emails
 func (s *Service) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {
-	return s.storage.FilterEmails(ctx, filter)
+	return s.store.FilterEmails(ctx, filter)
 }

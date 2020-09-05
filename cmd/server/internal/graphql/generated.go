@@ -3,6 +3,7 @@
 package graphql
 
 import (
+	"boiler/cmd/server/internal/graphql/entity"
 	"bytes"
 	"context"
 	"errors"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -328,7 +328,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "schema.graphql", Input: `type Query {
+	{Name: "cmd/server/internal/graphql/schema.graphql", Input: `type Query {
 	viewer: User
 	users(limit: Int = 100): [User]!
 	user(userID: ID!): User!
@@ -396,7 +396,7 @@ func (ec *executionContext) field_Mutation_addEmail_args(ctx context.Context, ra
 	var arg0 entity.AddEmailInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("input"))
-		arg0, err = ec.unmarshalNaddEmailInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddEmailInput(ctx, tmp)
+		arg0, err = ec.unmarshalNaddEmailInput2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAddEmailInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -411,7 +411,7 @@ func (ec *executionContext) field_Mutation_addUser_args(ctx context.Context, raw
 	var arg0 entity.AddUserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("input"))
-		arg0, err = ec.unmarshalNaddUserInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddUserInput(ctx, tmp)
+		arg0, err = ec.unmarshalNaddUserInput2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAddUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -426,7 +426,7 @@ func (ec *executionContext) field_Mutation_authUser_args(ctx context.Context, ra
 	var arg0 entity.AuthUserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("input"))
-		arg0, err = ec.unmarshalNauthUserInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAuthUserInput(ctx, tmp)
+		arg0, err = ec.unmarshalNauthUserInput2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAuthUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -583,7 +583,7 @@ func (ec *executionContext) _AuthUserResponse_user(ctx context.Context, field gr
 	}
 	res := resTmp.(*entity.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Email_id(ctx context.Context, field graphql.CollectedField, obj *entity.Email) (ret graphql.Marshaler) {
@@ -685,7 +685,7 @@ func (ec *executionContext) _Email_user(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*entity.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EmailResponse_email(ctx context.Context, field graphql.CollectedField, obj *entity.EmailResponse) (ret graphql.Marshaler) {
@@ -719,7 +719,7 @@ func (ec *executionContext) _EmailResponse_email(ctx context.Context, field grap
 	}
 	res := resTmp.(*entity.Email)
 	fc.Result = res
-	return ec.marshalNEmail2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx, field.Selections, res)
+	return ec.marshalNEmail2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmail(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -760,7 +760,7 @@ func (ec *executionContext) _Mutation_addEmail(ctx context.Context, field graphq
 	}
 	res := resTmp.(*entity.EmailResponse)
 	fc.Result = res
-	return ec.marshalNEmailResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmailResponse(ctx, field.Selections, res)
+	return ec.marshalNEmailResponse2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmailResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -801,7 +801,7 @@ func (ec *executionContext) _Mutation_addUser(ctx context.Context, field graphql
 	}
 	res := resTmp.(*entity.UserResponse)
 	fc.Result = res
-	return ec.marshalNUserResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUserResponse(ctx, field.Selections, res)
+	return ec.marshalNUserResponse2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUserResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_authUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -842,7 +842,7 @@ func (ec *executionContext) _Mutation_authUser(ctx context.Context, field graphq
 	}
 	res := resTmp.(*entity.AuthUserResponse)
 	fc.Result = res
-	return ec.marshalNAuthUserResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAuthUserResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthUserResponse2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAuthUserResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_viewer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -873,7 +873,7 @@ func (ec *executionContext) _Query_viewer(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*entity.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -914,7 +914,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*entity.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -955,7 +955,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*entity.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1126,7 +1126,7 @@ func (ec *executionContext) _User_emails(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*entity.Email)
 	fc.Result = res
-	return ec.marshalNEmail2ᚕᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx, field.Selections, res)
+	return ec.marshalNEmail2ᚕᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmail(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserResponse_user(ctx context.Context, field graphql.CollectedField, obj *entity.UserResponse) (ret graphql.Marshaler) {
@@ -1160,7 +1160,7 @@ func (ec *executionContext) _UserResponse_user(ctx context.Context, field graphq
 	}
 	res := resTmp.(*entity.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2870,11 +2870,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAuthUserResponse2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAuthUserResponse(ctx context.Context, sel ast.SelectionSet, v entity.AuthUserResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthUserResponse2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAuthUserResponse(ctx context.Context, sel ast.SelectionSet, v entity.AuthUserResponse) graphql.Marshaler {
 	return ec._AuthUserResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuthUserResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAuthUserResponse(ctx context.Context, sel ast.SelectionSet, v *entity.AuthUserResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthUserResponse2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAuthUserResponse(ctx context.Context, sel ast.SelectionSet, v *entity.AuthUserResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2899,11 +2899,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNEmail2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v entity.Email) graphql.Marshaler {
+func (ec *executionContext) marshalNEmail2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v entity.Email) graphql.Marshaler {
 	return ec._Email(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEmail2ᚕᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v []*entity.Email) graphql.Marshaler {
+func (ec *executionContext) marshalNEmail2ᚕᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v []*entity.Email) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2927,7 +2927,7 @@ func (ec *executionContext) marshalNEmail2ᚕᚖgithubᚗcomᚋrafaelsqᚋboiler
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOEmail2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx, sel, v[i])
+			ret[i] = ec.marshalOEmail2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmail(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2940,7 +2940,7 @@ func (ec *executionContext) marshalNEmail2ᚕᚖgithubᚗcomᚋrafaelsqᚋboiler
 	return ret
 }
 
-func (ec *executionContext) marshalNEmail2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v *entity.Email) graphql.Marshaler {
+func (ec *executionContext) marshalNEmail2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v *entity.Email) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2950,11 +2950,11 @@ func (ec *executionContext) marshalNEmail2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋ
 	return ec._Email(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNEmailResponse2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmailResponse(ctx context.Context, sel ast.SelectionSet, v entity.EmailResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNEmailResponse2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmailResponse(ctx context.Context, sel ast.SelectionSet, v entity.EmailResponse) graphql.Marshaler {
 	return ec._EmailResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEmailResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmailResponse(ctx context.Context, sel ast.SelectionSet, v *entity.EmailResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNEmailResponse2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmailResponse(ctx context.Context, sel ast.SelectionSet, v *entity.EmailResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2994,11 +2994,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v entity.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v []*entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v []*entity.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3022,7 +3022,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋrafaelsqᚋboiler�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalOUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3035,7 +3035,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋrafaelsqᚋboiler�
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3045,11 +3045,11 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋp
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUserResponse2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUserResponse(ctx context.Context, sel ast.SelectionSet, v entity.UserResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNUserResponse2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUserResponse(ctx context.Context, sel ast.SelectionSet, v entity.UserResponse) graphql.Marshaler {
 	return ec._UserResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserResponse2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUserResponse(ctx context.Context, sel ast.SelectionSet, v *entity.UserResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNUserResponse2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUserResponse(ctx context.Context, sel ast.SelectionSet, v *entity.UserResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3288,17 +3288,17 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNaddEmailInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddEmailInput(ctx context.Context, v interface{}) (entity.AddEmailInput, error) {
+func (ec *executionContext) unmarshalNaddEmailInput2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAddEmailInput(ctx context.Context, v interface{}) (entity.AddEmailInput, error) {
 	res, err := ec.unmarshalInputaddEmailInput(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNaddUserInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAddUserInput(ctx context.Context, v interface{}) (entity.AddUserInput, error) {
+func (ec *executionContext) unmarshalNaddUserInput2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAddUserInput(ctx context.Context, v interface{}) (entity.AddUserInput, error) {
 	res, err := ec.unmarshalInputaddUserInput(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNauthUserInput2githubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐAuthUserInput(ctx context.Context, v interface{}) (entity.AuthUserInput, error) {
+func (ec *executionContext) unmarshalNauthUserInput2boilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐAuthUserInput(ctx context.Context, v interface{}) (entity.AuthUserInput, error) {
 	res, err := ec.unmarshalInputauthUserInput(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
 }
@@ -3327,7 +3327,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOEmail2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v *entity.Email) graphql.Marshaler {
+func (ec *executionContext) marshalOEmail2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐEmail(ctx context.Context, sel ast.SelectionSet, v *entity.Email) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3373,7 +3373,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return graphql.MarshalString(*v)
 }
 
-func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋrafaelsqᚋboilerᚋpkgᚋgraphqlᚋinternalᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖboilerᚋcmdᚋserverᚋinternalᚋgraphqlᚋentityᚐUser(ctx context.Context, sel ast.SelectionSet, v *entity.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

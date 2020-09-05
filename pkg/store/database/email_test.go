@@ -1,4 +1,4 @@
-package storage_test
+package database_test
 
 import (
 	"context"
@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"boiler/pkg/iface"
+	"boiler/pkg/store/database"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/mattn/go-sqlite3"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +35,7 @@ func TestAddEmail(t *testing.T) {
 		).WithArgs(userID, address, sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(3, 1))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -57,7 +58,7 @@ func TestAddEmail(t *testing.T) {
 		).WithArgs(userID, address, sqlmock.AnyArg()).WillReturnError(myErr)
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -83,7 +84,7 @@ func TestAddEmail(t *testing.T) {
 		).WithArgs(userID, address, sqlmock.AnyArg()).WillReturnError(myErr)
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -107,7 +108,7 @@ func TestAddEmail(t *testing.T) {
 			WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -137,7 +138,7 @@ func TestDeleteEmail(t *testing.T) {
 		).WithArgs(emailID).WillReturnResult(sqlmock.NewResult(3, 1))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -157,7 +158,7 @@ func TestDeleteEmail(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM emails WHERE id = ?"),
 		).WithArgs(emailID).WillReturnError(fmt.Errorf("opz"))
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -180,7 +181,7 @@ func TestDeleteEmail(t *testing.T) {
 
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -204,7 +205,7 @@ func TestDeleteEmail(t *testing.T) {
 
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -235,7 +236,7 @@ func TestDeleteEmailsByUserID(t *testing.T) {
 		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(3, 1))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -256,7 +257,7 @@ func TestDeleteEmailsByUserID(t *testing.T) {
 		).WithArgs(userID).WillReturnError(fmt.Errorf("opz"))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -288,7 +289,7 @@ func TestFilterEmails(t *testing.T) {
 				AddRow(3, userID, "user@example.com", time.Time{}),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
 		assert.Nil(t, err)
 		assert.Len(t, emails, 1)
@@ -305,7 +306,7 @@ func TestFilterEmails(t *testing.T) {
 				AddRow(3, emailID, "user@example.com", time.Time{}),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		emails, err := r.FilterEmails(ctx, iface.FilterEmails{EmailID: emailID})
 		assert.Nil(t, err)
 		assert.Len(t, emails, 1)
@@ -322,7 +323,7 @@ func TestFilterEmails(t *testing.T) {
 				AddRow("opz", userID, "user@example.com", 0),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
@@ -338,7 +339,7 @@ func TestFilterEmails(t *testing.T) {
 			regexp.QuoteMeta("SELECT id, user_id, address, created FROM emails WHERE user_id = ?"),
 		).WithArgs(userID).WillReturnError(myErr)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Len(t, emails, 0)

@@ -6,11 +6,11 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/rafaelsq/boiler/pkg/entity"
+	"boiler/pkg/entity"
 )
 
-// Storage is the storage system
-type Storage interface {
+// Store
+type Store interface {
 	// begin transaction
 	Tx() (*sql.Tx, error)
 

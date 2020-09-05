@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/pkg/iface"
 	"github.com/stretchr/testify/assert"
 )
 

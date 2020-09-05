@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"time"
 
+	"boiler/pkg/entity"
+	"boiler/pkg/iface"
+
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
 	"github.com/rafaelsq/errors"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,12 +21,12 @@ func (s *Service) AddUser(ctx context.Context, name, password string) (int64, er
 		return 0, errors.New("could not generate password").SetParent(err)
 	}
 
-	tx, err := s.storage.Tx()
+	tx, err := s.store.Tx()
 	if err != nil {
 		return 0, errors.New("could not begin transaction").SetParent(err)
 	}
 
-	ID, err := s.storage.AddUser(ctx, tx, name, string(hash))
+	ID, err := s.store.AddUser(ctx, tx, name, string(hash))
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
 			return 0, errors.New("could not add user").SetParent(
@@ -47,7 +48,7 @@ func (s *Service) AddUser(ctx context.Context, name, password string) (int64, er
 func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity.User, string, error) {
 	var token string
 
-	IDs, err := s.storage.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+	IDs, err := s.store.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 	if err != nil {
 		return nil, token, err
 	}
@@ -85,12 +86,12 @@ func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity
 
 // DeleteUser remove user by ID
 func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
-	tx, err := s.storage.Tx()
+	tx, err := s.store.Tx()
 	if err != nil {
 		return errors.New("could not begin delete user transaction").SetParent(err)
 	}
 
-	err = s.storage.DeleteUser(ctx, tx, userID)
+	err = s.store.DeleteUser(ctx, tx, userID)
 	if err != nil && err != iface.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
 			return errors.New("could not rollback delete user").SetParent(
@@ -101,7 +102,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 		return errors.New("could not delete user").SetParent(err)
 	}
 
-	err = s.storage.DeleteEmailsByUserID(ctx, tx, userID)
+	err = s.store.DeleteEmailsByUserID(ctx, tx, userID)
 	if err != nil && err != iface.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
 			return errors.New("could not rollback delete emails by user ID").SetParent(
@@ -121,17 +122,17 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 
 // FilterUsers retrieve users
 func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
-	IDs, err := s.storage.FilterUsersID(ctx, filter)
+	IDs, err := s.store.FilterUsersID(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.storage.FetchUsers(ctx, IDs...)
+	return s.store.FetchUsers(ctx, IDs...)
 }
 
 // GetUserByID get user by ID
 func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, error) {
-	us, err := s.storage.FetchUsers(ctx, userID)
+	us, err := s.store.FetchUsers(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +144,7 @@ func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, 
 
 // GetUserByEmail get user by Email
 func (s *Service) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
-	IDs, err := s.storage.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+	IDs, err := s.store.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 	if err != nil {
 		return nil, err
 	}

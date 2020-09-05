@@ -1,4 +1,4 @@
-module github.com/rafaelsq/boiler
+module boiler
 
 go 1.15
 

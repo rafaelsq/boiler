@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/mock"
+	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/cmd/server/internal/graphql/resolver"
+	"boiler/pkg/iface"
+	"boiler/pkg/mock"
 	"github.com/stretchr/testify/assert"
 )
 

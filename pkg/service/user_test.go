@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"testing"
 
+	"boiler/pkg/entity"
+	"boiler/pkg/iface"
+	"boiler/pkg/mock"
+	"boiler/pkg/service"
+	"boiler/pkg/store/config"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
-	"github.com/rafaelsq/boiler/pkg/config"
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/mock"
-	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,7 @@ func TestAddUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 
@@ -145,7 +146,7 @@ func TestDeleteUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 
@@ -328,7 +329,7 @@ func TestFilterUsersID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 
@@ -375,7 +376,7 @@ func TestGetUserByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 
@@ -432,7 +433,7 @@ func TestGetUserByEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 

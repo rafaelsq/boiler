@@ -6,9 +6,10 @@ import (
 	"net/mail"
 	"strconv"
 
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/log"
+	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/pkg/iface"
+	"boiler/pkg/store/log"
+
 	"github.com/rafaelsq/errors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )

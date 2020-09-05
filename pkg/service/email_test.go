@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"testing"
 
+	"boiler/pkg/entity"
+	"boiler/pkg/iface"
+	"boiler/pkg/mock"
+	"boiler/pkg/service"
+	"boiler/pkg/store/config"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
-	"github.com/rafaelsq/boiler/pkg/config"
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/mock"
-	"github.com/rafaelsq/boiler/pkg/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,7 @@ func TestAddEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 
@@ -143,7 +144,7 @@ func TestDeleteEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 
@@ -183,7 +184,7 @@ func TestDeleteEmail(t *testing.T) {
 		assert.Equal(t, "could not begin delete email transaction; tx fail", err.Error())
 	}
 
-	// storage fail
+	// store fail
 	{
 		db, mdb, err := sqlmock.New()
 		assert.Nil(t, err)
@@ -246,13 +247,13 @@ func TestDeleteEmail(t *testing.T) {
 		m.
 			EXPECT().
 			DeleteEmail(ctx, tx, ID).
-			Return(fmt.Errorf("storage fail"))
+			Return(fmt.Errorf("database fail"))
 
 		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackfail"))
 
 		err = srv.DeleteEmail(ctx, ID)
 		assert.NotNil(t, err)
-		assert.Equal(t, "could not rollback delete email; rollbackfail; storage fail", err.Error())
+		assert.Equal(t, "could not rollback delete email; rollbackfail; database fail", err.Error())
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 }
@@ -261,7 +262,7 @@ func TestFilterEmails(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStorage(ctrl)
+	m := mock.NewMockStore(ctrl)
 
 	srv := service.New(&config.Config{}, m)
 

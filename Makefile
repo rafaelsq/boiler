@@ -11,7 +11,7 @@ gen: godeps
 	go generate ./...
 
 update-graphql-schema: godeps
-	gqlgen
+	gqlgen --config cmd/server/internal/graphql/gqlgen.yml
 
 godeps:
 ifeq (, $(shell which msgp))
@@ -23,8 +23,3 @@ endif
 ifeq (, $(shell which mockgen))
 	go get github.com/golang/mock/mockgen
 endif
-
-start-deps:
-	@if [ ! "`docker ps -q -f name=memcached`"  ]; then \
-		docker run --name memcached -p 11211:11211 -d --restart=always memcached; \
-	fi

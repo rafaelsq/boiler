@@ -1,4 +1,4 @@
-package storage_test
+package database_test
 
 import (
 	"context"
@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"boiler/pkg/iface"
+	"boiler/pkg/store/database"
+
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +33,7 @@ func TestAddUser(t *testing.T) {
 		).WithArgs(name, password, sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(3, 1))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -55,7 +56,7 @@ func TestAddUser(t *testing.T) {
 		).WithArgs(name, password, sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(myErr)
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -79,7 +80,7 @@ func TestAddUser(t *testing.T) {
 			WillReturnResult(sqlmock.NewResult(3, 1)).WillReturnResult(sqlmock.NewErrorResult(myErr))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -109,7 +110,7 @@ func TestDeleteUser(t *testing.T) {
 		).WithArgs(userID).WillReturnResult(sqlmock.NewResult(3, 1))
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -129,7 +130,7 @@ func TestDeleteUser(t *testing.T) {
 			regexp.QuoteMeta("DELETE FROM users WHERE id = ?"),
 		).WithArgs(userID).WillReturnError(fmt.Errorf("opz"))
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -152,7 +153,7 @@ func TestDeleteUser(t *testing.T) {
 
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -176,7 +177,7 @@ func TestDeleteUser(t *testing.T) {
 
 		mock.ExpectCommit()
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 
 		tx, err := r.Tx()
 		assert.Nil(t, err)
@@ -207,7 +208,7 @@ func TestFilterUsersID(t *testing.T) {
 				AddRow(3),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
 		assert.Nil(t, err)
 		assert.Len(t, IDs, 1)
@@ -224,7 +225,7 @@ func TestFilterUsersID(t *testing.T) {
 				AddRow("err"),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
@@ -240,7 +241,7 @@ func TestFilterUsersID(t *testing.T) {
 			regexp.QuoteMeta("SELECT id FROM users LIMIT ?"),
 		).WithArgs(limit).WillReturnError(myErr)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
 		assert.Equal(t, "could not fetch rows; err", err.Error())
 		assert.Len(t, IDs, 0)
@@ -267,7 +268,7 @@ func TestFetchUsers(t *testing.T) {
 				AddRow(userID, "user", "pass", time.Time{}, time.Time{}),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		users, err := r.FetchUsers(ctx, userID)
 		assert.Nil(t, err)
 		assert.Len(t, users, 1)
@@ -289,7 +290,7 @@ func TestFetchUsers(t *testing.T) {
 			sqlmock.NewRows([]string{"id"}),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		users, err := r.FetchUsers(ctx, userID)
 		assert.Nil(t, err)
 		assert.Len(t, users, 0)
@@ -307,7 +308,7 @@ func TestFetchUsers(t *testing.T) {
 				AddRow("err", "user", "pass", 1, 2),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		users, err := r.FetchUsers(ctx, userID)
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Nil(t, users)
@@ -323,7 +324,7 @@ func TestFetchUsers(t *testing.T) {
 					"FROM users WHERE id IN (?)"),
 		).WithArgs(userID).WillReturnError(myErr)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		users, err := r.FetchUsers(ctx, userID)
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Nil(t, users)
@@ -349,7 +350,7 @@ func TestFilterUsersByMail(t *testing.T) {
 				AddRow(3),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Nil(t, err)
 		assert.Equal(t, 3, int(IDs[0]))
@@ -365,7 +366,7 @@ func TestFilterUsersByMail(t *testing.T) {
 			sqlmock.NewRows([]string{"id"}),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Nil(t, err)
 		assert.Len(t, IDs, 0)
@@ -382,7 +383,7 @@ func TestFilterUsersByMail(t *testing.T) {
 				AddRow("err"),
 		)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Nil(t, IDs)
@@ -397,7 +398,7 @@ func TestFilterUsersByMail(t *testing.T) {
 				" INNER JOIN emails e ON(e.user_id = u.id) WHERE e.address = ?"),
 		).WithArgs(email).WillReturnError(myErr)
 
-		r := storage.New(mdb)
+		r := database.New(mdb)
 		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Nil(t, IDs)

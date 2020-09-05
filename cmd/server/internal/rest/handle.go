@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"strings"
 
+	"boiler/pkg/iface"
+	"boiler/pkg/store/log"
+
 	"github.com/go-chi/chi"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/log"
 )
 
 // AddUserHandle handle an AddUser request

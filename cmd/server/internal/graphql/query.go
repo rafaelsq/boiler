@@ -5,10 +5,10 @@ import (
 	"errors"
 	"strconv"
 
-	globalEntity "github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
-	"github.com/rafaelsq/boiler/pkg/iface"
+	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/cmd/server/internal/graphql/resolver"
+	globalEntity "boiler/pkg/entity"
+	"boiler/pkg/iface"
 )
 
 // NewQuery return a new QueryResolver

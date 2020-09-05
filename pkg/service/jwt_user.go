@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"boiler/pkg/entity"
+	"boiler/pkg/iface"
+
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/rafaelsq/boiler/pkg/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
 )
 
 // AuthUserMiddleware parse JWT Token and inject it back as a *entity.AuthUser from request if available

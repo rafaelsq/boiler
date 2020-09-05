@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/rafaelsq/boiler/pkg/entity"
-	gentity "github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/resolver"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/mock"
+	gentity "boiler/cmd/server/internal/graphql/entity"
+	"boiler/cmd/server/internal/graphql/resolver"
+	"boiler/pkg/entity"
+	"boiler/pkg/iface"
+	"boiler/pkg/mock"
 	"github.com/stretchr/testify/assert"
 )
 

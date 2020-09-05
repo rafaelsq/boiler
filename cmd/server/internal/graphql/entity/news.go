@@ -3,7 +3,7 @@ package entity
 import (
 	"strconv"
 
-	"github.com/rafaelsq/boiler/pkg/entity"
+	"boiler/pkg/entity"
 )
 
 // NewUser return a new User entity

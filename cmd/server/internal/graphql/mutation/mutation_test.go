@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"testing"
 
+	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/pkg/iface"
+	"boiler/pkg/mock"
+
 	"github.com/golang/mock/gomock"
-	"github.com/rafaelsq/boiler/pkg/graphql/internal/entity"
-	"github.com/rafaelsq/boiler/pkg/iface"
-	"github.com/rafaelsq/boiler/pkg/mock"
 	"github.com/stretchr/testify/assert"
 )
 
