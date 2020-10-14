@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/mattn/go-sqlite3"
 	"boiler/pkg/iface"
+
+	"github.com/mattn/go-sqlite3"
 	"github.com/rafaelsq/errors"
 )
 

@@ -9,13 +9,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi"
-	"github.com/golang/mock/gomock"
 	"boiler/cmd/server/internal/rest"
 	"boiler/cmd/server/internal/router"
 	"boiler/pkg/entity"
 	"boiler/pkg/iface"
 	"boiler/pkg/mock"
+
+	"github.com/go-chi/chi"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 

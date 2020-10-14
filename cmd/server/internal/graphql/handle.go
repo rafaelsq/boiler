@@ -9,24 +9,32 @@ import (
 
 	"boiler/pkg/iface"
 
-	"github.com/99designs/gqlgen/handler"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/playground"
 )
 
 // PlayHandle handle Playground
 func PlayHandle() http.HandlerFunc {
-	return handler.Playground("Users", "/graphql/query")
+	return playground.Handler("Users", "/graphql/query")
 }
 
 // QueryHandleFunc return an http HandlerFunc
-func QueryHandleFunc(service iface.Service) http.HandlerFunc {
-	return handler.GraphQL(
+func QueryHandler(service iface.Service) http.Handler {
+	hldr := handler.New(
 		NewExecutableSchema(Config{
 			Resolvers: NewResolver(service),
 		}),
-		handler.RecoverFunc(func(ctx context.Context, err interface{}) error {
-			log.Print(err)
-			debug.PrintStack()
-			return errors.New("internal server error")
-		}),
 	)
+
+	hldr.AddTransport(transport.GET{})
+	hldr.AddTransport(transport.POST{})
+
+	hldr.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
+		log.Print(err)
+		debug.PrintStack()
+		return errors.New("internal server error")
+	})
+
+	return hldr
 }

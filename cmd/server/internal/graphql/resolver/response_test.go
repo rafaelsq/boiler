@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
 	"boiler/pkg/iface"
 	"boiler/pkg/mock"
+
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 

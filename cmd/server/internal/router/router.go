@@ -54,7 +54,7 @@ func ApplyRoute(r chi.Router, service iface.Service) {
 	// graphql
 	r.Route("/graphql", func(g chi.Router) {
 		g.Get("/play", graphql.PlayHandle())
-		g.HandleFunc("/query", graphql.QueryHandleFunc(service))
+		g.Handle("/query", graphql.QueryHandler(service))
 	})
 
 	// rest
