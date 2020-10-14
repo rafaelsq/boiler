@@ -11,6 +11,6 @@ var (
 	ErrAlreadyExists = errors.New("already exists").SetArg("code", "s1")
 	// ErrInvalidID invalid ID error
 	ErrInvalidID = errors.New("invalid ID").SetArg("code", "iid")
-	// ErrPassword invalid password
+	// ErrInvalidPassword invalid password
 	ErrInvalidPassword = errors.New("invalid password").SetArg("code", "ipass")
 )

@@ -5,18 +5,15 @@ jobs:
         name: Build
         runs-on: ubuntu-latest
         steps:
-            - name: Set up Go 1.15
-              uses: actions/setup-go@v1
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Go
+              uses: actions/setup-go@v2
               with:
-                  go-version: 1.15
-            - name: Check out code into the Go module directory
-              uses: actions/checkout@v1
+                  go-version: '^1.15.2'
+            - name: golangci-lint
+              uses: golangci/golangci-lint-action@v2
               with:
-                  fetch-depth: 1
-                  path: go/src/github.com/rafaelsq/boiler
-            - name: GolangCI-Lint
-              run: |
-                  curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s v1.31.0
-                  ./bin/golangci-lint run --enable golint --enable gocyclo
+                  version: v1.31
             - name: Test
               run: make godeps && go test -race -cover ./...

@@ -7,3 +7,5 @@ linters:
     - lll
     - bodyclose
     - misspell
+    - gocyclo
+    - golint
