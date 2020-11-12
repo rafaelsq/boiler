@@ -22,7 +22,7 @@ func TestAddUser(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var userID int64 = 99
 	name := "name"
@@ -148,7 +148,7 @@ func TestDeleteUser(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var userID int64 = 99
 
@@ -331,7 +331,7 @@ func TestFilterUsersID(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var userID int64 = 99
 	name := "name"
@@ -378,7 +378,7 @@ func TestGetUserByID(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var userID int64 = 99
 	name := "userName"
@@ -435,7 +435,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var userID int64 = 99
 	name := "userName"

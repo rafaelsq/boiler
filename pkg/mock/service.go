@@ -170,6 +170,20 @@ func (mr *MockServiceMockRecorder) DeleteEmail(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmail", reflect.TypeOf((*MockService)(nil).DeleteEmail), arg0, arg1)
 }
 
+// EnqueueDeleteEmail mocks base method
+func (m *MockService) EnqueueDeleteEmail(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnqueueDeleteEmail", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnqueueDeleteEmail indicates an expected call of EnqueueDeleteEmail
+func (mr *MockServiceMockRecorder) EnqueueDeleteEmail(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnqueueDeleteEmail", reflect.TypeOf((*MockService)(nil).EnqueueDeleteEmail), arg0, arg1)
+}
+
 // AuthUserMiddleware mocks base method
 func (m *MockService) AuthUserMiddleware(arg0 http.Handler) http.Handler {
 	m.ctrl.T.Helper()

@@ -22,7 +22,7 @@ func TestAddEmail(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var ID int64 = 13
 	var userID int64 = 99
@@ -146,7 +146,7 @@ func TestDeleteEmail(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var ID int64 = 13
 
@@ -264,7 +264,7 @@ func TestFilterEmails(t *testing.T) {
 
 	m := mock.NewMockStore(ctrl)
 
-	srv := service.New(&config.Config{}, m)
+	srv := service.New(&config.Config{}, m, nil)
 
 	var ID int64 = 13
 	var userID int64 = 99
