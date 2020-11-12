@@ -3,15 +3,22 @@ package service
 import (
 	"boiler/pkg/iface"
 	"boiler/pkg/store/config"
+
+	"github.com/gocraft/work"
 )
 
 // New return a new service
-func New(conf *config.Config, store iface.Store) iface.Service {
-	return &Service{conf, store}
+func New(conf *config.Config, store iface.Store, enqueuer *work.Enqueuer) iface.Service {
+	return &Service{
+		enqueuer,
+		conf,
+		store,
+	}
 }
 
 // Service is the main service
 type Service struct {
-	config *config.Config
-	store  iface.Store
+	enqueue *work.Enqueuer
+	config  *config.Config
+	store   iface.Store
 }

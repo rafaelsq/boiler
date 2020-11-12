@@ -32,6 +32,12 @@ func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (i
 	return ID, nil
 }
 
+// EnqueueDeleteEmail enqueue email to be deleted
+func (s *Service) EnqueueDeleteEmail(ctx context.Context, emailID int64) error {
+	_, err := s.enqueue.Enqueue(iface.DeleteEmail, map[string]interface{}{"id": emailID})
+	return err
+}
+
 // DeleteEmail remove an email
 func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
 	tx, err := s.store.Tx()

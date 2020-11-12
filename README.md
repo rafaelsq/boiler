@@ -27,6 +27,14 @@ Project
 ├─■ .wtc.yaml            // watch settings
 │
 ├─┐cmd
+│ ├─■ cmd.go             // common funciont
+│ │
+│ ├─┐worker              // handle async operation
+│ │ ├─■ worker.go
+│ │ └─┐internal
+│ │   └─┐handle
+│ │     └─■ handle.go
+│ │
 │ └─┐server              // HTTP server
 │   ├─■ server.go        // entrypoint
 │   └─┐internal
@@ -82,6 +90,14 @@ Project
       └─■ database.go
 
 ```
+
+# Requirements
+
+Worker requires a running Redis server.  
+
+You can easily start a redis server using docker;
+`docker run -d --name=redis -p 6379:6379  redis:6`
+
 
 # Run Dev Mode
 

@@ -10,7 +10,21 @@ import (
 )
 
 type Config struct {
-	JWT JWT
+	JWT     JWT
+	Worker  Worker
+	Sqlite3 string
+}
+
+type Worker struct {
+	Concurrency uint
+	Redis       Redis
+}
+
+type Redis struct {
+	MaxActive int
+	MaxIdle   int
+	Wait      bool
+	Address   string
 }
 
 type JWT struct {
@@ -26,6 +40,16 @@ func New() *Config {
 			ExpireIn:   time.Second * 30,
 			Issuer:     "boiler",
 		},
+		Worker: Worker{
+			Concurrency: 10,
+			Redis: Redis{
+				MaxActive: 5,
+				MaxIdle:   5,
+				Wait:      true,
+				Address:   ":6379",
+			},
+		},
+		Sqlite3: "./db.sqlite3",
 	}
 }
 

@@ -1,17 +1,21 @@
 debounce: 300
 ignore: \.git/
-trig:
-  - build
+trig_async:
+  - server
+  - worker
+format:
+  command_ok: "\u001b[38;5;240m[{{.Title}}] \u001b[0m{{.Message}}\n"
+  command_err: "\u001b[38;5;240m[{{.Title}}] \u001b[38;5;1m{{.Message}}\u001b[0m\n"
 rules:
-  - name: build
+  - name: server
     match: \.go$
-    ignore: ((/(iface|entity)/)|_test\.go$)
-    command: go build cmd/server/server.go
-    trig:
-      - run
+    ignore: ((/(iface|entity|mock)/)|_test\.go$)
+    command: go run cmd/server/server.go
 
-  - name: run
-    command: ./server
+  - name: worker
+    match: \.go$
+    ignore: ((/(iface|entity|mock)/)|_test\.go$)
+    command: go run cmd/worker/worker.go
 
   - name: gqlgen
     match: (schema\.graphql|gqlgen.yml)$
@@ -22,8 +26,9 @@ rules:
     ignore: (_test\.go|_gen_?)
     command: go generate {PKG}
     debounce: 1000
-    trig:
-      - build
+    trig_async:
+      - server
+      - worker
 
   - name: test
     match: _test\.go$

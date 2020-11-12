@@ -1,3 +1,4 @@
 /db
 /server
+/worker
 /db.sqlite3

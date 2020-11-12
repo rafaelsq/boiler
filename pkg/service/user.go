@@ -84,6 +84,12 @@ func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity
 	return user, token, nil
 }
 
+// EnqueueDeleteUser enqueue user to be deleted
+func (s *Service) EnqueueDeleteUser(ctx context.Context, userID int64) error {
+	_, err := s.enqueue.Enqueue(iface.DeleteUser, map[string]interface{}{"id": userID})
+	return err
+}
+
 // DeleteUser remove user by ID
 func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	tx, err := s.store.Tx()
