@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/go-chi/chi"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog/log"
 )
 
 func fileExists(filename string) bool {
@@ -93,7 +93,7 @@ func main() {
 	go func() {
 		<-c
 		// sig is a ^C, handle it
-		log.Println("shutting down..")
+		log.Warn().Msg("shutting down..")
 
 		// create context with timeout
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -106,18 +106,18 @@ func main() {
 
 		// start http shutdown
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Println("shutdown error", err)
+			log.Error().Err(err).Msg("shutdown error")
 		}
 
 		close(iddleConnections)
 	}()
 
-	log.Printf("Listening on :%d\n", *port)
+	log.Info().Int("port", *port).Msg("[server] Listening...")
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
+		log.Fatal().Err(err).Send()
 	}
 
-	log.Println("waiting iddle connections...")
+	log.Warn().Msg("waiting iddle connections...")
 	<-iddleConnections
-	log.Println("done, bye!")
+	log.Warn().Msg("done, bye!")
 }

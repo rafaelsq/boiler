@@ -3,7 +3,6 @@ package graphql
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"runtime/debug"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/rs/zerolog/log"
 )
 
 // PlayHandle handle Playground
@@ -31,7 +31,7 @@ func QueryHandler(service iface.Service) http.Handler {
 	hldr.AddTransport(transport.POST{})
 
 	hldr.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
-		log.Print(err)
+		log.Error().Interface("err", err).Caller().Send()
 		debug.PrintStack()
 		return errors.New("internal server error")
 	})

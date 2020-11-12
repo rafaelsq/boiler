@@ -14,10 +14,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func init() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-}
-
 // Log write an error in the log
 func Log(err error) {
 	errs := errors.List(err)
