@@ -18,7 +18,7 @@ func New(conf *config.Config, store iface.Store, enqueuer *work.Enqueuer) iface.
 
 // Service is the main service
 type Service struct {
-	enqueue *work.Enqueuer
-	config  *config.Config
-	store   iface.Store
+	enqueuer *work.Enqueuer
+	config   *config.Config
+	store    iface.Store
 }

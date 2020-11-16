@@ -8,6 +8,7 @@ import (
 	"boiler/cmd"
 	"boiler/cmd/worker/internal/handle"
 	"boiler/pkg/iface"
+	"boiler/pkg/store/config"
 
 	"github.com/gocraft/work"
 	"github.com/rs/zerolog/log"
@@ -15,11 +16,12 @@ import (
 
 func main() {
 
-	sv, redisPool := cmd.New()
+	conf := config.New()
+	sv, redisPool := cmd.New(conf)
 
 	handler := handle.New(sv)
 
-	pool := work.NewWorkerPool(handler, 10, "all", redisPool)
+	pool := work.NewWorkerPool(handler, conf.Worker.Concurrency, "all", redisPool)
 
 	// middleware
 	pool.Middleware(func(j *work.Job, next work.NextMiddlewareFunc) error {

@@ -61,11 +61,9 @@ func newDB(path string) (*sql.DB, error) {
 	return db, nil
 }
 
-func New() (iface.Service, *redis.Pool) {
+func New(conf *config.Config) (iface.Service, *redis.Pool) {
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-
-	conf := config.New()
 
 	var redisPool = &redis.Pool{
 		MaxActive: conf.Worker.Redis.MaxActive,

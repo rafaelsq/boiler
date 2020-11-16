@@ -11,6 +11,7 @@ import (
 
 	"boiler/cmd"
 	"boiler/cmd/server/internal/router"
+	"boiler/pkg/store/config"
 
 	"github.com/go-chi/chi"
 	_ "github.com/mattn/go-sqlite3"
@@ -22,7 +23,7 @@ func main() {
 
 	flag.Parse()
 
-	sv, _ := cmd.New()
+	sv, _ := cmd.New(config.New())
 
 	r := chi.NewRouter()
 	router.ApplyMiddlewares(r, sv)
