@@ -59,14 +59,16 @@ func ApplyRoute(r chi.Router, service iface.Service) {
 
 	// rest
 	r.Route("/rest", func(r chi.Router) {
-		r.Get("/users", rest.ListUsersHandle(service))
-		r.Post("/users", rest.AddUserHandle(service))
-		r.Get("/users/{userID:[0-9]+}", rest.GetUserHandle(service))
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(service))
-		r.Post("/users/login", rest.LoginHandle(service))
+		h := rest.New(service)
 
-		r.Get("/emails", rest.ListEmailsHandle(service))
-		r.Post("/emails", rest.AddEmailHandle(service))
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(service))
+		r.Get("/users", h.ListUsers)
+		r.Post("/users", h.AddUser)
+		r.Get("/users/{userID:[0-9]+}", h.GetUser)
+		r.Delete("/users/{userID:[0-9]+}", h.DeleteUser)
+		r.Post("/users/login", h.AuthUser)
+
+		r.Get("/emails", h.ListEmails)
+		r.Post("/emails", h.AddEmail)
+		r.Delete("/emails/{emailID:[0-9]+}", h.DeleteEmail)
 	})
 }

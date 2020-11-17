@@ -36,7 +36,9 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/users", rest.AddUserHandle(m))
+
+		h := rest.New(m)
+		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -64,7 +66,9 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/users", rest.AddUserHandle(m))
+
+		h := rest.New(m)
+		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -91,7 +95,9 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/users", rest.AddUserHandle(m))
+
+		h := rest.New(m)
+		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -122,7 +128,9 @@ func TestAddUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/users", rest.AddUserHandle(m))
+
+		h := rest.New(m)
+		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -154,7 +162,9 @@ func TestDeleteUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(m))
+
+		h := rest.New(m)
+		r.Delete("/users/{userID:[0-9]+}", h.DeleteUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -177,7 +187,9 @@ func TestDeleteUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(m))
+
+		h := rest.New(m)
+		r.Delete("/users/{userID:[0-9]+}", h.DeleteUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -208,7 +220,9 @@ func TestDeleteUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Delete("/users/{userID:[0-9]+}", rest.DeleteUserHandle(m))
+
+		h := rest.New(m)
+		r.Delete("/users/{userID:[0-9]+}", h.DeleteUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -246,7 +260,9 @@ func TestUsersHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/users", rest.ListUsersHandle(m))
+
+		h := rest.New(m)
+		r.Get("/users", h.ListUsers)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -274,7 +290,9 @@ func TestUsersHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/users", rest.ListUsersHandle(m))
+
+		h := rest.New(m)
+		r.Get("/users", h.ListUsers)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -301,7 +319,9 @@ func TestUsersHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/users", rest.ListUsersHandle(m))
+
+		h := rest.New(m)
+		r.Get("/users", h.ListUsers)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -335,7 +355,9 @@ func TestUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(m))
+
+		h := rest.New(m)
+		r.Get("/user/{userID:[0-9]+}", h.GetUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -363,7 +385,9 @@ func TestUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(m))
+
+		h := rest.New(m)
+		r.Get("/user/{userID:[0-9]+}", h.GetUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -389,7 +413,9 @@ func TestUserHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/user/{userID:[0-9]+}", rest.GetUserHandle(m))
+
+		h := rest.New(m)
+		r.Get("/user/{userID:[0-9]+}", h.GetUser)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -421,7 +447,9 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/emails", rest.AddEmailHandle(m))
+
+		h := rest.New(m)
+		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -450,7 +478,9 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/emails", rest.AddEmailHandle(m))
+
+		h := rest.New(m)
+		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -476,7 +506,9 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/emails", rest.AddEmailHandle(m))
+
+		h := rest.New(m)
+		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -502,7 +534,9 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/emails", rest.AddEmailHandle(m))
+
+		h := rest.New(m)
+		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -536,7 +570,9 @@ func TestAddEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Post("/emails", rest.AddEmailHandle(m))
+
+		h := rest.New(m)
+		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -573,7 +609,9 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(m))
+
+		h := rest.New(m)
+		r.Delete("/emails/{emailID:[0-9]+}", h.DeleteEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -603,7 +641,9 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(m))
+
+		h := rest.New(m)
+		r.Delete("/emails/{emailID:[0-9]+}", h.DeleteEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -632,7 +672,9 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Delete("/emails/{emailID:[0-9]+}", rest.DeleteEmailHandle(m))
+
+		h := rest.New(m)
+		r.Delete("/emails/{emailID:[0-9]+}", h.DeleteEmail)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -674,7 +716,9 @@ func TestEmailsHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/emails", rest.ListEmailsHandle(m))
+
+		h := rest.New(m)
+		r.Get("/emails", h.ListEmails)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -711,7 +755,9 @@ func TestEmailsHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/emails", rest.ListEmailsHandle(m))
+
+		h := rest.New(m)
+		r.Get("/emails", h.ListEmails)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -729,9 +775,10 @@ func TestEmailsHandle(t *testing.T) {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { n.ServeHTTP(w, r) })
 		})
 
+		h := rest.New(m)
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/emails", rest.ListEmailsHandle(m))
+		r.Get("/emails", h.ListEmails)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
@@ -751,7 +798,9 @@ func TestEmailsHandle(t *testing.T) {
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, m)
-		r.Get("/emails", rest.ListEmailsHandle(m))
+
+		h := rest.New(m)
+		r.Get("/emails", h.ListEmails)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
