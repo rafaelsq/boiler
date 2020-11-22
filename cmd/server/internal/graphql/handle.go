@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"boiler/pkg/iface"
+	"boiler/pkg/service"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
@@ -20,7 +20,7 @@ func PlayHandle() http.HandlerFunc {
 }
 
 // QueryHandleFunc return an http HandlerFunc
-func QueryHandler(service iface.Service) http.Handler {
+func QueryHandler(service service.Interface) http.Handler {
 	hldr := handler.New(
 		NewExecutableSchema(Config{
 			Resolvers: NewResolver(service),

@@ -23,10 +23,11 @@ func main() {
 
 	flag.Parse()
 
-	sv, _ := cmd.New(config.New())
+	cfg := config.New()
+	sv, _ := cmd.New(cfg)
 
 	r := chi.NewRouter()
-	router.ApplyMiddlewares(r, sv)
+	router.ApplyMiddlewares(r, cfg, sv)
 	router.ApplyRoute(r, sv)
 
 	// graceful shutdown

@@ -8,18 +8,19 @@ import (
 	"strconv"
 	"strings"
 
-	"boiler/pkg/iface"
-	"boiler/pkg/store/log"
+	"boiler/pkg/service"
+	"boiler/pkg/store"
 
 	"github.com/go-chi/chi"
+	"github.com/rs/zerolog/log"
 )
 
-func New(service iface.Service) Handle {
-	return Handle{service}
+func New(srv service.Interface) Handle {
+	return Handle{srv}
 }
 
 type Handle struct {
-	service iface.Service
+	service service.Interface
 }
 
 // AddUser handle an AddUser request
@@ -43,7 +44,7 @@ func (h *Handle) AddUser(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := h.service.AddUser(r.Context(), payload.Name, payload.Password)
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Msg("could not add user")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
 		return
 	}
@@ -67,9 +68,9 @@ func (h *Handle) ListUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	users, err := h.service.FilterUsers(r.Context(), iface.FilterUsers{Limit: uint(limit)})
+	users, err := h.service.FilterUsers(r.Context(), store.FilterUsers{Limit: uint(limit)})
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Msg("could not filter users")
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "service failed")
 		return
@@ -90,7 +91,7 @@ func (h *Handle) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.DeleteUser(r.Context(), userID)
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Msg("could not delete user")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
 		return
 	}
@@ -108,7 +109,7 @@ func (h *Handle) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.GetUserByID(r.Context(), userID)
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Int64("userID", userID).Msg("could not get user")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
 		return
 	}
@@ -127,7 +128,6 @@ func (h *Handle) AddEmail(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		log.Log(err)
 		Fail(w, r, http.StatusBadRequest, "invalid payload")
 		return
 	}
@@ -145,7 +145,7 @@ func (h *Handle) AddEmail(w http.ResponseWriter, r *http.Request) {
 
 	emailID, err := h.service.AddEmail(r.Context(), payload.UserID, email.Address)
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Msg("could not add email")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
 		return
 	}
@@ -165,7 +165,7 @@ func (h *Handle) DeleteEmail(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.DeleteEmail(r.Context(), emailID)
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Msg("could not delete email")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
 		return
 	}
@@ -187,9 +187,9 @@ func (h *Handle) ListEmails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emails, err := h.service.FilterEmails(r.Context(), iface.FilterEmails{UserID: userID})
+	emails, err := h.service.FilterEmails(r.Context(), store.FilterEmails{UserID: userID})
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Msg("could not filter email")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
 		return
 	}
@@ -214,7 +214,7 @@ func (h *Handle) AuthUser(w http.ResponseWriter, r *http.Request) {
 
 	user, token, err := h.service.AuthUser(r.Context(), payload.Email, payload.Password)
 	if err != nil {
-		log.Log(err)
+		log.Error().Err(err).Msg("could not auth user")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
 		return
 	}

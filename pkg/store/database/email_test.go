@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"boiler/pkg/iface"
+	"boiler/pkg/store"
 	"boiler/pkg/store/database"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -90,7 +90,7 @@ func TestAddEmail(t *testing.T) {
 		assert.Nil(t, err)
 
 		emailID, err := r.AddEmail(ctx, tx, userID, address)
-		assert.Equal(t, err, iface.ErrAlreadyExists)
+		assert.Equal(t, err, store.ErrAlreadyExists)
 		assert.Equal(t, 0, int(emailID))
 		assert.Nil(t, tx.Commit())
 	}
@@ -212,7 +212,7 @@ func TestDeleteEmail(t *testing.T) {
 
 		err = r.DeleteEmail(ctx, tx, emailID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err, iface.ErrNotFound)
+		assert.Equal(t, err, store.ErrNotFound)
 		assert.Nil(t, tx.Commit())
 		assert.Nil(t, mock.ExpectationsWereMet())
 	}
@@ -290,7 +290,7 @@ func TestFilterEmails(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
+		emails, err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID})
 		assert.Nil(t, err)
 		assert.Len(t, emails, 1)
 	}
@@ -307,7 +307,7 @@ func TestFilterEmails(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, iface.FilterEmails{EmailID: emailID})
+		emails, err := r.FilterEmails(ctx, store.FilterEmails{EmailID: emailID})
 		assert.Nil(t, err)
 		assert.Len(t, emails, 1)
 	}
@@ -324,7 +324,7 @@ func TestFilterEmails(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
+		emails, err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Len(t, emails, 0)
@@ -340,7 +340,7 @@ func TestFilterEmails(t *testing.T) {
 		).WithArgs(userID).WillReturnError(myErr)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
+		emails, err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID})
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Len(t, emails, 0)
 	}

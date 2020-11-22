@@ -2,14 +2,15 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
-	"boiler/pkg/mock"
 	"boiler/pkg/service"
+	"boiler/pkg/store"
 	"boiler/pkg/store/config"
+	"boiler/pkg/store/mock"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
@@ -20,7 +21,7 @@ func TestAddUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
@@ -56,10 +57,12 @@ func TestAddUser(t *testing.T) {
 
 	// fails if Tx fails
 	{
-		m.EXPECT().Tx().Return(nil, fmt.Errorf("opz"))
+		opz := fmt.Errorf("opz")
+		m.EXPECT().Tx().Return(nil, opz)
 
 		id, err := srv.AddUser(ctx, name, password)
 		assert.NotNil(t, err)
+		assert.True(t, errors.Is(err, opz))
 		assert.Equal(t, err.Error(), "could not begin transaction; opz")
 		assert.Equal(t, 0, int(id))
 	}
@@ -146,7 +149,7 @@ func TestDeleteUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
@@ -235,7 +238,7 @@ func TestDeleteUser(t *testing.T) {
 
 		err = srv.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, "could not rollback delete user; rollbackfail; deletefail", err.Error())
+		assert.Equal(t, "could not delete user; rollbackfail; deletefail", err.Error())
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -283,16 +286,19 @@ func TestDeleteUser(t *testing.T) {
 			EXPECT().
 			DeleteUser(ctx, tx, userID).
 			Return(nil)
+
+		errDeleteFail := errors.New("deletefail")
 		m.
 			EXPECT().
 			DeleteEmailsByUserID(ctx, tx, userID).
-			Return(fmt.Errorf("deletefail"))
+			Return(errDeleteFail)
 
-		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackfail"))
+		mdb.ExpectRollback().WillReturnError(errors.New("rollbackfail"))
 
 		err = srv.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, "could not rollback delete emails by user ID; rollbackfail; deletefail", err.Error())
+		assert.True(t, errors.Is(err, errDeleteFail))
+		assert.Equal(t, "could not delete user emails; rollbackfail; deletefail", err.Error())
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -329,13 +335,13 @@ func TestFilterUsersID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
 	var userID int64 = 99
 	name := "name"
-	filter := iface.FilterUsers{Limit: 10}
+	filter := store.FilterUsers{Limit: 10}
 	ctx := context.Background()
 
 	// succed
@@ -376,7 +382,7 @@ func TestGetUserByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
@@ -425,7 +431,7 @@ func TestGetUserByID(t *testing.T) {
 
 		v, err := srv.GetUserByID(ctx, userID)
 		assert.Nil(t, v)
-		assert.Equal(t, iface.ErrNotFound, err)
+		assert.Equal(t, store.ErrNotFound, err)
 	}
 }
 
@@ -433,7 +439,7 @@ func TestGetUserByEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
@@ -447,7 +453,7 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsersID(ctx, iface.FilterUsers{Email: email}).
+			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}).
 			Return([]int64{userID}, nil)
 		m.
 			EXPECT().
@@ -469,7 +475,7 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsersID(ctx, iface.FilterUsers{Email: email}).
+			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}).
 			Return(nil, fmt.Errorf("opz"))
 
 		v, err := srv.GetUserByEmail(ctx, email)
@@ -482,11 +488,11 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsersID(ctx, iface.FilterUsers{Email: email}).
+			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}).
 			Return([]int64{}, nil)
 
 		v, err := srv.GetUserByEmail(ctx, email)
 		assert.Nil(t, v)
-		assert.Equal(t, iface.ErrNotFound, err)
+		assert.Equal(t, store.ErrNotFound, err)
 	}
 }

@@ -3,11 +3,11 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
-	"boiler/pkg/iface"
+	"boiler/pkg/store"
 
 	"github.com/mattn/go-sqlite3"
-	"github.com/rafaelsq/errors"
 )
 
 // Database map a database access
@@ -32,15 +32,15 @@ func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		if e, is := err.(sqlite3.Error); is && e.ExtendedCode == sqlite3.ErrConstraintUnique {
-			return 0, iface.ErrAlreadyExists
+			return 0, store.ErrAlreadyExists
 		}
 
-		return 0, errors.New("could not insert").SetArg("args", args).SetParent(err)
+		return 0, fmt.Errorf("could not insert; %w", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, errors.New("fail to retrieve last inserted ID").SetParent(err)
+		return 0, fmt.Errorf("fail to retrieve last inserted ID; %w", err)
 	}
 
 	return id, nil
@@ -50,16 +50,16 @@ func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) error {
 	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		return errors.New("could not remove").SetArg("args", args).SetParent(err)
+		return fmt.Errorf("could not remove; %w", err)
 	}
 
 	n, err := result.RowsAffected()
 	if err != nil {
-		return errors.New("could not fetch rows affected").SetArg("args", args).SetParent(err)
+		return fmt.Errorf("could not fetch rows affected; %w", err)
 	}
 
 	if n == 0 {
-		return iface.ErrNotFound
+		return store.ErrNotFound
 	}
 
 	return nil
@@ -71,9 +71,7 @@ func Select(ctx context.Context, sql *sql.DB, scan func(func(...interface{}) err
 
 	rawRows, err := sql.QueryContext(ctx, query, args...)
 	if err != nil {
-		cerr := errors.New("could not fetch rows")
-		cerr.Caller = errors.Caller(1)
-		return nil, cerr.SetArg("args", args).SetParent(err)
+		return nil, fmt.Errorf("could not fetch rows; %w", err)
 	}
 
 	var rows []interface{}
@@ -97,7 +95,7 @@ func scanInt(sc func(dest ...interface{}) error) (interface{}, error) {
 
 	err := sc(&id)
 	if err != nil {
-		return nil, errors.New("could not scan int").SetParent(err)
+		return nil, fmt.Errorf("could not scan int; %w", err)
 	}
 
 	return id, nil

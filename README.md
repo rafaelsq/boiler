@@ -22,7 +22,6 @@ Project
 
 ┌─■ README.md
 ├─■ Makefile
-├─■ mock.sh              // script to generate mock from pkg/ifaces
 ├─■ .golangci.yml
 ├─■ .wtc.yaml            // watch settings
 │
@@ -35,12 +34,12 @@ Project
 │ │   └─┐handle
 │ │     └─■ handle.go
 │ │
-│ └─┐server              // HTTP server
-│   ├─■ server.go        // entrypoint
+│ └─┐server                // HTTP server
+│   ├─■ server.go          // entrypoint
 │   └─┐internal
 │     ├─┐router
 │     │ ├─■ middleware.go
-│     │ └─■ router.go      // route to www, rest, graphql, etc..
+│     │ └─■ router.go      // route www, rest, graphql, etc..
 │     │
 │     ├─┐www
 │     │ ├─■ handle.go
@@ -50,45 +49,43 @@ Project
 │     ├─┐rest
 │     │ ├─■ handle.go
 │     │ └─┐entity
-│     │   └─■ *.go
+│     │   └─■ <handle_name>.go  // payload and response definitions
 │     │
 │     └─┐graphql
 │       ├─■ handle.go
-│       └─┐graphql
-│         ├─■ schema.graphql
-│         ├─■ gqlgen.yml
-│         ├─■ query.go
-│         ├─■ mutation.go
-│         ├─■ resolver.go
-│         └─┐entity
-│           └─■ *.go
+│       ├─■ schema.graphql
+│       ├─■ gqlgen.yml
+│       ├─■ query.go
+│       ├─■ mutation.go
+│       ├─■ resolver.go
+│       └─┐entity
+│         └─■ *.go
 │
 └─┐pkg
   │
   ├─┐service             // business logic
-  │ └─■ *.go
+  │ ├─■ service.go       // new & interface
+  │ ├─■ *.go
+  │ └─┐mock              // service mock
+  │   └─■ *.go
   │
-  ├─┐entity              // entities used by service and store
-  │ └─■ *.go
-  │
-  ├─┐iface               // interfaces
-  │ ├─■ service.go
-  │ ├─■ store.go
-  │ └─■ *.go
-  │
-  ├─┐mock                // mock pkg/iface
+  ├─┐entity
   │ └─■ *.go
   │
   └─┐store
-    ├─┐config
-    │ └─■ config.go
+    ├─■ interface.go
+    │
+    ├─┐mock
+    │ └─■ *.go
+    │
+    ├─┐cfg
+    │ └─■ cfg.go
     │
     ├─┐log
     │ └─■ log.go
     │
-    └─┐database
-      └─■ database.go
-
+    └─┐<db>
+      └─■ <db>.go
 ```
 
 # Requirements
@@ -104,8 +101,5 @@ You can easily start a redis server using docker;
 ```bash
 $ make
 ```
-
-if pkg/entity or pkg/iface changes, it will run `$ make gen` automatically  
-if ./schema.graphql changes, it will run `$ make update-graphql-schema` automatically
 
 more info on .wtc.yaml

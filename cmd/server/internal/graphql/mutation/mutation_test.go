@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"boiler/cmd/server/internal/graphql/entity"
-	"boiler/pkg/iface"
-	"boiler/pkg/mock"
+	"boiler/pkg/service/mock"
+	"boiler/pkg/store"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func TestAddUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	service := mock.NewMockService(ctrl)
+	service := mock.NewMockInterface(ctrl)
 
 	m := NewMutation(service)
 
@@ -59,7 +59,7 @@ func TestAddEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	service := mock.NewMockService(ctrl)
+	service := mock.NewMockInterface(ctrl)
 
 	m := NewMutation(service)
 
@@ -111,13 +111,13 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), iface.ErrAlreadyExists)
+		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), store.ErrAlreadyExists)
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
-		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", iface.ErrAlreadyExists))
+		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", store.ErrAlreadyExists))
 		assert.Nil(t, u)
 	}
 

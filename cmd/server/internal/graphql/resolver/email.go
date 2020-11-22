@@ -5,11 +5,12 @@ import (
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
-	"boiler/pkg/iface"
+	"boiler/pkg/service"
+	"boiler/pkg/store"
 )
 
 // NewEmail return a new Email resolver
-func NewEmail(service iface.Service) *Email {
+func NewEmail(service service.Interface) *Email {
 	return &Email{
 		service: service,
 	}
@@ -17,7 +18,7 @@ func NewEmail(service iface.Service) *Email {
 
 // Email resolver for Email
 type Email struct {
-	service iface.Service
+	service service.Interface
 }
 
 // User resolve User by Email
@@ -33,16 +34,16 @@ func (r *Email) User(ctx context.Context, e *entity.Email) (*entity.User, error)
 func (r *Email) Email(ctx context.Context, rawEmailID string) (*entity.Email, error) {
 	emailID, err := strconv.ParseInt(rawEmailID, 10, 64)
 	if err != nil || emailID == 0 {
-		return nil, iface.ErrInvalidID
+		return nil, service.ErrInvalidID
 	}
 
-	emails, err := r.service.FilterEmails(ctx, iface.FilterEmails{EmailID: emailID})
+	emails, err := r.service.FilterEmails(ctx, store.FilterEmails{EmailID: emailID})
 	if err != nil {
 		return nil, Wrap(ctx, err, "fail to filter emails")
 	}
 
 	if len(emails) == 0 {
-		return nil, iface.ErrNotFound
+		return nil, store.ErrNotFound
 	}
 
 	return entity.NewEmail(emails[0]), nil

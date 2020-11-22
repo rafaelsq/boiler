@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"testing"
 
-	"boiler/pkg/iface"
+	"boiler/pkg/store"
+	"boiler/pkg/store/config"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestWrap(t *testing.T) {
-	assert.Equal(t, iface.ErrNotFound, Wrap(context.TODO(), iface.ErrNotFound))
+	assert.Equal(t, store.ErrNotFound, Wrap(context.TODO(), store.ErrNotFound))
 
 	assert.Equal(t, "service failed", Wrap(context.TODO(), fmt.Errorf("opz"), "fail").Error())
 
 	assert.Equal(t, "opz", Wrap(context.WithValue(
-		context.TODO(), iface.ContextKeyDebug{}, true), fmt.Errorf("opz")).Error())
+		context.TODO(), config.ContextKeyDebug{}, true), fmt.Errorf("opz")).Error())
 }

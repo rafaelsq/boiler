@@ -2,52 +2,11 @@ package log
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"runtime/debug"
-
-	"github.com/rafaelsq/errors"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
-
-// Log write an error in the log
-func Log(err error) {
-	errs := errors.List(err)
-	fmt.Printf("\u001b[38;5;1mERROR\033[0m(%d): %s\n", len(errs), errors.Caller(1))
-	for _, err := range errs {
-		fmt.Printf(" %v\n", err)
-		if er, is := err.(*errors.Error); is {
-			if er.Args != nil {
-				fmt.Printf("  \033[38;5;1margs\033[0m: ")
-				_ = json.NewEncoder(os.Stderr).Encode(er.Args)
-			}
-			fmt.Printf("  \033[38;5;1mfile\033[0m: %s\n", er.Caller)
-		}
-	}
-}
-
-// Zerolog log all the related errors of an error
-func Zerolog(err error) {
-	errs := errors.List(err)
-	lg := log.Error().Timestamp()
-	for i, err := range errs {
-		if er, is := err.(*errors.Error); is {
-			d := zerolog.Dict().
-				Str("error", er.Error()).
-				Str("caller", er.Caller)
-			if er.Args != nil {
-				d.Interface("args", er.Args)
-			}
-			lg.Dict(fmt.Sprintf("err%d", i), d)
-		}
-	}
-
-	lg.Msg(err.Error())
-}
 
 var (
 	// ProjectFolder is the main folder of the project

@@ -5,26 +5,27 @@ import (
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
-	"boiler/pkg/iface"
+	"boiler/pkg/service"
+	"boiler/pkg/store"
 )
 
 // NewUser return a new user resolver
-func NewUser(service iface.Service) *User {
+func NewUser(srv service.Interface) *User {
 	return &User{
-		service: service,
+		service: srv,
 	}
 }
 
 // User is the user resolver
 type User struct {
-	service iface.Service
+	service service.Interface
 }
 
 // User return an user by ID
 func (r *User) User(ctx context.Context, rawUserID string) (*entity.User, error) {
 	userID, err := strconv.ParseInt(rawUserID, 10, 64)
 	if err != nil || userID == 0 {
-		return nil, iface.ErrInvalidID
+		return nil, service.ErrInvalidID
 	}
 
 	u, err := r.service.GetUserByID(ctx, userID)
@@ -36,7 +37,7 @@ func (r *User) User(ctx context.Context, rawUserID string) (*entity.User, error)
 
 // Users return a slice of User
 func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
-	us, err := r.service.FilterUsers(ctx, iface.FilterUsers{Limit: limit})
+	us, err := r.service.FilterUsers(ctx, store.FilterUsers{Limit: limit})
 	if err == nil {
 		users := make([]*entity.User, 0, len(us))
 		for _, u := range us {
@@ -51,10 +52,10 @@ func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
 func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, error) {
 	userID, err := strconv.ParseInt(u.ID, 10, 64)
 	if err != nil || userID == 0 {
-		return nil, iface.ErrInvalidID
+		return nil, service.ErrInvalidID
 	}
 
-	es, err := r.service.FilterEmails(ctx, iface.FilterEmails{UserID: userID})
+	es, err := r.service.FilterEmails(ctx, store.FilterEmails{UserID: userID})
 	if err == nil {
 		emails := make([]*entity.Email, 0, len(es))
 		for _, e := range es {

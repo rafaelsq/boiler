@@ -1,18 +1,18 @@
 package handle
 
 import (
-	"boiler/pkg/iface"
+	"boiler/pkg/service"
 	"context"
 
 	"github.com/gocraft/work"
 )
 
-func New(service iface.Service) Handle {
-	return Handle{service}
+func New(srv service.Interface) Handle {
+	return Handle{srv}
 }
 
 type Handle struct {
-	service iface.Service
+	service service.Interface
 }
 
 func (h *Handle) DeleteUser(j *work.Job) error {

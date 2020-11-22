@@ -3,12 +3,11 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
-
-	"github.com/rafaelsq/errors"
+	"boiler/pkg/store"
 )
 
 // AddEmail insert a new emails in the database
@@ -30,7 +29,7 @@ func (s *Database) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID 
 }
 
 // FilterEmails find for emails
-func (s *Database) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {
+func (s *Database) FilterEmails(ctx context.Context, filter store.FilterEmails) ([]*entity.Email, error) {
 	args := []interface{}{filter.UserID}
 	where := "user_id = ?"
 	if filter.EmailID > 0 {
@@ -63,7 +62,7 @@ func scanEmail(sc func(dest ...interface{}) error) (interface{}, error) {
 
 	err := sc(&id, &userID, &address, &created)
 	if err != nil {
-		return nil, errors.New("could not scan email").SetParent(err)
+		return nil, fmt.Errorf("could not scan email; %w", err)
 	}
 
 	return &entity.Email{

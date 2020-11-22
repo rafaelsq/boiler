@@ -8,7 +8,7 @@ import (
 	"boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
 	globalEntity "boiler/pkg/entity"
-	"boiler/pkg/iface"
+	"boiler/pkg/store/config"
 )
 
 // NewQuery return a new QueryResolver
@@ -35,7 +35,7 @@ func (r *Query) User(ctx context.Context, userID string) (*entity.User, error) {
 
 func (r *Query) Viewer(ctx context.Context) (*entity.User, error) {
 
-	raw := ctx.Value(iface.ContextKeyAuthenticationUser{})
+	raw := ctx.Value(config.ContextKeyAuthenticationUser{})
 	if raw == nil {
 		return nil, errors.New("unauthorized")
 	}

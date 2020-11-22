@@ -4,17 +4,17 @@ package graphql
 import (
 	"boiler/cmd/server/internal/graphql/mutation"
 	"boiler/cmd/server/internal/graphql/resolver"
-	"boiler/pkg/iface"
+	"boiler/pkg/service"
 )
 
 // NewResolver return a new Resolver
-func NewResolver(service iface.Service) ResolverRoot {
+func NewResolver(service service.Interface) ResolverRoot {
 	return &Resolver{service}
 }
 
 // Resolver is the Resolver of the service
 type Resolver struct {
-	service iface.Service
+	service service.Interface
 }
 
 // Query return a new QueryResolver

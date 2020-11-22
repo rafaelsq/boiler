@@ -2,21 +2,22 @@ package resolver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"boiler/pkg/iface"
-	"boiler/pkg/store/log"
+	"boiler/pkg/store"
+	"boiler/pkg/store/config"
 
-	"github.com/rafaelsq/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Wrap wrap error
 func Wrap(ctx context.Context, err error, args ...string) error {
-	if er := errors.Cause(err); err == iface.ErrNotFound {
-		return er
+	if errors.Is(err, store.ErrNotFound) {
+		return err
 	}
 
-	if debug := ctx.Value(iface.ContextKeyDebug{}); debug != nil {
+	if debug := ctx.Value(config.ContextKeyDebug{}); debug != nil {
 		return err
 	}
 
@@ -25,9 +26,7 @@ func Wrap(ctx context.Context, err error, args ...string) error {
 		msg = args[0]
 	}
 
-	lg := errors.New(msg).SetParent(err)
-	lg.Caller = errors.Caller(1)
-	log.Log(lg)
+	log.Error().Err(err).Msg(msg)
 
 	return fmt.Errorf("service failed")
 }

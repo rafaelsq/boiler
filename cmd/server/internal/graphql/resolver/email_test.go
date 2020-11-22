@@ -9,8 +9,9 @@ import (
 	gentity "boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
-	"boiler/pkg/mock"
+	"boiler/pkg/service"
+	"boiler/pkg/service/mock"
+	"boiler/pkg/store"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,7 @@ func TestEmailEmails(t *testing.T) {
 		email := &entity.Email{Address: "a@b.c"}
 		user := &entity.User{ID: 4, Name: "John Doe"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
@@ -42,7 +43,7 @@ func TestEmailEmails(t *testing.T) {
 	{
 		email := &entity.Email{ID: 4, Address: "a@b.c"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
@@ -64,11 +65,11 @@ func TestEmailEmail(t *testing.T) {
 	{
 		email := &entity.Email{ID: 5, Address: "a@b.c"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), iface.FilterEmails{
+			FilterEmails(gomock.Any(), store.FilterEmails{
 				EmailID: email.ID,
 			}).
 			Return([]*entity.Email{email}, nil)
@@ -83,23 +84,23 @@ func TestEmailEmail(t *testing.T) {
 	{
 		email := &entity.Email{ID: 0, Address: "a@b.c"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
 		assert.Nil(t, e)
-		assert.Equal(t, iface.ErrInvalidID, err)
+		assert.Equal(t, service.ErrInvalidID, err)
 	}
 
 	// fails if service fails
 	{
 		email := &entity.Email{ID: 5, Address: "a@b.c"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), iface.FilterEmails{
+			FilterEmails(gomock.Any(), store.FilterEmails{
 				EmailID: email.ID,
 			}).
 			Return(nil, errors.New("err"))
@@ -114,17 +115,17 @@ func TestEmailEmail(t *testing.T) {
 	{
 		email := &entity.Email{ID: 5, Address: "a@b.c"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), iface.FilterEmails{
+			FilterEmails(gomock.Any(), store.FilterEmails{
 				EmailID: email.ID,
 			}).
 			Return([]*entity.Email{}, nil)
 
 		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
-		assert.Equal(t, err, iface.ErrNotFound)
+		assert.Equal(t, err, store.ErrNotFound)
 		assert.Nil(t, e)
 	}
 }

@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+type ContextKeyDebug struct{}
+
+type ContextKeyAuthenticationUser struct{}
+
 type Config struct {
 	JWT     JWT
 	Worker  Worker

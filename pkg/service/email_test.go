@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
-	"boiler/pkg/mock"
 	"boiler/pkg/service"
+	"boiler/pkg/store"
 	"boiler/pkg/store/config"
+	"boiler/pkg/store/mock"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
@@ -20,7 +20,7 @@ func TestAddEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
@@ -144,7 +144,7 @@ func TestDeleteEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
@@ -253,7 +253,7 @@ func TestDeleteEmail(t *testing.T) {
 
 		err = srv.DeleteEmail(ctx, ID)
 		assert.NotNil(t, err)
-		assert.Equal(t, "could not rollback delete email; rollbackfail; database fail", err.Error())
+		assert.Equal(t, "could not delete email; rollbackfail; database fail", err.Error())
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 }
@@ -262,14 +262,14 @@ func TestFilterEmails(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockStore(ctrl)
+	m := mock.NewMockInterface(ctrl)
 
 	srv := service.New(&config.Config{}, m, nil)
 
 	var ID int64 = 13
 	var userID int64 = 99
 	address := "contact@example.com"
-	filter := iface.FilterEmails{UserID: userID}
+	filter := store.FilterEmails{UserID: userID}
 	ctx := context.Background()
 	m.
 		EXPECT().

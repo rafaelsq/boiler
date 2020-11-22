@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"boiler/pkg/iface"
+	"boiler/pkg/store"
 	"boiler/pkg/store/database"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -184,7 +184,7 @@ func TestDeleteUser(t *testing.T) {
 
 		err = r.DeleteUser(ctx, tx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err, iface.ErrNotFound)
+		assert.Equal(t, err, store.ErrNotFound)
 		assert.Nil(t, tx.Commit())
 		assert.Nil(t, mock.ExpectationsWereMet())
 	}
@@ -209,7 +209,7 @@ func TestFilterUsersID(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
+		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit})
 		assert.Nil(t, err)
 		assert.Len(t, IDs, 1)
 		assert.Equal(t, 3, int(IDs[0]))
@@ -226,7 +226,7 @@ func TestFilterUsersID(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
+		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Len(t, IDs, 0)
@@ -242,7 +242,7 @@ func TestFilterUsersID(t *testing.T) {
 		).WithArgs(limit).WillReturnError(myErr)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Limit: limit})
+		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit})
 		assert.Equal(t, "could not fetch rows; err", err.Error())
 		assert.Len(t, IDs, 0)
 	}
@@ -351,7 +351,7 @@ func TestFilterUsersByMail(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
 		assert.Nil(t, err)
 		assert.Equal(t, 3, int(IDs[0]))
 	}
@@ -367,7 +367,7 @@ func TestFilterUsersByMail(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
 		assert.Nil(t, err)
 		assert.Len(t, IDs, 0)
 	}
@@ -384,7 +384,7 @@ func TestFilterUsersByMail(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
 		assert.Contains(t, err.Error(), "invalid syntax")
 		assert.Nil(t, IDs)
 	}
@@ -399,7 +399,7 @@ func TestFilterUsersByMail(t *testing.T) {
 		).WithArgs(email).WillReturnError(myErr)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
 		assert.Nil(t, IDs)
 	}

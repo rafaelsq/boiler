@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
-
-	"github.com/rafaelsq/errors"
+	"boiler/pkg/store"
 )
 
 // AddUser create a new user in the database
@@ -29,11 +27,7 @@ func (s *Database) DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) err
 }
 
 // FilterUsersID retrieve usersID from the database for a given filter
-func (s *Database) FilterUsersID(ctx context.Context, filter iface.FilterUsers) ([]int64, error) {
-	limit := iface.FilterUsersDefaultLimit
-	if filter.Limit != 0 {
-		limit = filter.Limit
-	}
+func (s *Database) FilterUsersID(ctx context.Context, filter store.FilterUsers) ([]int64, error) {
 
 	var args []interface{}
 	var query string
@@ -43,7 +37,7 @@ func (s *Database) FilterUsersID(ctx context.Context, filter iface.FilterUsers) 
 		args = append(args, filter.Email)
 	} else {
 		query = "SELECT id FROM users LIMIT ?"
-		args = append(args, limit)
+		args = append(args, filter.Limit)
 	}
 
 	rows, err := Select(ctx, s.sql, scanInt, query, args...)
@@ -98,7 +92,7 @@ func scanUser(sc func(dest ...interface{}) error) (interface{}, error) {
 
 	err := sc(&id, &name, &password, &created, &updated)
 	if err != nil {
-		return nil, errors.New("could not scan user").SetParent(err)
+		return nil, fmt.Errorf("could not scan user; %w", err)
 	}
 
 	return &entity.User{

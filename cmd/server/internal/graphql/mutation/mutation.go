@@ -2,20 +2,21 @@ package mutation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/mail"
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
-	"boiler/pkg/iface"
-	"boiler/pkg/store/log"
+	"boiler/pkg/service"
+	"boiler/pkg/store"
 
-	"github.com/rafaelsq/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // NewMutation return a new Mutation
-func NewMutation(service iface.Service) *Mutation {
+func NewMutation(service service.Interface) *Mutation {
 	return &Mutation{
 		service: service,
 	}
@@ -23,14 +24,14 @@ func NewMutation(service iface.Service) *Mutation {
 
 // Mutation handle service mutation
 type Mutation struct {
-	service iface.Service
+	service service.Interface
 }
 
 // AddUser add a new User to the service
 func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.UserResponse, error) {
 	userID, err := m.service.AddUser(ctx, input.Name, input.Password)
 	if err != nil {
-		log.Log(errors.New("fail to add user").SetParent(err))
+		log.Error().Err(err).Msg("fail to add user")
 		return nil, fmt.Errorf("service failed")
 	}
 
@@ -61,16 +62,16 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 
 	emailID, err := m.service.AddEmail(ctx, userID, address.Address)
 	if err != nil {
-		if er := errors.Cause(err); er == iface.ErrAlreadyExists {
+		if errors.Is(err, store.ErrAlreadyExists) {
 			return nil, &gqlerror.Error{
-				Message: er.Error(),
+				Message: store.ErrAlreadyExists.Error(),
 				Extensions: map[string]interface{}{
-					"code": er.(*errors.Error).Args["code"].(string),
+					"code": "alreadyexists",
 				},
 			}
 		}
 
-		log.Log(errors.New("fail to add email").SetParent(err))
+		log.Error().Err(err).Msg("fail to add email")
 		return nil, fmt.Errorf("service failed")
 	}
 
@@ -81,7 +82,7 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 func (m *Mutation) AuthUser(ctx context.Context, input entity.AuthUserInput) (*entity.AuthUserResponse, error) {
 	user, token, err := m.service.AuthUser(ctx, input.Email, input.Password)
 	if err != nil {
-		log.Log(errors.New("fail to authenticate user").SetParent(err))
+		log.Error().Err(err).Msg("fail to authenticate user")
 		return nil, fmt.Errorf("service failed")
 	}
 

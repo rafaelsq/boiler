@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"boiler/pkg/iface"
 	"boiler/pkg/service"
 	"boiler/pkg/store/config"
 	"boiler/pkg/store/database"
@@ -61,7 +60,7 @@ func newDB(path string) (*sql.DB, error) {
 	return db, nil
 }
 
-func New(conf *config.Config) (iface.Service, *redis.Pool) {
+func New(conf *config.Config) (service.Interface, *redis.Pool) {
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 

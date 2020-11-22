@@ -9,14 +9,15 @@ import (
 	"boiler/cmd/server/internal/graphql"
 	"boiler/cmd/server/internal/rest"
 	"boiler/cmd/server/internal/website"
-	"boiler/pkg/iface"
+	"boiler/pkg/service"
+	"boiler/pkg/store/config"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
 
 // ApplyMiddlewares add middlewares to the router
-func ApplyMiddlewares(r chi.Router, service iface.Service) {
+func ApplyMiddlewares(r chi.Router, cfg *config.Config, service service.Interface) {
 	r.Use(Recoverer)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -26,14 +27,14 @@ func ApplyMiddlewares(r chi.Router, service iface.Service) {
 	r.Use(middleware.Timeout(5 * time.Second))
 
 	// custom middlewares
-	r.Use(service.AuthUserMiddleware)
+	r.Use(AuthUserMiddleware(cfg))
 
 	// Rest Debug
 	r.Use(func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if len(r.URL.Query()["debug"]) != 0 {
 				ctx := r.Context()
-				ctx = context.WithValue(ctx, iface.ContextKeyDebug{}, struct{}{})
+				ctx = context.WithValue(ctx, config.ContextKeyDebug{}, struct{}{})
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}
@@ -45,7 +46,7 @@ func ApplyMiddlewares(r chi.Router, service iface.Service) {
 }
 
 // ApplyRoute define the routes of the service
-func ApplyRoute(r chi.Router, service iface.Service) {
+func ApplyRoute(r chi.Router, service service.Interface) {
 	// website
 	r.Get("/", website.Handle)
 	r.Get("/favicon.ico", http.NotFound)

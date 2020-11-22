@@ -7,7 +7,7 @@ import (
 
 	"boiler/cmd"
 	"boiler/cmd/worker/internal/handle"
-	"boiler/pkg/iface"
+	"boiler/pkg/service"
 	"boiler/pkg/store/config"
 
 	"github.com/gocraft/work"
@@ -16,12 +16,12 @@ import (
 
 func main() {
 
-	conf := config.New()
-	sv, redisPool := cmd.New(conf)
+	cfg := config.New()
+	sv, redisPool := cmd.New(cfg)
 
 	handler := handle.New(sv)
 
-	pool := work.NewWorkerPool(handler, conf.Worker.Concurrency, "all", redisPool)
+	pool := work.NewWorkerPool(handler, cfg.Worker.Concurrency, "all", redisPool)
 
 	// middleware
 	pool.Middleware(func(j *work.Job, next work.NextMiddlewareFunc) error {
@@ -33,8 +33,8 @@ func main() {
 	})
 
 	// Route
-	pool.JobWithOptions(iface.DeleteUser, work.JobOptions{Priority: 10, MaxFails: 1}, handler.DeleteUser)
-	pool.JobWithOptions(iface.DeleteEmail, work.JobOptions{Priority: 10, MaxFails: 1}, handler.DeleteEmail)
+	pool.JobWithOptions(service.DeleteUser, work.JobOptions{Priority: 10, MaxFails: 1}, handler.DeleteUser)
+	pool.JobWithOptions(service.DeleteEmail, work.JobOptions{Priority: 10, MaxFails: 1}, handler.DeleteEmail)
 
 	// Start worker
 	log.Info().Msg("[worker] Listening...")

@@ -9,8 +9,10 @@ import (
 	gentity "boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
-	"boiler/pkg/mock"
+	"boiler/pkg/service"
+	"boiler/pkg/service/mock"
+	"boiler/pkg/store"
+	"boiler/pkg/store/config"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +21,7 @@ import (
 var ctxDebug context.Context
 
 func init() {
-	ctxDebug = context.WithValue(context.Background(), iface.ContextKeyDebug{}, true)
+	ctxDebug = context.WithValue(context.Background(), config.ContextKeyDebug{}, true)
 }
 
 func TestUserUser(t *testing.T) {
@@ -30,7 +32,7 @@ func TestUserUser(t *testing.T) {
 	{
 		user := &entity.User{ID: 4, Name: "John Doe"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
@@ -46,19 +48,19 @@ func TestUserUser(t *testing.T) {
 
 	// fail if invalid ID
 	{
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		u, err := r.User(ctxDebug, "fail")
 		assert.Nil(t, u)
-		assert.Equal(t, err, iface.ErrInvalidID)
+		assert.Equal(t, err, service.ErrInvalidID)
 	}
 
 	// fails if service fails
 	{
 		user := &entity.User{ID: 4, Name: "John Doe"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
@@ -80,11 +82,11 @@ func TestUserUsers(t *testing.T) {
 	{
 		user := &entity.User{ID: 4, Name: "John Doe"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterUsers(gomock.Any(), iface.FilterUsers{Limit: 2}).
+			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 2}).
 			Return([]*entity.User{user}, nil)
 
 		users, err := r.Users(ctxDebug, 2)
@@ -95,11 +97,11 @@ func TestUserUsers(t *testing.T) {
 
 	// fails if service fails
 	{
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterUsers(gomock.Any(), iface.FilterUsers{Limit: 4}).
+			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 4}).
 			Return(nil, fmt.Errorf("opz"))
 
 		users, err := r.Users(ctxDebug, 4)
@@ -117,11 +119,11 @@ func TestUserEmails(t *testing.T) {
 	{
 		user := &entity.Email{ID: 4, Address: "a@b.c"}
 
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: user.ID}).
+			FilterEmails(gomock.Any(), store.FilterEmails{UserID: user.ID}).
 			Return([]*entity.Email{user}, nil)
 
 		emails, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.FormatInt(user.ID, 10)})
@@ -132,21 +134,21 @@ func TestUserEmails(t *testing.T) {
 
 	// fail if invalid ID
 	{
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		emails, err := r.Emails(ctxDebug, &gentity.User{ID: "0"})
 		assert.Nil(t, emails)
-		assert.Equal(t, err, iface.ErrInvalidID)
+		assert.Equal(t, err, service.ErrInvalidID)
 	}
 
 	// fails if service fails
 	{
-		m := mock.NewMockService(ctrl)
+		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), iface.FilterEmails{UserID: 2}).
+			FilterEmails(gomock.Any(), store.FilterEmails{UserID: 2}).
 			Return(nil, fmt.Errorf("opz"))
 
 		users, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.FormatInt(2, 10)})

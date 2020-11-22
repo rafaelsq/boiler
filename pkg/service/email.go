@@ -2,31 +2,30 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
-
-	"github.com/rafaelsq/errors"
+	"boiler/pkg/store"
 )
 
 // AddEmail add a new email
 func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (int64, error) {
 	tx, err := s.store.Tx()
 	if err != nil {
-		return 0, errors.New("could not begin transaction").SetParent(err)
+		return 0, fmt.Errorf("could not begin transaction; %w", err)
 	}
 
 	ID, err := s.store.AddEmail(ctx, tx, userID, address)
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
-			return 0, errors.New("could not add email").SetParent(errors.New(er.Error()).SetParent(err))
+			err = fmt.Errorf("%s; %w", er, err)
 		}
 
-		return 0, errors.New("could not add email").SetParent(err)
+		return 0, fmt.Errorf("could not add email; %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, errors.New("could not add email").SetParent(err)
+		return 0, fmt.Errorf("could not add email; %w", err)
 	}
 
 	return ID, nil
@@ -34,7 +33,7 @@ func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (i
 
 // EnqueueDeleteEmail enqueue email to be deleted
 func (s *Service) EnqueueDeleteEmail(ctx context.Context, emailID int64) error {
-	_, err := s.enqueuer.Enqueue(iface.DeleteEmail, map[string]interface{}{"id": emailID})
+	_, err := s.enqueuer.Enqueue(DeleteEmail, map[string]interface{}{"id": emailID})
 	return err
 }
 
@@ -42,28 +41,26 @@ func (s *Service) EnqueueDeleteEmail(ctx context.Context, emailID int64) error {
 func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
 	tx, err := s.store.Tx()
 	if err != nil {
-		return errors.New("could not begin delete email transaction").SetParent(err)
+		return fmt.Errorf("could not begin delete email transaction; %w", err)
 	}
 
 	err = s.store.DeleteEmail(ctx, tx, emailID)
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
-			return errors.New("could not rollback delete email").SetParent(
-				errors.New(er.Error()).SetParent(err),
-			)
+			err = fmt.Errorf("%s; %w", er, err)
 		}
 
-		return errors.New("could not delete email").SetParent(err)
+		return fmt.Errorf("could not delete email; %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errors.New("could not commit delete email").SetParent(err)
+		return fmt.Errorf("could not commit delete email; %w", err)
 	}
 
 	return nil
 }
 
 // FilterEmails retrieve emails
-func (s *Service) FilterEmails(ctx context.Context, filter iface.FilterEmails) ([]*entity.Email, error) {
+func (s *Service) FilterEmails(ctx context.Context, filter store.FilterEmails) ([]*entity.Email, error) {
 	return s.store.FilterEmails(ctx, filter)
 }

@@ -6,8 +6,8 @@ import (
 
 	"boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
-	"boiler/pkg/iface"
-	"boiler/pkg/mock"
+	"boiler/pkg/service"
+	"boiler/pkg/service/mock"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -17,22 +17,22 @@ func TestResponseUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockService(ctrl)
+	m := mock.NewMockInterface(ctrl)
 	r := resolver.NewResponse(m)
 	_, err := r.User(context.TODO(), &entity.UserResponse{
 		User: &entity.User{ID: ""},
 	})
-	assert.Equal(t, err, iface.ErrInvalidID)
+	assert.Equal(t, err, service.ErrInvalidID)
 }
 
 func TestResponseEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	m := mock.NewMockService(ctrl)
+	m := mock.NewMockInterface(ctrl)
 	r := resolver.NewResponse(m)
 	_, err := r.Email(context.TODO(), &entity.EmailResponse{
 		Email: &entity.Email{ID: ""},
 	})
-	assert.Equal(t, err, iface.ErrInvalidID)
+	assert.Equal(t, err, service.ErrInvalidID)
 }

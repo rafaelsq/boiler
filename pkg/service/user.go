@@ -2,43 +2,41 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
 	"boiler/pkg/entity"
-	"boiler/pkg/iface"
+	"boiler/pkg/store"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/rafaelsq/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // AddUser add a new user
 func (s *Service) AddUser(ctx context.Context, name, password string) (int64, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 16)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return 0, errors.New("could not generate password").SetParent(err)
+		return 0, fmt.Errorf("could not generate password; %w", err)
 	}
 
 	tx, err := s.store.Tx()
 	if err != nil {
-		return 0, errors.New("could not begin transaction").SetParent(err)
+		return 0, fmt.Errorf("could not begin transaction; %w", err)
 	}
 
 	ID, err := s.store.AddUser(ctx, tx, name, string(hash))
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
-			return 0, errors.New("could not add user").SetParent(
-				errors.New(er.Error()).SetParent(err),
-			)
+			err = fmt.Errorf("%s; %w", er, err)
 		}
 
-		return 0, errors.New("could not add user").SetParent(err)
+		return 0, fmt.Errorf("could not add user; %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, errors.New("could not add user").SetParent(err)
+		return 0, fmt.Errorf("could not add user; %w", err)
 	}
 
 	return ID, nil
@@ -48,12 +46,12 @@ func (s *Service) AddUser(ctx context.Context, name, password string) (int64, er
 func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity.User, string, error) {
 	var token string
 
-	IDs, err := s.store.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+	IDs, err := s.store.FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: FilterUsersDefaultLimit})
 	if err != nil {
 		return nil, token, err
 	}
 	if len(IDs) != 1 {
-		return nil, token, iface.ErrNotFound
+		return nil, token, store.ErrNotFound
 	}
 
 	user, err := s.GetUserByID(ctx, IDs[0])
@@ -62,7 +60,7 @@ func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		return nil, token, iface.ErrInvalidPassword
+		return nil, token, ErrInvalidPassword
 	}
 
 	t := jwt.New()
@@ -86,7 +84,7 @@ func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity
 
 // EnqueueDeleteUser enqueue user to be deleted
 func (s *Service) EnqueueDeleteUser(ctx context.Context, userID int64) error {
-	_, err := s.enqueuer.Enqueue(iface.DeleteUser, map[string]interface{}{"id": userID})
+	_, err := s.enqueuer.Enqueue(DeleteUser, map[string]interface{}{"id": userID})
 	return err
 }
 
@@ -94,40 +92,41 @@ func (s *Service) EnqueueDeleteUser(ctx context.Context, userID int64) error {
 func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	tx, err := s.store.Tx()
 	if err != nil {
-		return errors.New("could not begin delete user transaction").SetParent(err)
+		return fmt.Errorf("could not begin delete user transaction; %w", err)
 	}
 
 	err = s.store.DeleteUser(ctx, tx, userID)
-	if err != nil && err != iface.ErrNotFound {
+	if err != nil && err != store.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
-			return errors.New("could not rollback delete user").SetParent(
-				errors.New(er.Error()).SetParent(err),
-			)
+			err = fmt.Errorf("%s; %w", er, err)
 		}
 
-		return errors.New("could not delete user").SetParent(err)
+		return fmt.Errorf("could not delete user; %w", err)
 	}
 
 	err = s.store.DeleteEmailsByUserID(ctx, tx, userID)
-	if err != nil && err != iface.ErrNotFound {
+	if err != nil && err != store.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
-			return errors.New("could not rollback delete emails by user ID").SetParent(
-				errors.New(er.Error()).SetParent(err),
-			)
+			err = fmt.Errorf("%s; %w", er, err)
 		}
 
-		return errors.New("could not delete user emails").SetParent(err)
+		return fmt.Errorf("could not delete user emails; %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errors.New("could not commit delete user").SetParent(err)
+		return fmt.Errorf("could not commit delete user; %w", err)
 	}
 
 	return nil
 }
 
 // FilterUsers retrieve users
-func (s *Service) FilterUsers(ctx context.Context, filter iface.FilterUsers) ([]*entity.User, error) {
+func (s *Service) FilterUsers(ctx context.Context, filter store.FilterUsers) ([]*entity.User, error) {
+
+	if filter.Limit == 0 {
+		filter.Limit = FilterUsersDefaultLimit
+	}
+
 	IDs, err := s.store.FilterUsersID(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -143,19 +142,22 @@ func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, 
 		return nil, err
 	}
 	if len(us) != 1 {
-		return nil, iface.ErrNotFound
+		return nil, store.ErrNotFound
 	}
 	return us[0], nil
 }
 
 // GetUserByEmail get user by Email
 func (s *Service) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
-	IDs, err := s.store.FilterUsersID(ctx, iface.FilterUsers{Email: email})
+
+	filter := store.FilterUsers{Email: email, Limit: FilterUsersDefaultLimit}
+
+	IDs, err := s.store.FilterUsersID(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 	if len(IDs) != 1 {
-		return nil, iface.ErrNotFound
+		return nil, store.ErrNotFound
 	}
 
 	return s.GetUserByID(ctx, IDs[0])
