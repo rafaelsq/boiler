@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"boiler/pkg/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/store"
 
 	"github.com/lestrrat-go/jwx/jwa"
@@ -51,7 +52,7 @@ func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity
 		return nil, token, err
 	}
 	if len(IDs) != 1 {
-		return nil, token, store.ErrNotFound
+		return nil, token, errors.ErrNotFound
 	}
 
 	user, err := s.GetUserByID(ctx, IDs[0])
@@ -96,7 +97,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	}
 
 	err = s.store.DeleteUser(ctx, tx, userID)
-	if err != nil && err != store.ErrNotFound {
+	if err != nil && err != errors.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
 			err = fmt.Errorf("%s; %w", er, err)
 		}
@@ -105,7 +106,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 	}
 
 	err = s.store.DeleteEmailsByUserID(ctx, tx, userID)
-	if err != nil && err != store.ErrNotFound {
+	if err != nil && err != errors.ErrNotFound {
 		if er := tx.Rollback(); er != nil {
 			err = fmt.Errorf("%s; %w", er, err)
 		}
@@ -142,7 +143,7 @@ func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, 
 		return nil, err
 	}
 	if len(us) != 1 {
-		return nil, store.ErrNotFound
+		return nil, errors.ErrNotFound
 	}
 	return us[0], nil
 }
@@ -157,7 +158,7 @@ func (s *Service) GetUserByEmail(ctx context.Context, email string) (*entity.Use
 		return nil, err
 	}
 	if len(IDs) != 1 {
-		return nil, store.ErrNotFound
+		return nil, errors.ErrNotFound
 	}
 
 	return s.GetUserByID(ctx, IDs[0])

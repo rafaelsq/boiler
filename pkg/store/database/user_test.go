@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"boiler/pkg/errors"
 	"boiler/pkg/store"
 	"boiler/pkg/store/database"
 
@@ -184,7 +185,7 @@ func TestDeleteUser(t *testing.T) {
 
 		err = r.DeleteUser(ctx, tx, userID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err, store.ErrNotFound)
+		assert.Equal(t, err, errors.ErrNotFound)
 		assert.Nil(t, tx.Commit())
 		assert.Nil(t, mock.ExpectationsWereMet())
 	}
@@ -292,6 +293,14 @@ func TestFetchUsers(t *testing.T) {
 
 		r := database.New(mdb)
 		users, err := r.FetchUsers(ctx, userID)
+		assert.Nil(t, err)
+		assert.Len(t, users, 0)
+	}
+
+	// empty
+	{
+		r := database.New(mdb)
+		users, err := r.FetchUsers(ctx)
 		assert.Nil(t, err)
 		assert.Len(t, users, 0)
 	}

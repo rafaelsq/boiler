@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/service/mock"
-	"boiler/pkg/store"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -111,13 +111,13 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), store.ErrAlreadyExists)
+		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), errors.ErrAlreadyExists)
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
-		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", store.ErrAlreadyExists))
+		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", errors.ErrAlreadyExists))
 		assert.Nil(t, u)
 	}
 

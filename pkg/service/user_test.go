@@ -2,11 +2,11 @@ package service_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
 	"boiler/pkg/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/service"
 	"boiler/pkg/store"
 	"boiler/pkg/store/config"
@@ -431,7 +431,7 @@ func TestGetUserByID(t *testing.T) {
 
 		v, err := srv.GetUserByID(ctx, userID)
 		assert.Nil(t, v)
-		assert.Equal(t, store.ErrNotFound, err)
+		assert.Equal(t, errors.ErrNotFound, err)
 	}
 }
 
@@ -493,6 +493,6 @@ func TestGetUserByEmail(t *testing.T) {
 
 		v, err := srv.GetUserByEmail(ctx, email)
 		assert.Nil(t, v)
-		assert.Equal(t, store.ErrNotFound, err)
+		assert.Equal(t, errors.ErrNotFound, err)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/service"
 	"boiler/pkg/store"
 )
@@ -43,7 +44,7 @@ func (r *Email) Email(ctx context.Context, rawEmailID string) (*entity.Email, er
 	}
 
 	if len(emails) == 0 {
-		return nil, store.ErrNotFound
+		return nil, errors.ErrNotFound
 	}
 
 	return entity.NewEmail(emails[0]), nil

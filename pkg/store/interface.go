@@ -4,16 +4,8 @@ package store
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"boiler/pkg/entity"
-)
-
-var (
-	// ErrNotFound not found error
-	ErrNotFound = errors.New("not found")
-	// ErrAlreadyExists already exists error
-	ErrAlreadyExists = errors.New("already exists")
 )
 
 // FilterUsers is the input for filter users

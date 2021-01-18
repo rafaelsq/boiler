@@ -17,7 +17,7 @@ require (
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/rs/zerolog v1.15.0
 	github.com/stretchr/testify v1.5.1
-	github.com/tinylib/msgp v1.1.4
+	github.com/tinylib/msgp v1.1.5
 	github.com/vektah/gqlparser/v2 v2.1.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/yaml.v2 v2.3.0 // indirect

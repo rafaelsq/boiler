@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"boiler/pkg/errors"
 	"boiler/pkg/store"
 	"boiler/pkg/store/database"
 
@@ -90,7 +91,7 @@ func TestAddEmail(t *testing.T) {
 		assert.Nil(t, err)
 
 		emailID, err := r.AddEmail(ctx, tx, userID, address)
-		assert.Equal(t, err, store.ErrAlreadyExists)
+		assert.Equal(t, err, errors.ErrAlreadyExists)
 		assert.Equal(t, 0, int(emailID))
 		assert.Nil(t, tx.Commit())
 	}
@@ -212,7 +213,7 @@ func TestDeleteEmail(t *testing.T) {
 
 		err = r.DeleteEmail(ctx, tx, emailID)
 		assert.NotNil(t, err)
-		assert.Equal(t, err, store.ErrNotFound)
+		assert.Equal(t, err, errors.ErrNotFound)
 		assert.Nil(t, tx.Commit())
 		assert.Nil(t, mock.ExpectationsWereMet())
 	}

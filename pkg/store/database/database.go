@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"boiler/pkg/store"
+	"boiler/pkg/errors"
 
 	"github.com/mattn/go-sqlite3"
 )
@@ -32,7 +32,7 @@ func Insert(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		if e, is := err.(sqlite3.Error); is && e.ExtendedCode == sqlite3.ErrConstraintUnique {
-			return 0, store.ErrAlreadyExists
+			return 0, errors.ErrAlreadyExists
 		}
 
 		return 0, fmt.Errorf("could not insert; %w", err)
@@ -59,7 +59,7 @@ func Delete(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) 
 	}
 
 	if n == 0 {
-		return store.ErrNotFound
+		return errors.ErrNotFound
 	}
 
 	return nil

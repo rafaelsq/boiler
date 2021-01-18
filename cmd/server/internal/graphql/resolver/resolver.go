@@ -2,10 +2,9 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"boiler/pkg/store"
+	"boiler/pkg/errors"
 	"boiler/pkg/store/config"
 
 	"github.com/rs/zerolog/log"
@@ -13,7 +12,7 @@ import (
 
 // Wrap wrap error
 func Wrap(ctx context.Context, err error, args ...string) error {
-	if errors.Is(err, store.ErrNotFound) {
+	if errors.Is(err, errors.ErrNotFound) {
 		return err
 	}
 

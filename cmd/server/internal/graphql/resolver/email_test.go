@@ -1,7 +1,6 @@
 package resolver_test
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -9,6 +8,7 @@ import (
 	gentity "boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
 	"boiler/pkg/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/service"
 	"boiler/pkg/service/mock"
 	"boiler/pkg/store"
@@ -125,7 +125,7 @@ func TestEmailEmail(t *testing.T) {
 			Return([]*entity.Email{}, nil)
 
 		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
-		assert.Equal(t, err, store.ErrNotFound)
+		assert.Equal(t, err, errors.ErrNotFound)
 		assert.Nil(t, e)
 	}
 }

@@ -72,6 +72,11 @@ Project
   ├─┐entity
   │ └─■ *.go
   │
+  ├─┐errors
+  │ ├─■ codeerr.go
+  │ ├─■ wraperr.go
+  │ └─■ errors.go
+  │
   └─┐store
     ├─■ interface.go
     │

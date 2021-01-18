@@ -2,14 +2,13 @@ package mutation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/mail"
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/service"
-	"boiler/pkg/store"
 
 	"github.com/rs/zerolog/log"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -62,9 +61,9 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 
 	emailID, err := m.service.AddEmail(ctx, userID, address.Address)
 	if err != nil {
-		if errors.Is(err, store.ErrAlreadyExists) {
+		if errors.Is(err, errors.ErrAlreadyExists) {
 			return nil, &gqlerror.Error{
-				Message: store.ErrAlreadyExists.Error(),
+				Message: errors.ErrAlreadyExists.Error(),
 				Extensions: map[string]interface{}{
 					"code": "alreadyexists",
 				},
