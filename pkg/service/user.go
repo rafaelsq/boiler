@@ -136,7 +136,7 @@ func (s *Service) FilterUsers(ctx context.Context, filter store.FilterUsers, use
 		return err
 	}
 
-	return s.store.FetchUsers(ctx, []int64(IDs), users)
+	return s.store.FetchUsers(ctx, IDs, users)
 }
 
 // GetUserByID get user by ID

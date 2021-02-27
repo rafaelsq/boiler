@@ -16,7 +16,7 @@ func WrapWithMessage(parent, err error, message string) error {
 }
 
 // WrapErr is a error that wraps another error and support errors.[Is, As, etc]
-// You can use it so that you can append a new error that can be unwrap throught errors.Unwrap
+// You can use it so that you can append a new error that can be unwrap through errors.Unwrap
 type WrapErr struct {
 	Parent error
 	Err    error
