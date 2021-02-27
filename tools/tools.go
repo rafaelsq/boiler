@@ -11,6 +11,7 @@ package tools
 import (
 	_ "github.com/99designs/gqlgen"
 	_ "github.com/golang/mock/mockgen"
+	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/rafaelsq/wtc"
 	_ "github.com/tinylib/msgp"
 )
