@@ -19,7 +19,7 @@ rules:
 
   - name: gqlgen
     match: (schema\.graphql|gqlgen.yml)$
-    command: gqlgen --config cmd/server/internal/graphql/gqlgen.yml
+    command: go run github.com/99designs/gqlgen --config cmd/server/internal/graphql/gqlgen.yml
 
   - name: generate
     match: /interface\.go$|/entity/
