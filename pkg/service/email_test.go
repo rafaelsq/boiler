@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"testing"
 
@@ -38,28 +39,41 @@ func TestAddEmail(t *testing.T) {
 
 		mdb.ExpectBegin()
 
+		email := entity.Email{
+			UserID:  userID,
+			Address: address,
+		}
 		tx, err := db.Begin()
-		m.EXPECT().Tx().Return(tx, err)
+		assert.Nil(t, err)
+
+		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddEmail(ctx, gomock.Any(), userID, address).
-			Return(ID, nil)
+			AddEmail(ctx, tx, &email).
+			DoAndReturn(func(_ context.Context, _ *sql.Tx, e *entity.Email) error {
+				e.ID = ID
+				return nil
+			})
 
 		mdb.ExpectCommit()
 
-		ID, err = srv.AddEmail(ctx, userID, address)
+		err = srv.AddEmail(ctx, &email)
 		assert.Nil(t, err)
-		assert.Equal(t, ID, ID)
+		assert.Equal(t, ID, email.ID)
 	}
 
 	// fails if Tx fails
 	{
 		m.EXPECT().Tx().Return(nil, fmt.Errorf("opz"))
 
-		id, err := srv.AddEmail(ctx, userID, address)
+		email := entity.Email{
+			UserID:  userID,
+			Address: address,
+		}
+
+		err := srv.AddEmail(ctx, &email)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not begin transaction; opz")
-		assert.Equal(t, 0, int(id))
 	}
 
 	// fails if service fails
@@ -73,17 +87,20 @@ func TestAddEmail(t *testing.T) {
 		tx, err := db.Begin()
 		assert.Nil(t, err)
 
+		email := entity.Email{
+			UserID:  userID,
+			Address: address,
+		}
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddEmail(ctx, tx, userID, address).
-			Return(int64(0), fmt.Errorf("rollback"))
+			AddEmail(ctx, tx, &email).
+			Return(fmt.Errorf("rollback"))
 		mdb.ExpectRollback()
 
-		id, err := srv.AddEmail(ctx, userID, address)
+		err = srv.AddEmail(ctx, &email)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add email; rollback")
-		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -98,18 +115,22 @@ func TestAddEmail(t *testing.T) {
 		tx, err := db.Begin()
 		assert.Nil(t, err)
 
+		email := entity.Email{
+			UserID:  userID,
+			Address: address,
+		}
+
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddEmail(ctx, tx, userID, address).
-			Return(int64(0), fmt.Errorf("rollback"))
+			AddEmail(ctx, tx, &email).
+			Return(fmt.Errorf("rollback"))
 
 		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackerr"))
 
-		id, err := srv.AddEmail(ctx, userID, address)
+		err = srv.AddEmail(ctx, &email)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add email; rollbackerr; rollback")
-		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -124,18 +145,25 @@ func TestAddEmail(t *testing.T) {
 		tx, err := db.Begin()
 		assert.Nil(t, err)
 
+		email := entity.Email{
+			UserID:  userID,
+			Address: address,
+		}
+
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddEmail(ctx, tx, userID, address).
-			Return(ID, nil)
+			AddEmail(ctx, tx, &email).
+			DoAndReturn(func(_ context.Context, _ *sql.Tx, e *entity.Email) error {
+				e.ID = ID
+				return nil
+			})
 
 		mdb.ExpectCommit().WillReturnError(fmt.Errorf("commit failed"))
 
-		id, err := srv.AddEmail(ctx, userID, address)
+		err = srv.AddEmail(ctx, &email)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add email; commit failed")
-		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 }
@@ -271,17 +299,23 @@ func TestFilterEmails(t *testing.T) {
 	address := "contact@example.com"
 	filter := store.FilterEmails{UserID: userID}
 	ctx := context.Background()
+
+	var emails []entity.Email
+
 	m.
 		EXPECT().
-		FilterEmails(ctx, filter).
-		Return([]*entity.Email{{
-			ID:      ID,
-			UserID:  userID,
-			Address: address,
-		}}, nil)
+		FilterEmails(ctx, filter, &emails).
+		DoAndReturn(func(_ context.Context, _ store.FilterEmails, es *[]entity.Email) error {
+			*es = append(*es, entity.Email{
+				ID:      ID,
+				UserID:  userID,
+				Address: address,
+			})
+			return nil
+		})
 
-	es, err := srv.FilterEmails(ctx, filter)
+	err := srv.FilterEmails(ctx, filter, &emails)
 	assert.Nil(t, err)
-	assert.Len(t, es, 1)
-	assert.Equal(t, es[0].ID, ID)
+	assert.Len(t, emails, 1)
+	assert.Equal(t, ID, emails[0].ID)
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"boiler/cmd/server/internal/graphql/entity"
+	lentity "boiler/pkg/entity"
 	"boiler/pkg/errors"
 	"boiler/pkg/service/mock"
 
@@ -29,14 +30,20 @@ func TestAddUser(t *testing.T) {
 		name := "name"
 		password := "pass"
 
-		service.EXPECT().AddUser(ctx, name, password).Return(int64(1), nil)
+		service.EXPECT().AddUser(ctx, gomock.Any()).
+			DoAndReturn(func(_ context.Context, u *lentity.User) error {
+				u.ID = 1
+				return nil
+			})
 
-		u, err := m.AddUser(ctx, entity.AddUserInput{
+		r, err := m.AddUser(ctx, entity.AddUserInput{
 			Name:     name,
 			Password: password,
 		})
+
 		assert.Nil(t, err)
-		assert.NotNil(t, u)
+		assert.NotNil(t, r)
+		assert.Equal(t, "1", r.User.ID)
 	}
 
 	// fails if service fails
@@ -44,14 +51,14 @@ func TestAddUser(t *testing.T) {
 		name := "name"
 		password := "pass"
 
-		service.EXPECT().AddUser(ctx, name, password).Return(int64(0), fmt.Errorf("opz"))
+		service.EXPECT().AddUser(ctx, gomock.Any()).Return(fmt.Errorf("opz"))
 
-		u, err := m.AddUser(ctx, entity.AddUserInput{
+		r, err := m.AddUser(ctx, entity.AddUserInput{
 			Name:     name,
 			Password: password,
 		})
 		assert.Equal(t, err.Error(), "service failed")
-		assert.Nil(t, u)
+		assert.Nil(t, r)
 	}
 }
 
@@ -70,14 +77,18 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(1), nil)
+		service.EXPECT().AddEmail(ctx, gomock.Any()).
+			DoAndReturn(func(_ context.Context, e *lentity.Email) error {
+				e.ID = 1
+				return nil
+			})
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
 		assert.Nil(t, err)
-		assert.Equal(t, u.Email.ID, "1")
+		assert.Equal(t, "1", u.Email.ID)
 	}
 
 	// fails if userID is invalid
@@ -111,7 +122,7 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), errors.ErrAlreadyExists)
+		service.EXPECT().AddEmail(ctx, gomock.Any()).Return(errors.ErrAlreadyExists)
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.FormatInt(userID, 10),
@@ -126,7 +137,7 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, userID, address).Return(int64(0), fmt.Errorf("opz"))
+		service.EXPECT().AddEmail(ctx, gomock.Any()).Return(fmt.Errorf("opz"))
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.FormatInt(userID, 10),

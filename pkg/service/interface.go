@@ -1,4 +1,4 @@
-//go:generate mockgen -package=mock -source=$GOFILE -destination=mock/service.go
+//go:generate go run github.com/golang/mock/mockgen -package=mock -source=$GOFILE -destination=mock/service.go
 package service
 
 import (
@@ -28,15 +28,15 @@ const (
 )
 
 type Interface interface {
-	AddUser(context.Context, string, string) (int64, error)
+	AddUser(context.Context, *entity.User) error
 	DeleteUser(context.Context, int64) error
-	FilterUsers(context.Context, store.FilterUsers) ([]*entity.User, error)
-	GetUserByID(context.Context, int64) (*entity.User, error)
-	GetUserByEmail(context.Context, string) (*entity.User, error)
-	AuthUser(context.Context, string, string) (*entity.User, string, error)
+	FilterUsers(context.Context, store.FilterUsers, *[]entity.User) error
+	GetUserByID(context.Context, int64, *entity.User) error
+	GetUserByEmail(context.Context, string, *entity.User) error
+	AuthUser(context.Context, string, string, *entity.User, *string) error
 
-	FilterEmails(context.Context, store.FilterEmails) ([]*entity.Email, error)
-	AddEmail(context.Context, int64, string) (int64, error)
+	FilterEmails(context.Context, store.FilterEmails, *[]entity.Email) error
+	AddEmail(context.Context, *entity.Email) error
 	DeleteEmail(context.Context, int64) error
 	EnqueueDeleteEmail(context.Context, int64) error
 }

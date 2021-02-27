@@ -12,13 +12,15 @@ import (
 )
 
 // AddUser create a new user in the database
-func (s *Database) AddUser(ctx context.Context, tx *sql.Tx, name, password string) (int64, error) {
+func (s *Database) AddUser(ctx context.Context, tx *sql.Tx, user *entity.User) error {
 	now := time.Now()
-	return Insert(
+	id, err := Insert(
 		ctx, tx,
 		"INSERT INTO users (name, password, created, updated) VALUES (?, ?, ?, ?)",
-		name, password, now, now,
+		user.Name, user.Password, now, now,
 	)
+	user.ID = id
+	return err
 }
 
 // DeleteUser remove an user from the database
@@ -27,7 +29,7 @@ func (s *Database) DeleteUser(ctx context.Context, tx *sql.Tx, userID int64) err
 }
 
 // FilterUsersID retrieve usersID from the database for a given filter
-func (s *Database) FilterUsersID(ctx context.Context, filter store.FilterUsers) ([]int64, error) {
+func (s *Database) FilterUsersID(ctx context.Context, filter store.FilterUsers, IDs *[]int64) error {
 
 	var args []interface{}
 	var query string
@@ -42,23 +44,23 @@ func (s *Database) FilterUsersID(ctx context.Context, filter store.FilterUsers) 
 
 	rows, err := Select(ctx, s.sql, scanInt, query, args...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	IDs := make([]int64, 0, len(rows))
+	*IDs = make([]int64, 0, len(rows))
 	for _, row := range rows {
 		if row != nil {
-			IDs = append(IDs, row.(int64))
+			*IDs = append(*IDs, row.(int64))
 		}
 	}
 
-	return IDs, nil
+	return nil
 }
 
 // FetchUsers retrieve users from the database
-func (s *Database) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User, error) {
+func (s *Database) FetchUsers(ctx context.Context, IDs []int64, users *[]entity.User) error {
 	if len(IDs) == 0 {
-		return make([]*entity.User, 0), nil
+		return nil
 	}
 
 	query := fmt.Sprintf(
@@ -72,15 +74,15 @@ func (s *Database) FetchUsers(ctx context.Context, IDs ...int64) ([]*entity.User
 	}
 	rows, err := Select(ctx, s.sql, scanUser, query, args...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	users := make([]*entity.User, 0, len(rows))
+	*users = make([]entity.User, 0, len(rows))
 	for _, row := range rows {
-		users = append(users, row.(*entity.User))
+		*users = append(*users, *row.(*entity.User))
 	}
 
-	return users, nil
+	return nil
 }
 
 func scanUser(sc func(dest ...interface{}) error) (interface{}, error) {

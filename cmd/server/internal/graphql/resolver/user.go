@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
+	lentity "boiler/pkg/entity"
 	"boiler/pkg/service"
 	"boiler/pkg/store"
 )
@@ -28,23 +29,29 @@ func (r *User) User(ctx context.Context, rawUserID string) (*entity.User, error)
 		return nil, service.ErrInvalidID
 	}
 
-	u, err := r.service.GetUserByID(ctx, userID)
+	var u lentity.User
+	err = r.service.GetUserByID(ctx, userID, &u)
 	if err == nil {
-		return entity.NewUser(u), nil
+		return entity.NewUser(&u), nil
 	}
+
 	return nil, Wrap(ctx, err, "fail to get user")
 }
 
 // Users return a slice of User
 func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
-	us, err := r.service.FilterUsers(ctx, store.FilterUsers{Limit: limit})
+
+	us := make([]lentity.User, 0)
+	err := r.service.FilterUsers(ctx, store.FilterUsers{Limit: limit}, &us)
 	if err == nil {
 		users := make([]*entity.User, 0, len(us))
 		for _, u := range us {
-			users = append(users, entity.NewUser(u))
+			users = append(users, entity.NewUser(&u))
 		}
+
 		return users, nil
 	}
+
 	return nil, Wrap(ctx, err, "fail to filter users")
 }
 
@@ -55,11 +62,12 @@ func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, err
 		return nil, service.ErrInvalidID
 	}
 
-	es, err := r.service.FilterEmails(ctx, store.FilterEmails{UserID: userID})
+	es := make([]lentity.Email, 0)
+	err = r.service.FilterEmails(ctx, store.FilterEmails{UserID: userID}, &es)
 	if err == nil {
 		emails := make([]*entity.Email, 0, len(es))
 		for _, e := range es {
-			emails = append(emails, entity.NewEmail(e))
+			emails = append(emails, entity.NewEmail(&e))
 		}
 		return emails, nil
 	}

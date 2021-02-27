@@ -9,26 +9,26 @@ import (
 )
 
 // AddEmail add a new email
-func (s *Service) AddEmail(ctx context.Context, userID int64, address string) (int64, error) {
+func (s *Service) AddEmail(ctx context.Context, email *entity.Email) error {
 	tx, err := s.store.Tx()
 	if err != nil {
-		return 0, fmt.Errorf("could not begin transaction; %w", err)
+		return fmt.Errorf("could not begin transaction; %w", err)
 	}
 
-	ID, err := s.store.AddEmail(ctx, tx, userID, address)
+	err = s.store.AddEmail(ctx, tx, email)
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
 			err = fmt.Errorf("%s; %w", er, err)
 		}
 
-		return 0, fmt.Errorf("could not add email; %w", err)
+		return fmt.Errorf("could not add email; %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, fmt.Errorf("could not add email; %w", err)
+		return fmt.Errorf("could not add email; %w", err)
 	}
 
-	return ID, nil
+	return nil
 }
 
 // EnqueueDeleteEmail enqueue email to be deleted
@@ -61,6 +61,6 @@ func (s *Service) DeleteEmail(ctx context.Context, emailID int64) error {
 }
 
 // FilterEmails retrieve emails
-func (s *Service) FilterEmails(ctx context.Context, filter store.FilterEmails) ([]*entity.Email, error) {
-	return s.store.FilterEmails(ctx, filter)
+func (s *Service) FilterEmails(ctx context.Context, filter store.FilterEmails, emails *[]entity.Email) error {
+	return s.store.FilterEmails(ctx, filter, emails)
 }

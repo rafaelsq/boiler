@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"boiler/pkg/entity"
 	"boiler/pkg/errors"
 	"boiler/pkg/store"
 	"boiler/pkg/store/database"
@@ -41,9 +42,9 @@ func TestAddEmail(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		userID, err = r.AddEmail(ctx, tx, userID, address)
-		assert.Nil(t, err)
-		assert.Equal(t, 3, int(userID))
+		email := entity.Email{UserID: userID, Address: address}
+		assert.Nil(t, r.AddEmail(ctx, tx, &email))
+		assert.Equal(t, 3, int(email.UserID))
 		assert.Nil(t, tx.Commit())
 	}
 
@@ -64,9 +65,9 @@ func TestAddEmail(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		emailID, err := r.AddEmail(ctx, tx, userID, address)
-		assert.Equal(t, err.Error(), "could not insert; opz")
-		assert.Equal(t, 0, int(emailID))
+		email := entity.Email{UserID: userID, Address: address}
+		assert.Equal(t, r.AddEmail(ctx, tx, &email).Error(), "could not insert; opz")
+		assert.Equal(t, 0, int(email.ID))
 		assert.Nil(t, tx.Commit())
 	}
 
@@ -90,9 +91,9 @@ func TestAddEmail(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		emailID, err := r.AddEmail(ctx, tx, userID, address)
-		assert.Equal(t, err, errors.ErrAlreadyExists)
-		assert.Equal(t, 0, int(emailID))
+		email := entity.Email{UserID: userID, Address: address}
+		assert.Equal(t, r.AddEmail(ctx, tx, &email), errors.ErrAlreadyExists)
+		assert.Equal(t, 0, int(email.ID))
 		assert.Nil(t, tx.Commit())
 	}
 
@@ -114,9 +115,9 @@ func TestAddEmail(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		emailID, err := r.AddEmail(ctx, tx, userID, address)
-		assert.Equal(t, err.Error(), "fail to retrieve last inserted ID; opz")
-		assert.Equal(t, 0, int(emailID))
+		email := entity.Email{UserID: userID, Address: address}
+		assert.Equal(t, r.AddEmail(ctx, tx, &email).Error(), "fail to retrieve last inserted ID; opz")
+		assert.Equal(t, 0, int(email.ID))
 		assert.Nil(t, tx.Commit())
 	}
 }
@@ -291,9 +292,10 @@ func TestFilterEmails(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID})
+		emails := new([]entity.Email)
+		err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID}, emails)
 		assert.Nil(t, err)
-		assert.Len(t, emails, 1)
+		assert.Len(t, *emails, 1)
 	}
 
 	// filter by emailID
@@ -308,9 +310,10 @@ func TestFilterEmails(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, store.FilterEmails{EmailID: emailID})
+		emails := new([]entity.Email)
+		err := r.FilterEmails(ctx, store.FilterEmails{EmailID: emailID}, emails)
 		assert.Nil(t, err)
-		assert.Len(t, emails, 1)
+		assert.Len(t, *emails, 1)
 	}
 
 	// scan fail
@@ -325,10 +328,11 @@ func TestFilterEmails(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID})
+		emails := new([]entity.Email)
+		err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID}, emails)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Len(t, emails, 0)
+		assert.Len(t, *emails, 0)
 	}
 
 	// fail
@@ -341,8 +345,9 @@ func TestFilterEmails(t *testing.T) {
 		).WithArgs(userID).WillReturnError(myErr)
 
 		r := database.New(mdb)
-		emails, err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID})
+		emails := new([]entity.Email)
+		err := r.FilterEmails(ctx, store.FilterEmails{UserID: userID}, emails)
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
-		assert.Len(t, emails, 0)
+		assert.Len(t, *emails, 0)
 	}
 }

@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"testing"
 
@@ -42,16 +43,24 @@ func TestAddUser(t *testing.T) {
 		tx, err := db.Begin()
 		assert.Nil(t, err)
 
+		user := entity.User{
+			Name:     name,
+			Password: password,
+		}
+
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name, gomock.Any()).
-			Return(userID, nil)
+			AddUser(ctx, tx, &user).
+			DoAndReturn(func(_ context.Context, _ *sql.Tx, u *entity.User) error {
+				u.ID = userID
+				return nil
+			})
 		mdb.ExpectCommit()
 
-		id, err := srv.AddUser(ctx, name, password)
+		err = srv.AddUser(ctx, &user)
 		assert.Nil(t, err)
-		assert.Equal(t, userID, id)
+		assert.Equal(t, userID, user.ID)
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -60,11 +69,15 @@ func TestAddUser(t *testing.T) {
 		opz := fmt.Errorf("opz")
 		m.EXPECT().Tx().Return(nil, opz)
 
-		id, err := srv.AddUser(ctx, name, password)
+		user := entity.User{
+			Name:     name,
+			Password: password,
+		}
+
+		err := srv.AddUser(ctx, &user)
 		assert.NotNil(t, err)
 		assert.True(t, errors.Is(err, opz))
 		assert.Equal(t, err.Error(), "could not begin transaction; opz")
-		assert.Equal(t, 0, int(id))
 	}
 
 	// fails if service fails
@@ -78,17 +91,21 @@ func TestAddUser(t *testing.T) {
 		tx, err := db.Begin()
 		assert.Nil(t, err)
 
+		user := entity.User{
+			Name:     name,
+			Password: password,
+		}
+
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name, gomock.Any()).
-			Return(int64(0), fmt.Errorf("rollback"))
+			AddUser(ctx, tx, &user).
+			Return(fmt.Errorf("rollback"))
 		mdb.ExpectRollback()
 
-		id, err := srv.AddUser(ctx, name, password)
+		err = srv.AddUser(ctx, &user)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; rollback")
-		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -103,18 +120,22 @@ func TestAddUser(t *testing.T) {
 		tx, err := db.Begin()
 		assert.Nil(t, err)
 
+		user := entity.User{
+			Name:     name,
+			Password: password,
+		}
+
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name, gomock.Any()).
-			Return(int64(0), fmt.Errorf("rollback"))
+			AddUser(ctx, tx, &user).
+			Return(fmt.Errorf("rollback"))
 
 		mdb.ExpectRollback().WillReturnError(fmt.Errorf("rollbackerr"))
 
-		id, err := srv.AddUser(ctx, name, password)
+		err = srv.AddUser(ctx, &user)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; rollbackerr; rollback")
-		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 
@@ -129,18 +150,22 @@ func TestAddUser(t *testing.T) {
 		tx, err := db.Begin()
 		assert.Nil(t, err)
 
+		user := entity.User{
+			Name:     name,
+			Password: password,
+		}
+
 		m.EXPECT().Tx().Return(tx, nil)
 		m.
 			EXPECT().
-			AddUser(ctx, tx, name, gomock.Any()).
-			Return(userID, nil)
+			AddUser(ctx, tx, &user).
+			Return(nil)
 
 		mdb.ExpectCommit().WillReturnError(fmt.Errorf("commit failed"))
 
-		id, err := srv.AddUser(ctx, name, password)
+		err = srv.AddUser(ctx, &user)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "could not add user; commit failed")
-		assert.Equal(t, 0, int(id))
 		assert.Nil(t, mdb.ExpectationsWereMet())
 	}
 }
@@ -344,36 +369,46 @@ func TestFilterUsersID(t *testing.T) {
 	filter := store.FilterUsers{Limit: 10}
 	ctx := context.Background()
 
-	// succed
+	// success
 	{
+		var IDs []int64
 		m.
 			EXPECT().
-			FilterUsersID(ctx, filter).
-			Return([]int64{userID}, nil)
+			FilterUsersID(ctx, filter, &IDs).
+			DoAndReturn(func(_ context.Context, _ store.FilterUsers, ids *[]int64) error {
+				*ids = append(*ids, userID)
+				return nil
+			})
 		m.
 			EXPECT().
-			FetchUsers(ctx, userID).
-			Return([]*entity.User{{
-				ID:   userID,
-				Name: name,
-			}}, nil)
+			FetchUsers(ctx, []int64{userID}, gomock.Any()).
+			DoAndReturn(func(_ context.Context, _ []int64, users *[]entity.User) error {
+				*users = append(*users, entity.User{
+					ID:   userID,
+					Name: name,
+				})
+				return nil
+			})
 
-		vs, err := srv.FilterUsers(ctx, filter)
+		var users []entity.User
+		err := srv.FilterUsers(ctx, filter, &users)
 		assert.Nil(t, err)
-		assert.Len(t, vs, 1)
-		assert.Equal(t, vs[0].ID, userID)
-		assert.Equal(t, vs[0].Name, name)
+		assert.Len(t, users, 1)
+		assert.Equal(t, users[0].ID, userID)
+		assert.Equal(t, users[0].Name, name)
 	}
 
 	// fail
 	{
+		var IDs []int64
 		m.
 			EXPECT().
-			FilterUsersID(ctx, filter).
-			Return(nil, fmt.Errorf("opz"))
+			FilterUsersID(ctx, filter, &IDs).
+			Return(fmt.Errorf("opz"))
 
-		IDs, err := srv.FilterUsers(ctx, filter)
-		assert.Nil(t, IDs)
+		var users []entity.User
+		err := srv.FilterUsers(ctx, filter, &users)
+		assert.Len(t, users, 0)
 		assert.Equal(t, err.Error(), "opz")
 	}
 }
@@ -395,29 +430,33 @@ func TestGetUserByID(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FetchUsers(ctx, userID).
-			Return([]*entity.User{
-				{
-					ID:   userID,
-					Name: name,
-				},
-			}, nil)
+			FetchUsers(ctx, []int64{userID}, gomock.Any()).
+			DoAndReturn(func(_ context.Context, ids []int64, users *[]entity.User) error {
+				*users = []entity.User{
+					{
+						ID:   userID,
+						Name: name,
+					},
+				}
+				return nil
+			})
 
-		v, err := srv.GetUserByID(ctx, userID)
+		var user entity.User
+		err := srv.GetUserByID(ctx, userID, &user)
 		assert.Nil(t, err)
-		assert.NotNil(t, v)
-		assert.Equal(t, v.Name, name)
+		assert.Equal(t, name, user.Name)
+		assert.Equal(t, userID, user.ID)
 	}
 
 	// fails if storage fails
 	{
 		m.
 			EXPECT().
-			FetchUsers(ctx, userID).
-			Return(nil, fmt.Errorf("opz"))
+			FetchUsers(ctx, []int64{userID}, gomock.Any()).
+			Return(fmt.Errorf("opz"))
 
-		v, err := srv.GetUserByID(ctx, userID)
-		assert.Nil(t, v)
+		var user entity.User
+		err := srv.GetUserByID(ctx, userID, &user)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")
 	}
@@ -426,12 +465,13 @@ func TestGetUserByID(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FetchUsers(ctx, userID).
-			Return([]*entity.User{}, nil)
+			FetchUsers(ctx, []int64{userID}, gomock.Any()).
+			Return(nil)
 
-		v, err := srv.GetUserByID(ctx, userID)
-		assert.Nil(t, v)
-		assert.Equal(t, errors.ErrNotFound, err)
+		var user entity.User
+		err := srv.GetUserByID(ctx, userID, &user)
+		fmt.Println("?", err)
+		assert.True(t, errors.Is(err, errors.ErrNotFound))
 	}
 }
 
@@ -453,33 +493,39 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}).
-			Return([]int64{userID}, nil)
+			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}, gomock.Any()).
+			DoAndReturn(func(_ context.Context, _ store.FilterUsers, ids *[]int64) error {
+				*ids = append(*ids, userID)
+				return nil
+			})
 		m.
 			EXPECT().
-			FetchUsers(ctx, userID).
-			Return([]*entity.User{
-				{
+			FetchUsers(ctx, []int64{userID}, gomock.Any()).
+			DoAndReturn(func(_ context.Context, ids []int64, users *[]entity.User) error {
+				*users = append(*users, entity.User{
 					ID:   userID,
 					Name: name,
-				},
-			}, nil)
+				})
+				return nil
+			})
 
-		v, err := srv.GetUserByEmail(ctx, email)
+		var user entity.User
+		err := srv.GetUserByEmail(ctx, email, &user)
 		assert.Nil(t, err)
-		assert.NotNil(t, v)
-		assert.Equal(t, v.Name, name)
+		assert.NotNil(t, user)
+		assert.Equal(t, userID, user.ID)
+		assert.Equal(t, name, user.Name)
 	}
 
 	// fails if storage fails
 	{
 		m.
 			EXPECT().
-			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}).
-			Return(nil, fmt.Errorf("opz"))
+			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}, gomock.Any()).
+			Return(fmt.Errorf("opz"))
 
-		v, err := srv.GetUserByEmail(ctx, email)
-		assert.Nil(t, v)
+		var user entity.User
+		err := srv.GetUserByEmail(ctx, email, &user)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")
 	}
@@ -488,11 +534,11 @@ func TestGetUserByEmail(t *testing.T) {
 	{
 		m.
 			EXPECT().
-			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}).
-			Return([]int64{}, nil)
+			FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: service.FilterUsersDefaultLimit}, gomock.Any()).
+			Return(nil)
 
-		v, err := srv.GetUserByEmail(ctx, email)
-		assert.Nil(t, v)
+		var user entity.User
+		err := srv.GetUserByEmail(ctx, email, &user)
 		assert.Equal(t, errors.ErrNotFound, err)
 	}
 }

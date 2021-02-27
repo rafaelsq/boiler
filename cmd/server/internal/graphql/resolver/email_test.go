@@ -1,6 +1,7 @@
 package resolver_test
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -23,20 +24,24 @@ func TestEmailEmails(t *testing.T) {
 
 	// succeed
 	{
-		email := &entity.Email{Address: "a@b.c"}
-		user := &entity.User{ID: 4, Name: "John Doe"}
+		emailAddress := "a@b.c"
 
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
-			GetUserByEmail(gomock.Any(), email.Address).
-			Return(user, nil)
+			GetUserByEmail(gomock.Any(), emailAddress, gomock.Any()).
+			DoAndReturn(func(_ context.Context, _ string, u *entity.User) error {
+				u.ID = 4
+				u.Name = "John Doe"
+				return nil
+			})
 
-		u, err := r.User(ctxDebug, &gentity.Email{Address: email.Address})
+		u, err := r.User(ctxDebug, &gentity.Email{Address: emailAddress})
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
-		assert.Equal(t, u.ID, strconv.FormatInt(user.ID, 10))
+		assert.Equal(t, u.ID, "4")
+		assert.Equal(t, u.Name, "John Doe")
 	}
 
 	// fails if service fails
@@ -47,8 +52,8 @@ func TestEmailEmails(t *testing.T) {
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
-			GetUserByEmail(gomock.Any(), email.Address).
-			Return(nil, fmt.Errorf("opz"))
+			GetUserByEmail(gomock.Any(), email.Address, gomock.Any()).
+			Return(fmt.Errorf("opz"))
 
 		u, err := r.User(ctxDebug, &gentity.Email{Address: email.Address})
 		assert.Nil(t, u)
@@ -63,21 +68,22 @@ func TestEmailEmail(t *testing.T) {
 
 	// succeed
 	{
-		email := &entity.Email{ID: 5, Address: "a@b.c"}
-
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
 			FilterEmails(gomock.Any(), store.FilterEmails{
-				EmailID: email.ID,
-			}).
-			Return([]*entity.Email{email}, nil)
+				EmailID: 5,
+			}, gomock.Any()).
+			DoAndReturn(func(ctx context.Context, filter store.FilterEmails, emails *[]entity.Email) error {
+				*emails = append(*emails, entity.Email{ID: 5, Address: "a@b.c"})
+				return nil
+			})
 
-		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
+		e, err := r.Email(ctxDebug, "5")
 		assert.Nil(t, err)
 		assert.NotNil(t, e)
-		assert.Equal(t, e.ID, strconv.FormatInt(email.ID, 10))
+		assert.Equal(t, "5", e.ID)
 	}
 
 	// fails if invalid ID
@@ -94,38 +100,30 @@ func TestEmailEmail(t *testing.T) {
 
 	// fails if service fails
 	{
-		email := &entity.Email{ID: 5, Address: "a@b.c"}
-
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), store.FilterEmails{
-				EmailID: email.ID,
-			}).
-			Return(nil, errors.New("err"))
+			FilterEmails(gomock.Any(), store.FilterEmails{EmailID: 500}, gomock.Any()).
+			Return(errors.New("err"))
 
-		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
+		email, err := r.Email(ctxDebug, "500")
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "err")
-		assert.Nil(t, e)
+		assert.Nil(t, email)
 	}
 
 	// fails if service fails
 	{
-		email := &entity.Email{ID: 5, Address: "a@b.c"}
-
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewEmail(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), store.FilterEmails{
-				EmailID: email.ID,
-			}).
-			Return([]*entity.Email{}, nil)
+			FilterEmails(gomock.Any(), store.FilterEmails{EmailID: 404}, gomock.Any()).
+			Return(nil)
 
-		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
+		email, err := r.Email(ctxDebug, "404")
 		assert.Equal(t, err, errors.ErrNotFound)
-		assert.Nil(t, e)
+		assert.Nil(t, email)
 	}
 }

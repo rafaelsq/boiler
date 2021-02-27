@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"boiler/pkg/entity"
 	"boiler/pkg/service"
 	"boiler/pkg/store"
 
@@ -42,7 +43,12 @@ func (h *Handle) AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := h.service.AddUser(r.Context(), payload.Name, payload.Password)
+	user := entity.User{
+		Name:     payload.Name,
+		Password: payload.Password,
+	}
+
+	err = h.service.AddUser(r.Context(), &user)
 	if err != nil {
 		log.Error().Err(err).Msg("could not add user")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -50,7 +56,7 @@ func (h *Handle) AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JSON(w, r, map[string]interface{}{
-		"user_id": userID,
+		"user_id": user.ID,
 	})
 }
 
@@ -68,7 +74,8 @@ func (h *Handle) ListUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	users, err := h.service.FilterUsers(r.Context(), store.FilterUsers{Limit: uint(limit)})
+	users := make([]entity.User, 0)
+	err := h.service.FilterUsers(r.Context(), store.FilterUsers{Limit: uint(limit)}, &users)
 	if err != nil {
 		log.Error().Err(err).Msg("could not filter users")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -107,7 +114,8 @@ func (h *Handle) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.GetUserByID(r.Context(), userID)
+	user := new(entity.User)
+	err = h.service.GetUserByID(r.Context(), userID, user)
 	if err != nil {
 		log.Error().Err(err).Int64("userID", userID).Msg("could not get user")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -132,7 +140,7 @@ func (h *Handle) AddEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email, err := mail.ParseAddress(payload.Address)
+	emailAddress, err := mail.ParseAddress(payload.Address)
 	if err != nil {
 		Fail(w, r, http.StatusBadRequest, "invalid email address")
 		return
@@ -143,7 +151,12 @@ func (h *Handle) AddEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailID, err := h.service.AddEmail(r.Context(), payload.UserID, email.Address)
+	email := entity.Email{
+		UserID:  payload.UserID,
+		Address: emailAddress.Address,
+	}
+
+	err = h.service.AddEmail(r.Context(), &email)
 	if err != nil {
 		log.Error().Err(err).Msg("could not add email")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -152,7 +165,7 @@ func (h *Handle) AddEmail(w http.ResponseWriter, r *http.Request) {
 
 	JSON(w, r, struct {
 		EmailID int64 `json:"email_id"`
-	}{emailID})
+	}{email.ID})
 }
 
 // DeleteEmail handle an DeleteEmail request
@@ -187,7 +200,8 @@ func (h *Handle) ListEmails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emails, err := h.service.FilterEmails(r.Context(), store.FilterEmails{UserID: userID})
+	emails := make([]entity.Email, 0)
+	err = h.service.FilterEmails(r.Context(), store.FilterEmails{UserID: userID}, &emails)
 	if err != nil {
 		log.Error().Err(err).Msg("could not filter email")
 		Fail(w, r, http.StatusInternalServerError, "service failed")
@@ -212,7 +226,10 @@ func (h *Handle) AuthUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, token, err := h.service.AuthUser(r.Context(), payload.Email, payload.Password)
+	var user *entity.User
+	var token *string
+
+	err = h.service.AuthUser(r.Context(), payload.Email, payload.Password, user, token)
 	if err != nil {
 		log.Error().Err(err).Msg("could not auth user")
 		Fail(w, r, http.StatusInternalServerError, "service failed")

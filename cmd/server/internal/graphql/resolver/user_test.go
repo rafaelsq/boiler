@@ -30,20 +30,22 @@ func TestUserUser(t *testing.T) {
 
 	// succeed
 	{
-		user := &entity.User{ID: 4, Name: "John Doe"}
-
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			GetUserByID(gomock.Any(), user.ID).
-			Return(user, nil)
+			GetUserByID(gomock.Any(), int64(4), gomock.Any()).
+			DoAndReturn(func(_ context.Context, _ int64, u *entity.User) error {
+				u.ID = 4
+				u.Name = "John Doe"
+				return nil
+			})
 
-		u, err := r.User(ctxDebug, strconv.FormatInt(user.ID, 10))
+		u, err := r.User(ctxDebug, "4")
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
-		assert.Equal(t, strconv.FormatInt(user.ID, 10), u.ID)
-		assert.Equal(t, user.Name, u.Name)
+		assert.Equal(t, "4", u.ID)
+		assert.Equal(t, "John Doe", u.Name)
 	}
 
 	// fail if invalid ID
@@ -58,16 +60,14 @@ func TestUserUser(t *testing.T) {
 
 	// fails if service fails
 	{
-		user := &entity.User{ID: 4, Name: "John Doe"}
-
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			GetUserByID(gomock.Any(), user.ID).
-			Return(nil, fmt.Errorf("opz"))
+			GetUserByID(gomock.Any(), int64(4), gomock.Any()).
+			Return(fmt.Errorf("opz"))
 
-		u, err := r.User(ctxDebug, strconv.FormatInt(user.ID, 10))
+		u, err := r.User(ctxDebug, "4")
 		assert.Nil(t, u)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")
@@ -80,19 +80,21 @@ func TestUserUsers(t *testing.T) {
 
 	// succeed
 	{
-		user := &entity.User{ID: 4, Name: "John Doe"}
-
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 2}).
-			Return([]*entity.User{user}, nil)
+			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 2}, gomock.Any()).
+			DoAndReturn(func(_ context.Context, _ store.FilterUsers, users *[]entity.User) error {
+				*users = append(*users, entity.User{ID: 4, Name: "John Doe"})
+				return nil
+			})
 
 		users, err := r.Users(ctxDebug, 2)
 		assert.Nil(t, err)
 		assert.NotNil(t, users)
 		assert.Equal(t, len(users), 1)
+		assert.Equal(t, "John Doe", users[0].Name)
 	}
 
 	// fails if service fails
@@ -101,11 +103,11 @@ func TestUserUsers(t *testing.T) {
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 4}).
-			Return(nil, fmt.Errorf("opz"))
+			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 4}, gomock.Any()).
+			Return(fmt.Errorf("opz"))
 
 		users, err := r.Users(ctxDebug, 4)
-		assert.Nil(t, users)
+		assert.Len(t, users, 0)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "opz")
 	}
@@ -117,16 +119,17 @@ func TestUserEmails(t *testing.T) {
 
 	// succeed
 	{
-		user := &entity.Email{ID: 4, Address: "a@b.c"}
-
 		m := mock.NewMockInterface(ctrl)
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), store.FilterEmails{UserID: user.ID}).
-			Return([]*entity.Email{user}, nil)
+			FilterEmails(gomock.Any(), store.FilterEmails{UserID: 4}, gomock.Any()).
+			DoAndReturn(func(_ context.Context, _ store.FilterEmails, emails *[]entity.Email) error {
+				*emails = append(*emails, entity.Email{ID: 4, Address: "a@b.c"})
+				return nil
+			})
 
-		emails, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.FormatInt(user.ID, 10)})
+		emails, err := r.Emails(ctxDebug, &gentity.User{ID: "4"})
 		assert.Nil(t, err)
 		assert.NotNil(t, emails)
 		assert.Equal(t, len(emails), 1)
@@ -148,8 +151,8 @@ func TestUserEmails(t *testing.T) {
 		r := resolver.NewUser(m)
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), store.FilterEmails{UserID: 2}).
-			Return(nil, fmt.Errorf("opz"))
+			FilterEmails(gomock.Any(), store.FilterEmails{UserID: 2}, gomock.Any()).
+			Return(fmt.Errorf("opz"))
 
 		users, err := r.Emails(ctxDebug, &gentity.User{ID: strconv.FormatInt(2, 10)})
 		assert.Nil(t, users)

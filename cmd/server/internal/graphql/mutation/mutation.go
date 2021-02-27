@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
+	lentity "boiler/pkg/entity"
 	"boiler/pkg/errors"
 	"boiler/pkg/service"
 
@@ -28,13 +29,18 @@ type Mutation struct {
 
 // AddUser add a new User to the service
 func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*entity.UserResponse, error) {
-	userID, err := m.service.AddUser(ctx, input.Name, input.Password)
+	user := lentity.User{
+		Name:     input.Name,
+		Password: input.Password,
+	}
+
+	err := m.service.AddUser(ctx, &user)
 	if err != nil {
 		log.Error().Err(err).Msg("fail to add user")
 		return nil, fmt.Errorf("service failed")
 	}
 
-	return &entity.UserResponse{User: &entity.User{ID: strconv.FormatInt(userID, 10)}}, nil
+	return &entity.UserResponse{User: &entity.User{ID: strconv.FormatInt(user.ID, 10)}}, nil
 }
 
 // AddEmail add a new Email to the service
@@ -59,7 +65,12 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 		}
 	}
 
-	emailID, err := m.service.AddEmail(ctx, userID, address.Address)
+	email := lentity.Email{
+		UserID:  userID,
+		Address: address.Address,
+	}
+
+	err = m.service.AddEmail(ctx, &email)
 	if err != nil {
 		if errors.Is(err, errors.ErrAlreadyExists) {
 			return nil, &gqlerror.Error{
@@ -74,12 +85,16 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 		return nil, fmt.Errorf("service failed")
 	}
 
-	return &entity.EmailResponse{Email: &entity.Email{ID: strconv.FormatInt(emailID, 10)}}, nil
+	return &entity.EmailResponse{Email: &entity.Email{ID: strconv.FormatInt(email.ID, 10)}}, nil
 }
 
 // AuthUser returns a JWT token
 func (m *Mutation) AuthUser(ctx context.Context, input entity.AuthUserInput) (*entity.AuthUserResponse, error) {
-	user, token, err := m.service.AuthUser(ctx, input.Email, input.Password)
+
+	var user lentity.User
+	var token string
+
+	err := m.service.AuthUser(ctx, input.Email, input.Password, &user, &token)
 	if err != nil {
 		log.Error().Err(err).Msg("fail to authenticate user")
 		return nil, fmt.Errorf("service failed")

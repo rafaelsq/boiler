@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"boiler/pkg/entity"
 	"boiler/pkg/errors"
 	"boiler/pkg/store"
 	"boiler/pkg/store/database"
@@ -39,9 +40,9 @@ func TestAddUser(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		userID, err := r.AddUser(ctx, tx, name, password)
-		assert.Nil(t, err)
-		assert.Equal(t, 3, int(userID))
+		user := entity.User{Name: name, Password: password}
+		assert.Nil(t, r.AddUser(ctx, tx, &user))
+		assert.Equal(t, 3, int(user.ID))
 		assert.Nil(t, tx.Commit())
 	}
 
@@ -62,9 +63,9 @@ func TestAddUser(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		userID, err := r.AddUser(ctx, tx, name, password)
-		assert.Equal(t, err.Error(), "could not insert; err")
-		assert.Equal(t, 0, int(userID))
+		user := entity.User{Name: name, Password: password}
+		assert.Equal(t, r.AddUser(ctx, tx, &user).Error(), "could not insert; err")
+		assert.Equal(t, 0, int(user.ID))
 		assert.Nil(t, tx.Commit())
 	}
 
@@ -86,9 +87,9 @@ func TestAddUser(t *testing.T) {
 		tx, err := r.Tx()
 		assert.Nil(t, err)
 
-		userID, err := r.AddUser(ctx, tx, name, password)
-		assert.Equal(t, err.Error(), "fail to retrieve last inserted ID; err")
-		assert.Equal(t, 0, int(userID))
+		user := entity.User{Name: name, Password: password}
+		assert.Equal(t, r.AddUser(ctx, tx, &user).Error(), "fail to retrieve last inserted ID; err")
+		assert.Equal(t, 0, int(user.ID))
 		assert.Nil(t, tx.Commit())
 	}
 }
@@ -210,10 +211,11 @@ func TestFilterUsersID(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit})
+		IDs := new([]int64)
+		err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit}, IDs)
 		assert.Nil(t, err)
-		assert.Len(t, IDs, 1)
-		assert.Equal(t, 3, int(IDs[0]))
+		assert.Len(t, *IDs, 1)
+		assert.Equal(t, 3, int((*IDs)[0]))
 	}
 
 	// fail scan
@@ -227,10 +229,11 @@ func TestFilterUsersID(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit})
+		IDs := new([]int64)
+		err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit}, IDs)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Len(t, IDs, 0)
+		assert.Len(t, *IDs, 0)
 	}
 
 	// fail
@@ -243,9 +246,10 @@ func TestFilterUsersID(t *testing.T) {
 		).WithArgs(limit).WillReturnError(myErr)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit})
+		IDs := new([]int64)
+		err := r.FilterUsersID(ctx, store.FilterUsers{Limit: limit}, IDs)
 		assert.Equal(t, "could not fetch rows; err", err.Error())
-		assert.Len(t, IDs, 0)
+		assert.Len(t, *IDs, 0)
 	}
 }
 
@@ -270,14 +274,15 @@ func TestFetchUsers(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		users, err := r.FetchUsers(ctx, userID)
+		users := new([]entity.User)
+		err := r.FetchUsers(ctx, []int64{userID}, users)
 		assert.Nil(t, err)
-		assert.Len(t, users, 1)
-		assert.Equal(t, userID, users[0].ID)
-		assert.Equal(t, "user", users[0].Name)
-		assert.Equal(t, "pass", users[0].Password)
-		assert.Equal(t, time.Time{}, users[0].Created)
-		assert.Equal(t, time.Time{}, users[0].Updated)
+		assert.Len(t, *users, 1)
+		assert.Equal(t, userID, (*users)[0].ID)
+		assert.Equal(t, "user", (*users)[0].Name)
+		assert.Equal(t, "pass", (*users)[0].Password)
+		assert.Equal(t, time.Time{}, (*users)[0].Created)
+		assert.Equal(t, time.Time{}, (*users)[0].Updated)
 	}
 
 	// succeed with no row
@@ -292,17 +297,19 @@ func TestFetchUsers(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		users, err := r.FetchUsers(ctx, userID)
+		users := new([]entity.User)
+		err := r.FetchUsers(ctx, []int64{userID}, users)
 		assert.Nil(t, err)
-		assert.Len(t, users, 0)
+		assert.Len(t, *users, 0)
 	}
 
 	// empty
 	{
 		r := database.New(mdb)
-		users, err := r.FetchUsers(ctx)
+		users := new([]entity.User)
+		err := r.FetchUsers(ctx, []int64{}, users)
 		assert.Nil(t, err)
-		assert.Len(t, users, 0)
+		assert.Len(t, *users, 0)
 	}
 
 	// scan fail
@@ -318,9 +325,10 @@ func TestFetchUsers(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		users, err := r.FetchUsers(ctx, userID)
+		users := new([]entity.User)
+		err := r.FetchUsers(ctx, []int64{userID}, users)
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Nil(t, users)
+		assert.Len(t, *users, 0)
 	}
 
 	// fail
@@ -334,9 +342,10 @@ func TestFetchUsers(t *testing.T) {
 		).WithArgs(userID).WillReturnError(myErr)
 
 		r := database.New(mdb)
-		users, err := r.FetchUsers(ctx, userID)
+		users := new([]entity.User)
+		err := r.FetchUsers(ctx, []int64{userID}, users)
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
-		assert.Nil(t, users)
+		assert.Len(t, *users, 0)
 	}
 }
 
@@ -360,9 +369,10 @@ func TestFilterUsersByMail(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
+		IDs := new([]int64)
+		err := r.FilterUsersID(ctx, store.FilterUsers{Email: email}, IDs)
 		assert.Nil(t, err)
-		assert.Equal(t, 3, int(IDs[0]))
+		assert.Equal(t, 3, int((*IDs)[0]))
 	}
 
 	// succeed with no row
@@ -376,9 +386,10 @@ func TestFilterUsersByMail(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
+		IDs := new([]int64)
+		err := r.FilterUsersID(ctx, store.FilterUsers{Email: email}, IDs)
 		assert.Nil(t, err)
-		assert.Len(t, IDs, 0)
+		assert.Len(t, *IDs, 0)
 	}
 
 	// scan fail
@@ -393,9 +404,10 @@ func TestFilterUsersByMail(t *testing.T) {
 		)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
+		IDs := new([]int64)
+		err := r.FilterUsersID(ctx, store.FilterUsers{Email: email}, IDs)
 		assert.Contains(t, err.Error(), "invalid syntax")
-		assert.Nil(t, IDs)
+		assert.Len(t, *IDs, 0)
 	}
 
 	// fail
@@ -408,8 +420,9 @@ func TestFilterUsersByMail(t *testing.T) {
 		).WithArgs(email).WillReturnError(myErr)
 
 		r := database.New(mdb)
-		IDs, err := r.FilterUsersID(ctx, store.FilterUsers{Email: email})
+		IDs := new([]int64)
+		err := r.FilterUsersID(ctx, store.FilterUsers{Email: email}, IDs)
 		assert.Equal(t, err.Error(), "could not fetch rows; opz")
-		assert.Nil(t, IDs)
+		assert.Len(t, *IDs, 0)
 	}
 }

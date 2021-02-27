@@ -16,52 +16,54 @@ import (
 )
 
 // AddUser add a new user
-func (s *Service) AddUser(ctx context.Context, name, password string) (int64, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (s *Service) AddUser(ctx context.Context, user *entity.User) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return 0, fmt.Errorf("could not generate password; %w", err)
+		return fmt.Errorf("could not generate password; %w", err)
 	}
 
 	tx, err := s.store.Tx()
 	if err != nil {
-		return 0, fmt.Errorf("could not begin transaction; %w", err)
+		return fmt.Errorf("could not begin transaction; %w", err)
 	}
 
-	ID, err := s.store.AddUser(ctx, tx, name, string(hash))
+	user.Password = string(hash)
+
+	err = s.store.AddUser(ctx, tx, user)
 	if err != nil {
 		if er := tx.Rollback(); er != nil {
 			err = fmt.Errorf("%s; %w", er, err)
 		}
 
-		return 0, fmt.Errorf("could not add user; %w", err)
+		return fmt.Errorf("could not add user; %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, fmt.Errorf("could not add user; %w", err)
+		return fmt.Errorf("could not add user; %w", err)
 	}
 
-	return ID, nil
+	return nil
 }
 
 // AuthUser returns a JWT token from users credentials
-func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity.User, string, error) {
-	var token string
+func (s *Service) AuthUser(ctx context.Context, email, password string, user *entity.User, token *string) error {
 
-	IDs, err := s.store.FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: FilterUsersDefaultLimit})
+	var IDs []int64
+	err := s.store.FilterUsersID(ctx, store.FilterUsers{Email: email, Limit: FilterUsersDefaultLimit}, &IDs)
 	if err != nil {
-		return nil, token, err
+		return err
 	}
 	if len(IDs) != 1 {
-		return nil, token, errors.ErrNotFound
+		return errors.ErrNotFound
 	}
 
-	user, err := s.GetUserByID(ctx, IDs[0])
+	err = s.GetUserByID(ctx, IDs[0], user)
 	if err != nil {
-		return nil, token, err
+		return err
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		return nil, token, ErrInvalidPassword
+		return ErrInvalidPassword
 	}
 
 	t := jwt.New()
@@ -75,12 +77,12 @@ func (s *Service) AuthUser(ctx context.Context, email, password string) (*entity
 
 	raw, err := jwt.Sign(t, jwa.RS256, s.config.JWT.PrivateKey)
 	if err != nil {
-		return nil, token, err
+		return err
 	}
 
-	token = string(raw)
+	*token = string(raw)
 
-	return user, token, nil
+	return nil
 }
 
 // EnqueueDeleteUser enqueue user to be deleted
@@ -122,44 +124,48 @@ func (s *Service) DeleteUser(ctx context.Context, userID int64) error {
 }
 
 // FilterUsers retrieve users
-func (s *Service) FilterUsers(ctx context.Context, filter store.FilterUsers) ([]*entity.User, error) {
+func (s *Service) FilterUsers(ctx context.Context, filter store.FilterUsers, users *[]entity.User) error {
 
 	if filter.Limit == 0 {
 		filter.Limit = FilterUsersDefaultLimit
 	}
 
-	IDs, err := s.store.FilterUsersID(ctx, filter)
+	var IDs []int64
+	err := s.store.FilterUsersID(ctx, filter, &IDs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return s.store.FetchUsers(ctx, IDs...)
+	return s.store.FetchUsers(ctx, []int64(IDs), users)
 }
 
 // GetUserByID get user by ID
-func (s *Service) GetUserByID(ctx context.Context, userID int64) (*entity.User, error) {
-	us, err := s.store.FetchUsers(ctx, userID)
+func (s *Service) GetUserByID(ctx context.Context, userID int64, user *entity.User) error {
+	var users []entity.User
+	err := s.store.FetchUsers(ctx, []int64{userID}, &users)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if len(us) != 1 {
-		return nil, errors.ErrNotFound
+	if len(users) != 1 {
+		return errors.ErrNotFound
 	}
-	return us[0], nil
+	*user = users[0]
+	return nil
 }
 
 // GetUserByEmail get user by Email
-func (s *Service) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (s *Service) GetUserByEmail(ctx context.Context, email string, user *entity.User) error {
 
 	filter := store.FilterUsers{Email: email, Limit: FilterUsersDefaultLimit}
 
-	IDs, err := s.store.FilterUsersID(ctx, filter)
+	var IDs []int64
+	err := s.store.FilterUsersID(ctx, filter, &IDs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(IDs) != 1 {
-		return nil, errors.ErrNotFound
+		return errors.ErrNotFound
 	}
 
-	return s.GetUserByID(ctx, IDs[0])
+	return s.GetUserByID(ctx, IDs[0], user)
 }

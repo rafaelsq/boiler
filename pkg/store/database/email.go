@@ -11,11 +11,13 @@ import (
 )
 
 // AddEmail insert a new emails in the database
-func (s *Database) AddEmail(ctx context.Context, tx *sql.Tx, userID int64, address string) (int64, error) {
-	return Insert(ctx, tx,
+func (s *Database) AddEmail(ctx context.Context, tx *sql.Tx, email *entity.Email) error {
+	id, err := Insert(ctx, tx,
 		"INSERT INTO emails (user_id, address, created) VALUES (?, ?, ?)",
-		userID, address, time.Now(),
+		email.UserID, email.Address, time.Now(),
 	)
+	email.ID = id
+	return err
 }
 
 // DeleteEmail remove an email from the database
@@ -29,7 +31,7 @@ func (s *Database) DeleteEmailsByUserID(ctx context.Context, tx *sql.Tx, userID 
 }
 
 // FilterEmails find for emails
-func (s *Database) FilterEmails(ctx context.Context, filter store.FilterEmails) ([]*entity.Email, error) {
+func (s *Database) FilterEmails(ctx context.Context, filter store.FilterEmails, emails *[]entity.Email) error {
 	args := []interface{}{filter.UserID}
 	where := "user_id = ?"
 	if filter.EmailID > 0 {
@@ -42,16 +44,16 @@ func (s *Database) FilterEmails(ctx context.Context, filter store.FilterEmails) 
 		args...,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	emails := make([]*entity.Email, 0, len(rows))
+	*emails = make([]entity.Email, 0, len(rows))
 	for _, row := range rows {
-		emails = append(emails, row.(*entity.Email))
+		*emails = append(*emails, *row.(*entity.Email))
 
 	}
 
-	return emails, nil
+	return nil
 }
 
 func scanEmail(sc func(dest ...interface{}) error) (interface{}, error) {

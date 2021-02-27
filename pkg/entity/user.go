@@ -1,5 +1,5 @@
 // Package entity contains all the entities of the project
-//go:generate msgp -tests=false
+//go:generate go run github.com/tinylib/msgp -tests=false
 package entity
 
 import "time"

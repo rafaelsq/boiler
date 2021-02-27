@@ -8,154 +8,77 @@ import (
 	entity "boiler/pkg/entity"
 	store "boiler/pkg/store"
 	context "context"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockInterface is a mock of Interface interface
+// MockInterface is a mock of Interface interface.
 type MockInterface struct {
 	ctrl     *gomock.Controller
 	recorder *MockInterfaceMockRecorder
 }
 
-// MockInterfaceMockRecorder is the mock recorder for MockInterface
+// MockInterfaceMockRecorder is the mock recorder for MockInterface.
 type MockInterfaceMockRecorder struct {
 	mock *MockInterface
 }
 
-// NewMockInterface creates a new mock instance
+// NewMockInterface creates a new mock instance.
 func NewMockInterface(ctrl *gomock.Controller) *MockInterface {
 	mock := &MockInterface{ctrl: ctrl}
 	mock.recorder = &MockInterfaceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockInterface) EXPECT() *MockInterfaceMockRecorder {
 	return m.recorder
 }
 
-// AddUser mocks base method
-func (m *MockInterface) AddUser(arg0 context.Context, arg1, arg2 string) (int64, error) {
+// AddEmail mocks base method.
+func (m *MockInterface) AddEmail(arg0 context.Context, arg1 *entity.Email) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddUser", arg0, arg1, arg2)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AddUser indicates an expected call of AddUser
-func (mr *MockInterfaceMockRecorder) AddUser(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockInterface)(nil).AddUser), arg0, arg1, arg2)
-}
-
-// DeleteUser mocks base method
-func (m *MockInterface) DeleteUser(arg0 context.Context, arg1 int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUser", arg0, arg1)
+	ret := m.ctrl.Call(m, "AddEmail", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteUser indicates an expected call of DeleteUser
-func (mr *MockInterfaceMockRecorder) DeleteUser(arg0, arg1 interface{}) *gomock.Call {
+// AddEmail indicates an expected call of AddEmail.
+func (mr *MockInterfaceMockRecorder) AddEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockInterface)(nil).DeleteUser), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEmail", reflect.TypeOf((*MockInterface)(nil).AddEmail), arg0, arg1)
 }
 
-// FilterUsers mocks base method
-func (m *MockInterface) FilterUsers(arg0 context.Context, arg1 store.FilterUsers) ([]*entity.User, error) {
+// AddUser mocks base method.
+func (m *MockInterface) AddUser(arg0 context.Context, arg1 *entity.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FilterUsers", arg0, arg1)
-	ret0, _ := ret[0].([]*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "AddUser", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// FilterUsers indicates an expected call of FilterUsers
-func (mr *MockInterfaceMockRecorder) FilterUsers(arg0, arg1 interface{}) *gomock.Call {
+// AddUser indicates an expected call of AddUser.
+func (mr *MockInterfaceMockRecorder) AddUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterUsers", reflect.TypeOf((*MockInterface)(nil).FilterUsers), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockInterface)(nil).AddUser), arg0, arg1)
 }
 
-// GetUserByID mocks base method
-func (m *MockInterface) GetUserByID(arg0 context.Context, arg1 int64) (*entity.User, error) {
+// AuthUser mocks base method.
+func (m *MockInterface) AuthUser(arg0 context.Context, arg1, arg2 string, arg3 *entity.User, arg4 *string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByID", arg0, arg1)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "AuthUser", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetUserByID indicates an expected call of GetUserByID
-func (mr *MockInterfaceMockRecorder) GetUserByID(arg0, arg1 interface{}) *gomock.Call {
+// AuthUser indicates an expected call of AuthUser.
+func (mr *MockInterfaceMockRecorder) AuthUser(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockInterface)(nil).GetUserByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthUser", reflect.TypeOf((*MockInterface)(nil).AuthUser), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetUserByEmail mocks base method
-func (m *MockInterface) GetUserByEmail(arg0 context.Context, arg1 string) (*entity.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmail", arg0, arg1)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserByEmail indicates an expected call of GetUserByEmail
-func (mr *MockInterfaceMockRecorder) GetUserByEmail(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockInterface)(nil).GetUserByEmail), arg0, arg1)
-}
-
-// AuthUser mocks base method
-func (m *MockInterface) AuthUser(arg0 context.Context, arg1, arg2 string) (*entity.User, string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AuthUser", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// AuthUser indicates an expected call of AuthUser
-func (mr *MockInterfaceMockRecorder) AuthUser(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthUser", reflect.TypeOf((*MockInterface)(nil).AuthUser), arg0, arg1, arg2)
-}
-
-// FilterEmails mocks base method
-func (m *MockInterface) FilterEmails(arg0 context.Context, arg1 store.FilterEmails) ([]*entity.Email, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FilterEmails", arg0, arg1)
-	ret0, _ := ret[0].([]*entity.Email)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FilterEmails indicates an expected call of FilterEmails
-func (mr *MockInterfaceMockRecorder) FilterEmails(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterEmails", reflect.TypeOf((*MockInterface)(nil).FilterEmails), arg0, arg1)
-}
-
-// AddEmail mocks base method
-func (m *MockInterface) AddEmail(arg0 context.Context, arg1 int64, arg2 string) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddEmail", arg0, arg1, arg2)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AddEmail indicates an expected call of AddEmail
-func (mr *MockInterfaceMockRecorder) AddEmail(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEmail", reflect.TypeOf((*MockInterface)(nil).AddEmail), arg0, arg1, arg2)
-}
-
-// DeleteEmail mocks base method
+// DeleteEmail mocks base method.
 func (m *MockInterface) DeleteEmail(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteEmail", arg0, arg1)
@@ -163,13 +86,27 @@ func (m *MockInterface) DeleteEmail(arg0 context.Context, arg1 int64) error {
 	return ret0
 }
 
-// DeleteEmail indicates an expected call of DeleteEmail
+// DeleteEmail indicates an expected call of DeleteEmail.
 func (mr *MockInterfaceMockRecorder) DeleteEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmail", reflect.TypeOf((*MockInterface)(nil).DeleteEmail), arg0, arg1)
 }
 
-// EnqueueDeleteEmail mocks base method
+// DeleteUser mocks base method.
+func (m *MockInterface) DeleteUser(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockInterfaceMockRecorder) DeleteUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockInterface)(nil).DeleteUser), arg0, arg1)
+}
+
+// EnqueueDeleteEmail mocks base method.
 func (m *MockInterface) EnqueueDeleteEmail(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnqueueDeleteEmail", arg0, arg1)
@@ -177,8 +114,64 @@ func (m *MockInterface) EnqueueDeleteEmail(arg0 context.Context, arg1 int64) err
 	return ret0
 }
 
-// EnqueueDeleteEmail indicates an expected call of EnqueueDeleteEmail
+// EnqueueDeleteEmail indicates an expected call of EnqueueDeleteEmail.
 func (mr *MockInterfaceMockRecorder) EnqueueDeleteEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnqueueDeleteEmail", reflect.TypeOf((*MockInterface)(nil).EnqueueDeleteEmail), arg0, arg1)
+}
+
+// FilterEmails mocks base method.
+func (m *MockInterface) FilterEmails(arg0 context.Context, arg1 store.FilterEmails, arg2 *[]entity.Email) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterEmails", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FilterEmails indicates an expected call of FilterEmails.
+func (mr *MockInterfaceMockRecorder) FilterEmails(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterEmails", reflect.TypeOf((*MockInterface)(nil).FilterEmails), arg0, arg1, arg2)
+}
+
+// FilterUsers mocks base method.
+func (m *MockInterface) FilterUsers(arg0 context.Context, arg1 store.FilterUsers, arg2 *[]entity.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterUsers", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FilterUsers indicates an expected call of FilterUsers.
+func (mr *MockInterfaceMockRecorder) FilterUsers(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterUsers", reflect.TypeOf((*MockInterface)(nil).FilterUsers), arg0, arg1, arg2)
+}
+
+// GetUserByEmail mocks base method.
+func (m *MockInterface) GetUserByEmail(arg0 context.Context, arg1 string, arg2 *entity.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockInterfaceMockRecorder) GetUserByEmail(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockInterface)(nil).GetUserByEmail), arg0, arg1, arg2)
+}
+
+// GetUserByID mocks base method.
+func (m *MockInterface) GetUserByID(arg0 context.Context, arg1 int64, arg2 *entity.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetUserByID indicates an expected call of GetUserByID.
+func (mr *MockInterfaceMockRecorder) GetUserByID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockInterface)(nil).GetUserByID), arg0, arg1, arg2)
 }

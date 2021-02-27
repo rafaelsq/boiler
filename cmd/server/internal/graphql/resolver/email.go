@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
+	lentity "boiler/pkg/entity"
 	"boiler/pkg/errors"
 	"boiler/pkg/service"
 	"boiler/pkg/store"
@@ -24,10 +25,13 @@ type Email struct {
 
 // User resolve User by Email
 func (r *Email) User(ctx context.Context, e *entity.Email) (*entity.User, error) {
-	u, err := r.service.GetUserByEmail(ctx, e.Address)
+
+	var u lentity.User
+	err := r.service.GetUserByEmail(ctx, e.Address, &u)
 	if err == nil {
-		return entity.NewUser(u), nil
+		return entity.NewUser(&u), nil
 	}
+
 	return nil, Wrap(ctx, err, "fail to get user by email")
 }
 
@@ -38,7 +42,8 @@ func (r *Email) Email(ctx context.Context, rawEmailID string) (*entity.Email, er
 		return nil, service.ErrInvalidID
 	}
 
-	emails, err := r.service.FilterEmails(ctx, store.FilterEmails{EmailID: emailID})
+	emails := make([]lentity.Email, 0)
+	err = r.service.FilterEmails(ctx, store.FilterEmails{EmailID: emailID}, &emails)
 	if err != nil {
 		return nil, Wrap(ctx, err, "fail to filter emails")
 	}
@@ -47,5 +52,5 @@ func (r *Email) Email(ctx context.Context, rawEmailID string) (*entity.Email, er
 		return nil, errors.ErrNotFound
 	}
 
-	return entity.NewEmail(emails[0]), nil
+	return entity.NewEmail(&emails[0]), nil
 }

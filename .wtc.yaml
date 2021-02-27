@@ -9,12 +9,12 @@ format:
 rules:
   - name: server
     match: \.go$
-    ignore: (/mock/|((interface|entity|_test)\.go)$)
+    ignore: (/mock/|interface\.go|/entity/|_test\.go)
     command: go run cmd/server/server.go
 
   - name: worker
     match: \.go$
-    ignore: (/mock/|((interface|entity|_test)\.go)$)
+    ignore: (/mock/|interface\.go|/entity/|_test\.go)
     command: go run cmd/worker/worker.go
 
   - name: gqlgen
@@ -22,7 +22,8 @@ rules:
     command: gqlgen --config cmd/server/internal/graphql/gqlgen.yml
 
   - name: generate
-    match: (interface|entity)\.go$
+    match: /interface\.go$|/entity/
+    ignore: _gen\.go$
     command: go generate {PKG}
     debounce: 1000
     trig_async:

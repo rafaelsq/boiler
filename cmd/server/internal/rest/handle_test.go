@@ -2,6 +2,7 @@ package rest_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -28,8 +29,11 @@ func TestAddUserHandle(t *testing.T) {
 	{
 		m := mock.NewMockInterface(ctrl)
 
-		user := &entity.User{ID: 4, Name: "John"}
-		m.EXPECT().AddUser(gomock.Any(), user.Name, user.Password).Return(user.ID, nil)
+		user := &entity.User{Name: "John"}
+		m.EXPECT().AddUser(gomock.Any(), user).DoAndReturn(func(_ context.Context, u *entity.User) error {
+			u.ID = 4
+			return nil
+		})
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -50,7 +54,7 @@ func TestAddUserHandle(t *testing.T) {
 		}
 		_ = json.NewDecoder(res.Body).Decode(&rm)
 		res.Body.Close()
-		assert.Equal(t, rm.UserID, user.ID)
+		assert.Equal(t, rm.UserID, int64(4))
 		assert.Nil(t, err)
 	}
 
@@ -111,8 +115,8 @@ func TestAddUserHandle(t *testing.T) {
 		m := mock.NewMockInterface(ctrl)
 		myErr := fmt.Errorf("opz")
 
-		user := &entity.User{ID: 4, Name: "John"}
-		m.EXPECT().AddUser(gomock.Any(), user.Name, user.Password).Return(int64(0), myErr)
+		user := &entity.User{Name: "John"}
+		m.EXPECT().AddUser(gomock.Any(), user).Return(myErr)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -230,9 +234,13 @@ func TestUsersHandle(t *testing.T) {
 		m := mock.NewMockInterface(ctrl)
 
 		user := &entity.User{ID: 4, Name: "John Doe"}
+		users := []entity.User{}
 		m.EXPECT().
-			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 3}).
-			Return([]*entity.User{user}, nil)
+			FilterUsers(gomock.Any(), store.FilterUsers{Limit: 3}, &users).
+			DoAndReturn(func(_ context.Context, _ store.FilterUsers, us *[]entity.User) error {
+				*us = append(*us, *user)
+				return nil
+			})
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -283,9 +291,8 @@ func TestUsersHandle(t *testing.T) {
 	{
 		m := mock.NewMockInterface(ctrl)
 
-		user := &entity.User{ID: 4, Name: "John Doe"}
-		m.EXPECT().FilterUsers(gomock.Any(),
-			store.FilterUsers{Limit: 100}).Return([]*entity.User{user}, fmt.Errorf("not working"))
+		users := []entity.User{}
+		m.EXPECT().FilterUsers(gomock.Any(), store.FilterUsers{Limit: 100}, &users).Return(fmt.Errorf("not working"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -314,11 +321,13 @@ func TestUserHandle(t *testing.T) {
 	{
 		m := mock.NewMockInterface(ctrl)
 
-		user := &entity.User{ID: 4, Name: "John Doe"}
-
 		m.EXPECT().
-			GetUserByID(gomock.Any(), user.ID).
-			Return(user, nil)
+			GetUserByID(gomock.Any(), int64(4), gomock.Any()).
+			DoAndReturn(func(_ context.Context, id int64, u *entity.User) error {
+				u.ID = 4
+				u.Name = "John Doe"
+				return nil
+			})
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -329,7 +338,7 @@ func TestUserHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/user/%d", ts.URL, user.ID))
+		res, err := http.Get(fmt.Sprintf("%s/user/4", ts.URL))
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
@@ -339,8 +348,8 @@ func TestUserHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, u)
 
-		assert.Equal(t, u.User.ID, user.ID)
-		assert.Equal(t, u.User.Name, user.Name)
+		assert.Equal(t, u.User.ID, int64(4))
+		assert.Equal(t, u.User.Name, "John Doe")
 	}
 
 	// fail - bad-request
@@ -366,11 +375,9 @@ func TestUserHandle(t *testing.T) {
 	{
 		m := mock.NewMockInterface(ctrl)
 
-		user := &entity.User{ID: 4, Name: "John Doe"}
-
 		m.EXPECT().
-			GetUserByID(gomock.Any(), user.ID).
-			Return(nil, fmt.Errorf("failed"))
+			GetUserByID(gomock.Any(), int64(4), gomock.Any()).
+			Return(fmt.Errorf("failed"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -381,7 +388,7 @@ func TestUserHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/user/%d", ts.URL, user.ID))
+		res, err := http.Get(fmt.Sprintf("%s/user/4", ts.URL))
 		assert.Nil(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
 		res.Body.Close()
@@ -396,12 +403,17 @@ func TestAddEmailHandle(t *testing.T) {
 	{
 		m := mock.NewMockInterface(ctrl)
 
-		userID := int64(12)
-		address := "example@email.com"
+		email := entity.Email{
+			UserID:  12,
+			Address: "example@email.com",
+		}
 
 		m.EXPECT().
-			AddEmail(gomock.Any(), userID, address).
-			Return(int64(5), nil)
+			AddEmail(gomock.Any(), &email).
+			DoAndReturn(func(_ context.Context, e *entity.Email) error {
+				e.ID = 5
+				return nil
+			})
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -412,7 +424,7 @@ func TestAddEmailHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString(fmt.Sprintf("{\"user_id\":%d,\"address\":\"%s\"}", userID, address))
+		body := bytes.NewBufferString(fmt.Sprintf("{\"user_id\":%d,\"address\":\"%s\"}", email.UserID, email.Address))
 
 		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
@@ -506,13 +518,15 @@ func TestAddEmailHandle(t *testing.T) {
 	{
 		m := mock.NewMockInterface(ctrl)
 
-		userID := int64(12)
-		address := "example@email.com"
+		email := entity.Email{
+			UserID:  12,
+			Address: "example@email.com",
+		}
 		myErr := fmt.Errorf("fails")
 
 		m.EXPECT().
-			AddEmail(gomock.Any(), userID, address).
-			Return(int64(0), myErr)
+			AddEmail(gomock.Any(), &email).
+			Return(myErr)
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -523,7 +537,7 @@ func TestAddEmailHandle(t *testing.T) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		body := bytes.NewBufferString(fmt.Sprintf("{\"user_id\":%d,\"address\":\"%s\"}", userID, address))
+		body := bytes.NewBufferString(fmt.Sprintf("{\"user_id\":%d,\"address\":\"%s\"}", email.UserID, email.Address))
 
 		res, err := http.Post(fmt.Sprintf("%s/emails?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
@@ -639,14 +653,17 @@ func TestEmailsHandle(t *testing.T) {
 		m := mock.NewMockInterface(ctrl)
 
 		user := entity.User{ID: 4, Name: "John Doe"}
-		emails := []*entity.Email{
+		emails := []entity.Email{
 			{ID: 2, Address: "contact@example.com"},
 			{ID: 3, Address: "devs@example.com"},
 		}
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), store.FilterEmails{UserID: user.ID}).
-			Return(emails, nil)
+			FilterEmails(gomock.Any(), store.FilterEmails{UserID: user.ID}, gomock.Any()).
+			DoAndReturn(func(_ context.Context, f store.FilterEmails, es *[]entity.Email) error {
+				*es = emails
+				return nil
+			})
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
@@ -681,8 +698,8 @@ func TestEmailsHandle(t *testing.T) {
 		user := entity.User{ID: 4, Name: "John Doe"}
 
 		m.EXPECT().
-			FilterEmails(gomock.Any(), store.FilterEmails{UserID: user.ID}).
-			Return(nil, fmt.Errorf("failed"))
+			FilterEmails(gomock.Any(), store.FilterEmails{UserID: user.ID}, gomock.Any()).
+			Return(fmt.Errorf("failed"))
 
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
