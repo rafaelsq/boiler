@@ -12,8 +12,6 @@ jobs:
               with:
                   go-version: '^1.15.2'
             - name: golangci-lint
-              uses: golangci/golangci-lint-action@v2
-              with:
-                  version: v1.31
+              run: go run github.com/golangci/golangci-lint/cmd/golangci-lint run ./...
             - name: Test
-              run: make godeps && go test -race -cover ./...
+              run: go test -race -cover ./...
