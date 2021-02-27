@@ -9,6 +9,8 @@ import (
 	"boiler/pkg/service"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/rs/zerolog/log"
@@ -16,7 +18,7 @@ import (
 
 // PlayHandle handle Playground
 func PlayHandle() http.HandlerFunc {
-	return playground.Handler("Users", "/graphql/query")
+	return playground.Handler("Play", "/graphql/query")
 }
 
 // QueryHandleFunc return an http HandlerFunc
@@ -27,8 +29,13 @@ func QueryHandler(service service.Interface) http.Handler {
 		}),
 	)
 
+	hldr.Use(extension.Introspection{})
+	hldr.Use(apollotracing.Tracer{})
+
+	hldr.AddTransport(transport.Options{})
 	hldr.AddTransport(transport.GET{})
 	hldr.AddTransport(transport.POST{})
+	hldr.AddTransport(transport.MultipartForm{})
 
 	hldr.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
 		log.Error().Interface("err", err).Caller().Send()
