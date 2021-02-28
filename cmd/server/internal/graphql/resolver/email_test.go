@@ -10,7 +10,6 @@ import (
 	"boiler/cmd/server/internal/graphql/resolver"
 	"boiler/pkg/entity"
 	"boiler/pkg/errors"
-	"boiler/pkg/service"
 	"boiler/pkg/service/mock"
 	"boiler/pkg/store"
 
@@ -95,7 +94,7 @@ func TestEmailEmail(t *testing.T) {
 
 		e, err := r.Email(ctxDebug, strconv.FormatInt(email.ID, 10))
 		assert.Nil(t, e)
-		assert.Equal(t, service.ErrInvalidID, err)
+		assert.Equal(t, errors.ErrInvalidID, err)
 	}
 
 	// fails if service fails

@@ -2,12 +2,12 @@ package graphql
 
 import (
 	"context"
-	"errors"
 	"strconv"
 
 	"boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
 	globalEntity "boiler/pkg/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/store/config"
 )
 
@@ -37,7 +37,7 @@ func (r *Query) Viewer(ctx context.Context) (*entity.User, error) {
 
 	raw := ctx.Value(config.ContextKeyAuthenticationUser{})
 	if raw == nil {
-		return nil, errors.New("unauthorized")
+		return nil, errors.ErrUnauthorized
 	}
 
 	return r.ru.User(ctx, strconv.FormatInt(raw.(*globalEntity.JWTUser).ID, 10))

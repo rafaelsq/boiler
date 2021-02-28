@@ -2,14 +2,16 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"runtime/debug"
 	"strconv"
+	"strings"
 
 	"boiler/pkg/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/store/config"
-	lw "boiler/pkg/store/log"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/lestrrat-go/jwx/jwa"
@@ -23,14 +25,21 @@ func Recoverer(next http.Handler) http.Handler {
 		defer func() {
 			if rvr := recover(); rvr != nil {
 				logEntry := middleware.GetLogEntry(r)
+				caller := errors.Caller()
 				if logEntry != nil {
 					logEntry.Panic(rvr, debug.Stack())
+					stackTitle, stackTrace := errors.GetStack()
+					fmt.Fprintf(
+						os.Stderr,
+						"%s\n    %s\n",
+						stackTitle,
+						strings.Join(stackTrace, "\n    "),
+					)
 				} else if e, is := rvr.(error); is {
-					log.Error().Err(e).Msg("panic")
+					log.Error().Err(e).Str("file", caller).Msg("panic")
 				} else {
-					log.Error().Msg(rvr.(string))
+					log.Error().Str("file", caller).Msg(rvr.(string))
 				}
-				lw.WriteStack(os.Stderr)
 
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}

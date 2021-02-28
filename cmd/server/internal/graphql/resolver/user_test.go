@@ -9,7 +9,7 @@ import (
 	gentity "boiler/cmd/server/internal/graphql/entity"
 	"boiler/cmd/server/internal/graphql/resolver"
 	"boiler/pkg/entity"
-	"boiler/pkg/service"
+	"boiler/pkg/errors"
 	"boiler/pkg/service/mock"
 	"boiler/pkg/store"
 	"boiler/pkg/store/config"
@@ -55,7 +55,7 @@ func TestUserUser(t *testing.T) {
 
 		u, err := r.User(ctxDebug, "fail")
 		assert.Nil(t, u)
-		assert.Equal(t, err, service.ErrInvalidID)
+		assert.Equal(t, err, errors.ErrInvalidID)
 	}
 
 	// fails if service fails
@@ -142,7 +142,7 @@ func TestUserEmails(t *testing.T) {
 
 		emails, err := r.Emails(ctxDebug, &gentity.User{ID: "0"})
 		assert.Nil(t, emails)
-		assert.Equal(t, err, service.ErrInvalidID)
+		assert.Equal(t, err, errors.ErrInvalidID)
 	}
 
 	// fails if service fails

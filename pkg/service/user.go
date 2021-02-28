@@ -63,7 +63,7 @@ func (s *Service) AuthUser(ctx context.Context, email, password string, user *en
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		return ErrInvalidPassword
+		return errors.ErrInvalidPassword
 	}
 
 	t := jwt.New()

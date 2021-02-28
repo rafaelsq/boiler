@@ -2,7 +2,6 @@ package errors
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -13,7 +12,16 @@ var (
 )
 
 var (
-	ErrBadRequest    = errors.New("bad request")
-	ErrNotFound      = fmt.Errorf("not found; %w", ErrBadRequest)
-	ErrAlreadyExists = fmt.Errorf("already exists; %w", ErrBadRequest)
+	// Base Errors
+
+	ErrBadRequest   = AddCodeWithMessage(nil, "BAD_REQUEST", "bad request")
+	ErrUnauthorized = AddCodeWithMessage(nil, "UNAUTHORIZED", "unauthorized")
+
+	// Service
+
+	ErrNotFound            = AddCodeWithMessage(ErrBadRequest, "NOT_FOUND", "not found")
+	ErrAlreadyExists       = AddCodeWithMessage(ErrBadRequest, "ALREADY_EXISTS", "already exists")
+	ErrInvalidID           = AddCodeWithMessage(ErrBadRequest, "INVALID_ID", "invalid ID")
+	ErrInvalidPassword     = AddCodeWithMessage(ErrBadRequest, "INVALID_PASSWORD", "invalid password")
+	ErrInvalidEmailAddress = AddCodeWithMessage(ErrBadRequest, "INVALID_EMAIL_ADDRESS", "invalid email address")
 )

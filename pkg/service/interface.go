@@ -3,17 +3,9 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"boiler/pkg/entity"
 	"boiler/pkg/store"
-)
-
-var (
-	// ErrInvalidID invalid ID error
-	ErrInvalidID = errors.New("invalid ID")
-	// ErrInvalidPassword invalid password
-	ErrInvalidPassword = errors.New("invalid password")
 )
 
 const (

@@ -2,7 +2,6 @@ package mutation
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -51,13 +50,14 @@ func TestAddUser(t *testing.T) {
 		name := "name"
 		password := "pass"
 
-		service.EXPECT().AddUser(ctx, gomock.Any()).Return(fmt.Errorf("opz"))
+		errOpz := errors.New("opz")
+		service.EXPECT().AddUser(ctx, gomock.Any()).Return(errOpz)
 
 		r, err := m.AddUser(ctx, entity.AddUserInput{
 			Name:     name,
 			Password: password,
 		})
-		assert.Equal(t, err.Error(), "service failed")
+		assert.True(t, errors.Is(err, errOpz))
 		assert.Nil(t, r)
 	}
 }
@@ -100,7 +100,7 @@ func TestAddEmail(t *testing.T) {
 			UserID:  userID,
 			Address: address,
 		})
-		assert.Equal(t, err.Error(), "input: invalid userID")
+		assert.True(t, errors.Is(err, errors.ErrInvalidID))
 		assert.Nil(t, u)
 	}
 
@@ -113,7 +113,7 @@ func TestAddEmail(t *testing.T) {
 			UserID:  userID,
 			Address: address,
 		})
-		assert.Equal(t, err.Error(), "input: invalid email address")
+		assert.True(t, errors.Is(err, errors.ErrInvalidEmailAddress))
 		assert.Nil(t, u)
 	}
 
@@ -128,7 +128,7 @@ func TestAddEmail(t *testing.T) {
 			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
-		assert.Equal(t, err.Error(), fmt.Sprintf("input: %v", errors.ErrAlreadyExists))
+		assert.True(t, errors.Is(err, errors.ErrAlreadyExists))
 		assert.Nil(t, u)
 	}
 
@@ -137,13 +137,14 @@ func TestAddEmail(t *testing.T) {
 		address := "email@email.com"
 		userID := int64(12)
 
-		service.EXPECT().AddEmail(ctx, gomock.Any()).Return(fmt.Errorf("opz"))
+		errOpz := errors.New("opz")
+		service.EXPECT().AddEmail(ctx, gomock.Any()).Return(errOpz)
 
 		u, err := m.AddEmail(ctx, entity.AddEmailInput{
 			UserID:  strconv.FormatInt(userID, 10),
 			Address: address,
 		})
-		assert.Equal(t, err.Error(), "service failed")
+		assert.True(t, errors.Is(err, errOpz))
 		assert.Nil(t, u)
 	}
 }

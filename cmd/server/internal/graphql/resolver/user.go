@@ -6,6 +6,7 @@ import (
 
 	"boiler/cmd/server/internal/graphql/entity"
 	lentity "boiler/pkg/entity"
+	"boiler/pkg/errors"
 	"boiler/pkg/service"
 	"boiler/pkg/store"
 )
@@ -26,7 +27,7 @@ type User struct {
 func (r *User) User(ctx context.Context, rawUserID string) (*entity.User, error) {
 	userID, err := strconv.ParseInt(rawUserID, 10, 64)
 	if err != nil || userID == 0 {
-		return nil, service.ErrInvalidID
+		return nil, errors.ErrInvalidID
 	}
 
 	var u lentity.User
@@ -59,7 +60,7 @@ func (r *User) Users(ctx context.Context, limit uint) ([]*entity.User, error) {
 func (r *User) Emails(ctx context.Context, u *entity.User) ([]*entity.Email, error) {
 	userID, err := strconv.ParseInt(u.ID, 10, 64)
 	if err != nil || userID == 0 {
-		return nil, service.ErrInvalidID
+		return nil, errors.ErrInvalidID
 	}
 
 	es := make([]lentity.Email, 0)

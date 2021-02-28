@@ -10,9 +10,6 @@ import (
 	lentity "boiler/pkg/entity"
 	"boiler/pkg/errors"
 	"boiler/pkg/service"
-
-	"github.com/rs/zerolog/log"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // NewMutation return a new Mutation
@@ -36,8 +33,7 @@ func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*ent
 
 	err := m.service.AddUser(ctx, &user)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to add user")
-		return nil, fmt.Errorf("service failed")
+		return nil, fmt.Errorf("fail to add user; %w", err)
 	}
 
 	return &entity.UserResponse{User: &entity.User{ID: strconv.FormatInt(user.ID, 10)}}, nil
@@ -47,22 +43,12 @@ func (m *Mutation) AddUser(ctx context.Context, input entity.AddUserInput) (*ent
 func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*entity.EmailResponse, error) {
 	userID, err := strconv.ParseInt(input.UserID, 10, 64)
 	if err != nil || userID == 0 {
-		return nil, &gqlerror.Error{
-			Message: "invalid userID",
-			Extensions: map[string]interface{}{
-				"code": "-1",
-			},
-		}
+		return nil, errors.ErrInvalidID
 	}
 
 	address, err := mail.ParseAddress(input.Address)
 	if err != nil {
-		return nil, &gqlerror.Error{
-			Message: "invalid email address",
-			Extensions: map[string]interface{}{
-				"code": "-2",
-			},
-		}
+		return nil, errors.ErrInvalidEmailAddress
 	}
 
 	email := lentity.Email{
@@ -72,17 +58,7 @@ func (m *Mutation) AddEmail(ctx context.Context, input entity.AddEmailInput) (*e
 
 	err = m.service.AddEmail(ctx, &email)
 	if err != nil {
-		if errors.Is(err, errors.ErrAlreadyExists) {
-			return nil, &gqlerror.Error{
-				Message: errors.ErrAlreadyExists.Error(),
-				Extensions: map[string]interface{}{
-					"code": "alreadyexists",
-				},
-			}
-		}
-
-		log.Error().Err(err).Msg("fail to add email")
-		return nil, fmt.Errorf("service failed")
+		return nil, err
 	}
 
 	return &entity.EmailResponse{Email: &entity.Email{ID: strconv.FormatInt(email.ID, 10)}}, nil
@@ -96,8 +72,7 @@ func (m *Mutation) AuthUser(ctx context.Context, input entity.AuthUserInput) (*e
 
 	err := m.service.AuthUser(ctx, input.Email, input.Password, &user, &token)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to authenticate user")
-		return nil, fmt.Errorf("service failed")
+		return nil, fmt.Errorf("fail to authenticate user; %w", err)
 	}
 
 	return &entity.AuthUserResponse{
