@@ -210,7 +210,12 @@ app({
         h('div', {className: 'section'}, [
             h('div', {className: 'container'}, [
                 h('h1', {className: 'title'}, 'Rest'),
-                h('a', {href: '/graphql/play'}, 'graphql'),
+                h('p', {},
+                    'GraphQL explorer with native ',
+                    h('a', {href: '/graphql/play', target: '_blank'}, 'Play'),
+                    ' or ',
+                    h('a', {href: '/graphql/explorer', target: '_blank'}, 'Graph', h('i',{}, 'i'), 'QL'),
+                ),
                 h(
                     'div',
                     {className: 'field has-addons'},

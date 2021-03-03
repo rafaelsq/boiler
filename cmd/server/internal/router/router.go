@@ -55,6 +55,7 @@ func ApplyRoute(r chi.Router, service service.Interface) {
 	// graphql
 	r.Route("/graphql", func(g chi.Router) {
 		g.Get("/play", graphql.PlayHandle())
+		g.Get("/explorer", graphql.ExplorerHandle())
 		g.Handle("/query", graphql.QueryHandler(service))
 	})
 
