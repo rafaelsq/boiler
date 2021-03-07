@@ -11,7 +11,7 @@ var (
 	ProjectPrefix       = regexp.MustCompile(`(?i)^(Boiler/|main.main)`)
 	ProjectPathPrefix   = regexp.MustCompile(`(?i)(Boiler/)`)
 	IgnoreCallerPrefixs = regexp.MustCompile(
-		`(?i)(generated|/middleware\.go|_gen.go|pkg/errors/|graphql/handle\.go|router\.go)`,
+		`(?i)(generated|/middleware\.go|_gen.go|pkg/errors/|graphql/handle\.go|router\.go|rest/resp.go)`,
 	)
 )
 

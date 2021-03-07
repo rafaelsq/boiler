@@ -61,7 +61,7 @@ func ApplyRoute(r chi.Router, service service.Interface) {
 
 	// rest
 	r.Route("/rest", func(r chi.Router) {
-		h := rest.New(service)
+		h := rest.New(service, new(rest.DefaultResp))
 
 		r.Get("/users", h.ListUsers)
 		r.Post("/users", h.AddUser)

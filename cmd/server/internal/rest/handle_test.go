@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,7 +37,7 @@ func TestAddUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
@@ -47,14 +46,13 @@ func TestAddUserHandle(t *testing.T) {
 		body := bytes.NewBufferString("{\"name\":\"John\"}")
 		res, err := http.Post(fmt.Sprintf("%s/users", ts.URL), "application/json", body)
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusOK)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var rm struct {
-			UserID int64 `json:"user_id"`
-		}
-		_ = json.NewDecoder(res.Body).Decode(&rm)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
-		assert.Equal(t, rm.UserID, int64(4))
+
+		assert.Len(t, resp.Error.Codes, 0)
 		assert.Nil(t, err)
 	}
 
@@ -65,7 +63,7 @@ func TestAddUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
@@ -77,11 +75,16 @@ func TestAddUserHandle(t *testing.T) {
 			bytes.NewBufferString("{\"invalid}"),
 		)
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-		b, _ := ioutil.ReadAll(res.Body)
-		assert.Equal(t, string(b), "could not parse payload")
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
+
+		assert.Len(t, resp.Error.Codes, 2)
+		assert.Equal(t, "invalid_payload", resp.Error.Codes[0])
+		assert.Equal(t, "bad_request", resp.Error.Codes[1])
+		assert.Nil(t, err)
 	}
 
 	// fail if name is empty
@@ -91,7 +94,7 @@ func TestAddUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
@@ -103,11 +106,16 @@ func TestAddUserHandle(t *testing.T) {
 			bytes.NewBufferString("{\"name\":\"\"}"),
 		)
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-		b, _ := ioutil.ReadAll(res.Body)
-		assert.Equal(t, string(b), "empty name")
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
+
+		assert.Len(t, resp.Error.Codes, 2)
+		assert.Equal(t, "invalid_name", resp.Error.Codes[0])
+		assert.Equal(t, "bad_request", resp.Error.Codes[1])
+		assert.Nil(t, err)
 	}
 
 	// fails if service fails
@@ -121,7 +129,7 @@ func TestAddUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/users", h.AddUser)
 
 		ts := httptest.NewServer(r)
@@ -130,11 +138,16 @@ func TestAddUserHandle(t *testing.T) {
 		body := bytes.NewBufferString("{\"name\":\"John\"}")
 		res, err := http.Post(fmt.Sprintf("%s/users?debug", ts.URL), "application/json", body)
 		assert.Nil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
-		b, _ := ioutil.ReadAll(res.Body)
-		assert.Equal(t, string(b), "service failed")
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
-		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
+
+		assert.Len(t, resp.Error.Codes, 1)
+		assert.Equal(t, "internal_server_error", resp.Error.Codes[0])
+		assert.Equal(t, "could not add user; opz", resp.Error.Msg)
+		assert.Nil(t, err)
 	}
 }
 
@@ -152,7 +165,7 @@ func TestDeleteUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Delete("/users/{userID:[0-9]+}", h.DeleteUser)
 
 		ts := httptest.NewServer(r)
@@ -174,7 +187,7 @@ func TestDeleteUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Delete("/users/{userID:[0-9]+}", h.DeleteUser)
 
 		ts := httptest.NewServer(r)
@@ -185,13 +198,17 @@ func TestDeleteUserHandle(t *testing.T) {
 
 		res, err := http.DefaultClient.Do(req)
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-		b, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
 
-		assert.Equal(t, "invalid user ID", string(b))
+		assert.Len(t, resp.Error.Codes, 3)
+		assert.Equal(t, "invalid_user_id", resp.Error.Codes[0])
+		assert.Equal(t, "invalid_id", resp.Error.Codes[1])
+		assert.Equal(t, "bad_request", resp.Error.Codes[2])
+		assert.Nil(t, err)
 	}
 
 	// fails if service fails
@@ -204,7 +221,7 @@ func TestDeleteUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Delete("/users/{userID:[0-9]+}", h.DeleteUser)
 
 		ts := httptest.NewServer(r)
@@ -215,13 +232,15 @@ func TestDeleteUserHandle(t *testing.T) {
 
 		res, err := http.DefaultClient.Do(req)
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
-		b, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
 
-		assert.Equal(t, "service failed", string(b))
+		assert.Len(t, resp.Error.Codes, 1)
+		assert.Equal(t, "internal_server_error", resp.Error.Codes[0])
+		assert.Equal(t, "could not delete user; opz", resp.Error.Msg)
 	}
 }
 
@@ -245,7 +264,7 @@ func TestUsersHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/users", h.ListUsers)
 
 		ts := httptest.NewServer(r)
@@ -253,7 +272,7 @@ func TestUsersHandle(t *testing.T) {
 
 		res, err := http.Get(fmt.Sprintf("%s/users?limit=3", ts.URL))
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusOK)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
 
 		var resp struct{ Users []*entity.User }
 		err = json.NewDecoder(res.Body).Decode(&resp)
@@ -272,7 +291,7 @@ func TestUsersHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/users", h.ListUsers)
 
 		ts := httptest.NewServer(r)
@@ -280,11 +299,16 @@ func TestUsersHandle(t *testing.T) {
 
 		res, err := http.Get(fmt.Sprintf("%s/users?limit=a", ts.URL))
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-		b, _ := ioutil.ReadAll(res.Body)
-		assert.Equal(t, string(b), "invalid limit \"a\"")
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
+
+		assert.Len(t, resp.Error.Codes, 2)
+		assert.Equal(t, "invalid_limit", resp.Error.Codes[0])
+		assert.Equal(t, "bad_request", resp.Error.Codes[1])
+		assert.Nil(t, err)
 	}
 
 	// fails if service fails
@@ -297,19 +321,23 @@ func TestUsersHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/users", h.ListUsers)
 
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		res, err := http.Get(fmt.Sprintf("%s/users", ts.URL))
+		res, err := http.Get(fmt.Sprintf("%s/users?debug", ts.URL))
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
-		b, _ := ioutil.ReadAll(res.Body)
-		assert.Equal(t, string(b), "service failed")
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
+
+		assert.Len(t, resp.Error.Codes, 1)
+		assert.Equal(t, "internal_server_error", resp.Error.Codes[0])
+		assert.Equal(t, "could not filter users; not working", resp.Error.Msg)
 	}
 }
 
@@ -332,7 +360,7 @@ func TestUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/user/{userID:[0-9]+}", h.GetUser)
 
 		ts := httptest.NewServer(r)
@@ -359,7 +387,7 @@ func TestUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/user/{userID:[0-9]+}", h.GetUser)
 
 		ts := httptest.NewServer(r)
@@ -382,7 +410,7 @@ func TestUserHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/user/{userID:[0-9]+}", h.GetUser)
 
 		ts := httptest.NewServer(r)
@@ -418,7 +446,7 @@ func TestAddEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
@@ -446,7 +474,7 @@ func TestAddEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
@@ -458,9 +486,13 @@ func TestAddEmailHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-		b, err := ioutil.ReadAll(res.Body)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
-		assert.Equal(t, "invalid payload", string(b))
+
+		assert.Len(t, resp.Error.Codes, 2)
+		assert.Equal(t, "invalid_payload", resp.Error.Codes[0])
+		assert.Equal(t, "bad_request", resp.Error.Codes[1])
 		assert.Nil(t, err)
 	}
 
@@ -471,7 +503,7 @@ func TestAddEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
@@ -483,9 +515,13 @@ func TestAddEmailHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-		b, err := ioutil.ReadAll(res.Body)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
-		assert.Equal(t, "invalid email address", string(b))
+
+		assert.Len(t, resp.Error.Codes, 2)
+		assert.Equal(t, "invalid_email_address", resp.Error.Codes[0])
+		assert.Equal(t, "bad_request", resp.Error.Codes[1])
 		assert.Nil(t, err)
 	}
 
@@ -496,7 +532,7 @@ func TestAddEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
@@ -508,9 +544,13 @@ func TestAddEmailHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-		b, err := ioutil.ReadAll(res.Body)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
-		assert.Equal(t, "invalid user ID", string(b))
+
+		assert.Len(t, resp.Error.Codes, 2)
+		assert.Equal(t, "invalid_id", resp.Error.Codes[0])
+		assert.Equal(t, "bad_request", resp.Error.Codes[1])
 		assert.Nil(t, err)
 	}
 
@@ -531,7 +571,7 @@ func TestAddEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Post("/emails", h.AddEmail)
 
 		ts := httptest.NewServer(r)
@@ -543,9 +583,13 @@ func TestAddEmailHandle(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
-		b, err := ioutil.ReadAll(res.Body)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
-		assert.Equal(t, "service failed", string(b))
+
+		assert.Len(t, resp.Error.Codes, 1)
+		assert.Equal(t, "internal_server_error", resp.Error.Codes[0])
+		assert.Equal(t, "could not add email; fails", resp.Error.Msg)
 		assert.Nil(t, err)
 	}
 }
@@ -567,7 +611,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Delete("/emails/{emailID:[0-9]+}", h.DeleteEmail)
 
 		ts := httptest.NewServer(r)
@@ -596,7 +640,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Delete("/emails/{emailID:[0-9]+}", h.DeleteEmail)
 
 		ts := httptest.NewServer(r)
@@ -624,7 +668,7 @@ func TestDeleteEmailHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Delete("/emails/{emailID:[0-9]+}", h.DeleteEmail)
 
 		ts := httptest.NewServer(r)
@@ -635,12 +679,16 @@ func TestDeleteEmailHandle(t *testing.T) {
 
 		res, err := http.DefaultClient.Do(req)
 		assert.Nil(t, err)
-		assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
-		b, err := ioutil.ReadAll(res.Body)
+		var resp rest.ErrResponse
+		assert.Nil(t, json.NewDecoder(res.Body).Decode(&resp))
 		res.Body.Close()
+
+		assert.Len(t, resp.Error.Codes, 1)
+		assert.Equal(t, "internal_server_error", resp.Error.Codes[0])
+		assert.Equal(t, "could not delete email; opz", resp.Error.Msg)
 		assert.Nil(t, err)
-		assert.Equal(t, "service failed", string(b))
 	}
 }
 
@@ -668,7 +716,7 @@ func TestEmailsHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/emails", h.ListEmails)
 
 		ts := httptest.NewServer(r)
@@ -704,7 +752,7 @@ func TestEmailsHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/emails", h.ListEmails)
 
 		ts := httptest.NewServer(r)
@@ -720,7 +768,7 @@ func TestEmailsHandle(t *testing.T) {
 	{
 		m := mock.NewMockInterface(ctrl)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 		r.Get("/emails", h.ListEmails)
@@ -741,7 +789,7 @@ func TestEmailsHandle(t *testing.T) {
 		r := chi.NewRouter()
 		router.ApplyMiddlewares(r, nil, m)
 
-		h := rest.New(m)
+		h := rest.New(m, new(rest.DefaultResp))
 		r.Get("/emails", h.ListEmails)
 
 		ts := httptest.NewServer(r)
